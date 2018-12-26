@@ -1,0 +1,12 @@
+最大团问题的表述：
+https://wenku.baidu.com/view/356779bdf121dd36a32d8243.html
+
+https://www.cnblogs.com/zhj5chengfeng/p/3224092.html
+
+好像最有用的：求最大完全子图的
+https://blog.csdn.net/yo_bc/article/details/77453478
+
+极大团：
+https://www.cnblogs.com/heisenberg-/p/6481245.html
+
+团：在一个团中要体现出每两个点是互连的！！！！！！！！必须的。
