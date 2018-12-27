@@ -11,7 +11,17 @@
 遇到了以前的问题：
 while(1):
 	x = 1
+	print "x = ", x
 	for i in range(x, 10):
-		x = 2
+		print "i =", i
 		break
-python中运行break后，到x = 1,并不是到x = 2, 好像
+python中运行break后，i 一直= 1
+
+while(1):
+	x = 1
+	print "x = ", x
+	for i in range(x, 10):
+		print "i =", i
+		continue
+continue 还在for内执行，break是跳出for并执行上方与for同级的程序
+python中运行continue后，i 每次增加1
