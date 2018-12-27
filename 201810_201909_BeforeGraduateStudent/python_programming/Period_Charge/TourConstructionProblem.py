@@ -1,4 +1,5 @@
 # encoding: utf-8
+# 本程序主要实现，充电回路的构造
 import numpy as np
 import random
 import A_Star_Algorithm as A
@@ -155,19 +156,22 @@ for i in range(0, N + 1):
 i = 1
 z = 0
 count = 0
+# 用作记录是否重新创建回路的标志
+R_list_flag = True
+R_list = []
+# 可以添加回路成功的标志
+success_flag = True
 while i <= N:
-    print "while之后的开始时，i =", i
-    R_list = []
-    R_list.append(0)
-    # 可以添加回路成功的标志
-    success_flag = True
-    if z == N + 1:
-        print "程序结束z = ", z
-    break
     for k in range(i, N + 1):
+        # print "返回开始时i =", i
+        # 记录是否重新创建回路的标志
+        if R_list_flag is True:
+            R_list = []
+            R_list.append(0)
         # 将电单车Nk加入Rz里面
-        print "每次k都会+1 k =", k
+        # print "每次k都会+1 k =", k
         R_list.append(k)
+        R_list_flag = False
         # 应用可调度性判定算法判定再加入Nk后Rz的可调度性
         # 如果Rz不可以可调度，则将Nk从回路中取出
         # 可调度性判断
@@ -178,23 +182,44 @@ while i <= N:
         T = 2000  # 充电周期需要知道10s
         vm = 0.3  # MC的移动速度0.3m/s
         print "加入了Nk节点的R_list =", R_list
+        # 返回可调度性
+        # result = True 可调度
+        # result = False 不可调度
         result = B.judging_whether_scheduled(N, P_i_new, Em, qc, qm, nl, R_list, vm, N_distance, T)
-        print "可调度性判断result =", result
+        # 最后一组值的操作
+        if success_flag is False and result is True and k == N:
+            # print "最后一组结果可以在这保存"
+            R[z][count] = R_list
+            i = k + 1
+            break
+        # print "可调度性判断result =", result
         if result is False:
             R_list.remove(k)
-            i = k
-            z = z + 1
-            print "不可以被调度时，i应该被修改了i = ", i, "并且k =", k
+            # 说明只有S在里面
+            # 下一次从k + 1遍历
+            # print "不可以被调度时，i应该被修改了i = ", i, "并且k =", k
             print "删除了Nk节点的R_list = ", R_list
-            print "z =", z
-            print "count =", count
-            R[z][count] = R_list
-            print "R[", z, "][0]=", R[z][count]
+            # print "z =", z
+            # print "count =", count
+            # print "R[", z, "][0]=", R[z][count]
+            print "对于不可调度有其他情况，每次先判断当前R_list的长度 len(R_list)=", len(R_list)
+            if len(R_list) == 1:
+                i = k + 1
+                z = z
+            # 说明R_list里面不仅仅包含S还有节点
+            # 下一次从k开始遍历
+            else:
+                # 先保存到列表类型的数组后再修改Z的值
+                # 如果len(R_list) == 1 表示只有充电桩，不需要放入回路
+                R[z][count] = R_list
+                i = k
+                z = z + 1
             # 表明只能有部分节点能加入同一个回路
             success_flag = False
-            print "退出下一轮遍历,并且k = k + 1"
+            # print "退出下一轮遍历,并且k = k + 1"
+            R_list_flag = True
             break
-
+        i = k + 1
     # 表示所有的节点都可以放入同一个充电回路
     if success_flag is True:
         R[z][count] = R_list
@@ -204,6 +229,6 @@ while i <= N:
         break
 
 print "\n"
-for q in range(0, N + 1):
-    print R[q][0]
+for i in range(0, z + 1):
+    print R[i]
 
