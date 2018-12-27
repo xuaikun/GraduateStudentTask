@@ -35,6 +35,7 @@ def init(start_position, end_position):
     create_2D_space[end_position[0]][end_position[1]] = 1
 
     # 检查二维平面
+    '''
     for i in range(1, n + 1):
         # 将平面按行打印，提前保存到列表里面
         space_list = []
@@ -42,7 +43,7 @@ def init(start_position, end_position):
             space_list.append(create_2D_space[i][j])
             if j == n:
                 print space_list
-
+    '''
     # 若open_list_S[i][j] = 0，表示没有保存数据，表示点(i,j)不能被操作
     # 若open_list_S[1][1] = 1，表示坐标为（1,1）的点在open_list_S中可以被操作
     for i in range(1, n + 1):
@@ -63,16 +64,18 @@ def init(start_position, end_position):
 
 def set_obstacle():
     # 此函数用于设置障碍的
-    create_2D_space[2][5] = 2
-    create_2D_space[3][4] = 2
-    create_2D_space[4][3] = 2
-    create_2D_space[5][2] = 2
-    create_2D_space[4][4] = 2
+    # create_2D_space[2][5] = 2
+    # create_2D_space[3][4] = 2
+    # create_2D_space[4][3] = 2
+    # create_2D_space[5][2] = 2
+    # create_2D_space[4][4] = 2
     # 当前点(8,7)为障碍
     # create_2D_space[8][7] = 2
+    return
 
 
-def possibilities_position(parent_position):
+def possibilities_position(parent_position, goal_position):
+    end_position = goal_position
     # 观察邻近的可行方块： parent_position 表示当前位置
     # 保证被操作的点不越界、不为障碍
     # 保存位置数据的两个数组初始化
@@ -487,11 +490,15 @@ def possibilities_position(parent_position):
     return result_list
 
 
-if __name__ == "__main__":
-    print "program begin……"
+def a_star_algorithm(first_coordinate, second_coordinate):
+    # print "program begin……"
     # 坐标自己定
-    start_position = [1, 1]  # 起始坐标
-    end_position = [1000, 1000]  # 目标坐标
+    # start_position = [1, 1]  # 起始坐标
+    # end_position = [1000, 1000]  # 目标坐标
+
+    start_position = first_coordinate
+    end_position = second_coordinate
+
     # 程序初始化
     init(start_position, end_position)
     # 设置障碍
@@ -501,12 +508,12 @@ if __name__ == "__main__":
     h[parent[0]][parent[1]] = 0  # 目标的纵坐标
     # 初始化标志位，位置坐标，还有距离
     result = [False, parent[0], parent[1], 0]
-    print "result = ", result
+    # print "result = ", result
     while end_position[0] != parent[0] or end_position[1] != parent[1]:
         # 从二维平面里面操作
-        result = possibilities_position(parent)
+        result = possibilities_position(parent, end_position)
         # result 中包含4个内容，找到目标的标志Flag，目标横坐标x，目标纵坐标y，距离的值distance
-        print "result =", result
+        # print "result =", result
         # 找到目标点后，终止程序
         if end_position[0] == parent[0] and end_position[1] == parent[1]:
             break
@@ -517,6 +524,8 @@ if __name__ == "__main__":
         # 从当前找出的最短距离的点进行操作
         parent[0] = result[1]
         parent[1] = result[2]
+    # print "the final result is ", result
+    return result
 
 
 

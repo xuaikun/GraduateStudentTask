@@ -1,90 +1,71 @@
 # encoding: utf-8
 import numpy as np
 # 算法功能：判定一个充电回路P是否可调度
-# 输入变量：P=<N0,N1,……,Nk,Nk+1>, Es,v,qm,qc,n;
-# 输出变量：P的可调度性(Tl,Tu,w)
-# 初始化变量，收集并计算判定VPGS条件所需参数值
-# 1.计算P的总距离D
-# 2.收集所有传感器功耗{pi|1<=i<=k},计算psum和pmx
-# 判定VPGS条件是否成立
-# 3.if VPGS条件不成立 then
-# 4.   程序终止，返回失败状态
-# 5.endif
-# 6.令Tl = (D*qc*n)/(v*(qc*n - psum))
-# 7.令Tu = (Es*qc*n)/(pmx)
-# 8.令w(T) = (psum/(qc*n))*T + D/v
-# 9.返回成功状态
+'''
+    Es = 10  # 每个传感器节点总能量为Es = 10kj
+    n = 4  # n 表示P中包好的传感器个数P=<N0,N1,……Nk,Nk+1>其中N0 = Nk+1 = S 不用计算
+    # p[0][i] = 0.01  # 每个传感器功耗相同为p[0][i] = 0.01W
+    p = np.empty([1, n + 1], float)
+    for i in range(0, n):
+        # N0 = Nk+1 = S 它的功率不用参与计算，直接赋值为0
+        if i == 0 or i == n - 1:
+            p[0][i] = 0
+        else:
+            p[0][i] = 0.01
+        # print "p[0][", i, "] = ", p[0][i]
+    Em = 65  # MC的总能量为x kj
+    qm = 8  # Mc移动功耗为qm = 8 J/m
+    qc = 4.45  # qc*n 为能量传输率，qc= 4.45 W
+    nl = 0.5  # 类似于效率一样，占比多少 n = 0.5
+    T = 10  # 充电周期需要知道10s
+    vm = 0.3  # MC的移动速度0.3m/s
+    N = n
+    P = p
+    R = [1, 2, 3, 4]
+    N_distance = np.empty([N + 1, N + 1], int)
+    for i in range(1, N + 1):
+        for j in range(i, N + 1):
+            if j == i:
+                N_distance[i][j] = 0
+            else:
+                N_distance[i][j] = 2
+                N_distance[j][i] = N_distance[i][j]
+    '''
 
-# 这里都是假设的参数：
-r = 1       # 圆半径为 r = 1km, 第五章假设为12个传感器节点，均匀分布在圆心为服务站节点，半径为1km的圆周上
-Es = 10     # 每个传感器节点总能量为Es = 10kj
-n = 4       # n 表示P中包好的传感器个数P=<N0,N1,……Nk,Nk+1>其中N0 = Nk+1 = S 不用计算
-# p[0][i] = 0.01  # 每个传感器功耗相同为p[0][i] = 0.01W
-p = np.empty([1, n], float)
-for i in range(0, n):
-    # N0 = Nk+1 = S 它的功率不用参与计算，直接赋值为0
-    if i == 0 or i == n-1:
-        p[0][i] = 0
+
+def judging_whether_scheduled(N, P, Em, qc, qm, nl, R, vm, N_distance, T):
+
+    # 统计R中节点个数
+    R_len = len(R)
+    # 求当前回路的总距离
+    D = 0
+    # 一定要想清楚这里，只用R_len - 1
+    for i in range(0, R_len - 1):
+        D = D + N_distance[R[i]][R[i+1]]
+    # 还要加上一条返回S的路
+    D = D + N_distance[R[R_len - 1]][R[0]]
+
+    print "总距离D = ", D
+    psum = 0
+    for i in range(1, N + 1):
+        psum = psum + P[0][i]
+    print "总能耗psum =", psum
+
+    factor_1 = (D*qc*nl)/(vm*(qc*nl-psum))
+    factor_2 = (psum*((D*qc)/(vm*(qc*nl-psum)))) + (D*qm)
+    #  可调度的标志
+    # success_flag = True 可调度
+    # success_flag = False 不可调度
+    print "T =", T
+    print "factor_1 =", factor_1
+    print "Em =", Em
+    print "factor_2 =", factor_2
+    if T >= factor_1 and Em >= factor_2:
+        success_flag = True
     else:
-        p[0][i] = 0.01
-    print "p[0][", i, "] = ", p[0][i]
-P = []
-P.append(p)
-print P
-Em = 60     # MC的总能量为x kj
-qm = 8      # Mc移动功耗为qm = 8 J/m
-qc = 4.45      # qc*n 为能量传输率，qc= 4.45 W
-nl = 0.5       # 类似于效率一样，占比多少 n = 0.5
-T = 10      # 充电周期需要知道10s
-v = 0.3      # MC的移动速度0.3m/s
+        success_flag = False
+    return success_flag
 
 
-def judging_whether_scheduled(Es, v, qm, qc, nl):
-    # P为一个回路其中的Nk为某个传感器节点N0 = Nk+1 = S充电桩(能源站)
-    # Pk = (Tl,Tu,wk)
-    # Nk(pk,lk,Es) 其中pk表示功率，Es表示能量
-    # 移动充电MC(qc,n,qm,v,Em)
-    # psum = p1+p2+p3+pk(p0 = pk+1 为S的功率不需要算进来)
-    # pmx = max1<=i<=k pi*(qc*n-pi)
-    # VPGS条件:(1)qc*n > psum ,(2)v >= (D*pmx)/(Es*(qc*n - psum)) ,(3)Em >= D*qm + (psum*Es*qc)/pmx
 
-    # P_Schedule 保存经过VPGS处理后的结果
-    P_Schedule = []
-    # 只包含两个传感器节点的时候
-    # 对于这个距离，我感觉有蛮多方法计算，比如：在哈密顿图回路，每个节点都用自己的坐标，通过坐标之间的计算就可以得出距离
-    # 相邻的两个节点之间的计算，再把所有相邻的距离相加，就是D
-    # D = D + sqrt((x1-x2)^2 + (y1-y2)^2)
-    D = 2*r +4 * np.sin((15/180)*np.pi)*r
-    # 统计psum
-    print "D = ", D
-    psum = 0.0
-    for i in range(1, n - 1):
-        psum = psum + p[0][i]
-    print "psum = ", psum
-    # 获取最大的pmx
-    pmx = p[0][1] * (qc * n - p[0][1])
-    for i in range(1, n - 1):
-        if pmx < (p[0][i]*(qc*n -p[0][i])):
-            pmx = p[0][i] * (qc * n - p[0][i])
-    print "pmx =", pmx
-    print "qc*n = ", qc*n
-    print "(D*pmx)/(Es*(qc*n - psum)) = ", (D*pmx)/(Es*(qc*n - psum))
-    print "D*qm + (psum*Es*qc)/pmx = ", D*qm + (psum*Es*qc)/pmx
-    if (qc*n <= psum) or (v < (D*pmx)/(Es*(qc*n - psum))) or (Em < D*qm + (psum*Es*qc)/pmx):
-        # 如果不满足条件，则返回False
-        P_Schedule.append(False)
-        return P_Schedule
-    Tl = (D * qc * n) / (v * (qc * n - psum))
-    Tu = (Es*qc*n)/(pmx)
-    w = (psum/(qc*n))*T + D/v
-    # 如果满足VPGS条件，则返回对应的值
-    # 将P的几个参数保存到list中，并进行返回
-    P_Schedule.append(Tl)
-    P_Schedule.append(Tu)
-    P_Schedule.append(w)
-    return P_Schedule
-
-if __name__ == "__main__":
-    print "begin……"
-    print judging_whether_scheduled(Es, v, qm, qc, nl)
 
