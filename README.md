@@ -1,21 +1,11 @@
-﻿# 遇到的问题：
-### 2018年12月27日：
-实现了按周期充电的方式的构造充电回路
-遇到了以前的问题：
-while(1):
-	x = 1
-	print "x = ", x
-	for i in range(x, 10):
-		print "i =", i
-		break
-python中运行break后，i 一直= 1
+﻿### 201810_201909_BeforeGraduateStudent
+该文件夹主要记录上研究生前所做的工作
 
-while(1):
-	x = 1
-	print "x = ", x
-	for i in range(x, 10):
-		print "i =", i
-		continue
+### 201910_202009_FirstGraduateStudent
+该文件夹主要记录上研究生一年级所做的工作
 
-python中运行continue后，i 每次增加1
-continue 还在for内执行，break是跳出for并执行上方与for同级的程序
+### 202010_202109_SecondGraduateStudent
+该文件夹主要记录上研究生二年级所做的工作
+
+### 202210_202209_ThirdGraduateStudent
+该文件夹主要记录上研究生三年级所做的工作

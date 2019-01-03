@@ -4,6 +4,7 @@ import numpy as np
 import random
 import A_Star_Algorithm as A
 import JudgingWhetherScheduled as B
+import matplotlib.pyplot as plt
 
 
 # 定义选择排序 A
@@ -21,6 +22,7 @@ def select_sort(array):
 
 
 N = 5    # 假设我有N辆电单车
+edge_n = 6 # 假设定义的二维空间范围是 edge_n * edge_n
 # 初始化电单车在二维空间中的坐标
 N_x = np.empty([1, N + 1], int)
 N_y = np.empty([1, N + 1], int)
@@ -28,9 +30,43 @@ N_y = np.empty([1, N + 1], int)
 N_x_new = np.empty([1, N + 1], int)
 N_y_new = np.empty([1, N + 1], int)
 # 随机在1000*1000的空间内生成N辆电单车的坐标
+x = []
+y = []
 for i in range(1, N+1):
-    N_x[0][i] = random.randint(1, 6)
-    N_y[0][i] = random.randint(1, 6)
+    N_x[0][i] = random.randint(1, edge_n)
+    N_y[0][i] = random.randint(1, edge_n)
+    x.append(N_x[0][i])
+    y.append(N_y[0][i])
+
+# x = N_x[0]
+# y = N_y[0]
+print "x =", x
+print "y =", y
+#分别存放所有点的横坐标和纵坐标，一一对应
+x_list = x
+y_list = y
+
+#创建图并命名
+plt.figure('Scatter fig')
+ax = plt.gca()
+#设置x轴、y轴名称
+ax.set_xlabel('x')
+ax.set_ylabel('y')
+
+print "x_list =", x_list
+print "y_list =", y_list
+ax.scatter(x_list, y_list,color = 'red', marker = 'o')
+# 将所有节点一一连起来
+for i in range(0, len(x_list)):
+    for j in range(0, len(y_list)):
+        # 两两连接
+        x_temp = [x_list[i], x_list[j]]
+        y_temp = [y_list[i], y_list[j]]
+        plt.plot(x_temp, y_temp)
+        
+plt.xlim([0 - 1,edge_n + 1]) #设置绘图X边界                                                                                                   
+plt.ylim([0 - 1,edge_n + 1]) #设置绘图Y边界
+plt.show()
 
 # 定义 每个节点消耗的功率
 P_i = np.empty([1, N + 1], int)
@@ -116,6 +152,39 @@ S = [0, 0]
 # 表示充电桩S的坐标，加入了N中
 N_x_new[0][0] = S[0]
 N_y_new[0][0] = S[1]
+
+x = N_x_new[0]
+y = N_y_new[0]
+print "x =", x
+print "y =", y
+#分别存放所有点的横坐标和纵坐标，一一对应
+x_list = x
+y_list = y
+
+#创建图并命名
+plt.figure('Scatter fig')
+ax = plt.gca()
+#设置x轴、y轴名称
+ax.set_xlabel('x')
+ax.set_ylabel('y')
+
+print "x_list =", x_list
+print "y_list =", y_list
+ax.scatter(x_list, y_list,color = 'red', marker = 'o')
+# 将节点连接构成回路
+for i in range(0, N):
+    # 前后连接
+    x_temp = [x_list[i], x_list[i+1]]
+    y_temp = [y_list[i], y_list[i+1]]
+    plt.plot(x_temp, y_temp)
+    if i == N - 1:
+        print 'i =', i
+        x_temp = [x_list[i + 1], x_list[0]]
+        y_temp = [y_list[i + 1], y_list[0]]
+        plt.plot(x_temp, y_temp)
+plt.xlim([0 - 1,edge_n + 1]) #设置绘图X边界                                                                                                   
+plt.ylim([0 - 1,edge_n + 1]) #设置绘图Y边界
+plt.show()
 
 for i in range(0, N + 1):
     for j in range(i, N + 1):
