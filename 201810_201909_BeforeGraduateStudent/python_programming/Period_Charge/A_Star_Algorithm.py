@@ -1,4 +1,11 @@
 # encoding: utf-8
+
+# A*算法
+# 算法功能：用于计算两点之间的距离，可避开障碍物
+# 算法输入：起点坐标，终点坐标
+# 算法输出：两点之间的距离
+
+
 import numpy as np
 # debug_flag 为调试标志，为True是开启调试模式， 为False时关闭调试模式
 debug_flag = False

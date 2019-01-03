@@ -1,4 +1,10 @@
 # encoding: utf-8
+
+# 算法功能：判断当前充电回路是否可调度
+# 算法输入：电单车数目N，电单车功率列表，移动充电车总能量，充电功率，移动功率
+# 充电效率，哈密顿回路，移动速度，节点之间的邻接矩阵，总周期
+# 算法输出：调度标志
+
 import numpy as np
 # 算法功能：判定一个充电回路P是否可调度
 '''
@@ -50,7 +56,7 @@ def judging_whether_scheduled(N, P, Em, qc, qm, nl, R, vm, N_distance, T):
     for i in range(1, N + 1):
         psum = psum + P[0][i]
     print "总能耗psum =", psum
-
+    # 两个决策条件
     factor_1 = (D*qc*nl)/(vm*(qc*nl-psum))
     factor_2 = (psum*((D*qc)/(vm*(qc*nl-psum)))) + (D*qm)
     #  可调度的标志

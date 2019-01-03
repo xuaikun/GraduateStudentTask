@@ -1,5 +1,10 @@
 # encoding: utf-8
 # 本程序主要实现，充电回路的构造
+
+# 算法功能：充电回路的构造
+# 算法输入：电单车在二维空间中的坐标以及功率
+# 算法输出： 充电子回路
+
 import numpy as np
 import random
 import A_Star_Algorithm as A
