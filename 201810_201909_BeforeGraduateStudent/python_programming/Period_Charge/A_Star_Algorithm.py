@@ -503,9 +503,23 @@ def a_star_algorithm(first_coordinate, second_coordinate):
     # start_position = [1, 1]  # 起始坐标
     # end_position = [1000, 1000]  # 目标坐标
 
-    start_position = first_coordinate
-    end_position = second_coordinate
+    start_position_new = first_coordinate
+    end_position_new = second_coordinate
+    # print "start_position_new =", start_position_new
+    # print "end_position_new =", end_position_new
+    
+    # 此处表示将输入数值即坐标值扩大100倍， 单位由米转换为厘米
+    start_position =[] 
+    start_position.append(int(start_position_new[0]*100.0))
+    start_position.append(int(start_position_new[1]*100.0))
+    
+    end_position = []
+    end_position.append(int(end_position_new[0]*100.0))
+    end_position.append(int(end_position_new[1]*100.0))
 
+    # print "start_position =", start_position
+    # print "end_position =", end_position
+    
     # 程序初始化
     init(start_position, end_position)
     # 设置障碍

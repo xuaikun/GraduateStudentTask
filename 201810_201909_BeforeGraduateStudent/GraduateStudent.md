@@ -33,3 +33,8 @@ python中运行continue后，i 每次增加1
 
 ### 2019年1月3日：
 今天主要完成数据范围的确定，不然数据比较乱，不确定，变化范围大。
+将A_Star算法中的单位用cm表示，真正输入坐标为m，隐藏一个单位换算的情况。
+start_position =[] 
+    start_position.append(int(start_position_new[0]*100.0))
+    start_position.append(int(start_position_new[1]*100.0))
+单位由m转换为cm时，记得乘以100.0不能乘以100，不然数据有可能减小，隐藏着四舍五入的情况。

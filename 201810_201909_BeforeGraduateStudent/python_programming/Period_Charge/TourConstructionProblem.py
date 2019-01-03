@@ -3,7 +3,7 @@
 
 # 算法功能：充电回路的构造
 # 算法输入：电单车在二维空间中的坐标以及功率
-# 算法输出： 充电子回路
+# 算法输出： 充电回路子回路结果
 
 import numpy as np
 import random
@@ -27,19 +27,19 @@ def select_sort(array):
 
 
 N = 5    # 假设我有N辆电单车
-edge_n = 6 # 假设定义的二维空间范围是 edge_n * edge_n
+edge_n = 10 # 假设定义的二维空间范围是 edge_n * edge_n
 # 初始化电单车在二维空间中的坐标
-N_x = np.empty([1, N + 1], int)
-N_y = np.empty([1, N + 1], int)
+N_x = np.empty([1, N + 1], float)
+N_y = np.empty([1, N + 1], float)
 # 重新编号后的节点的标号改变，对应的坐标的标号获得修改，相关值的大小未被修改
-N_x_new = np.empty([1, N + 1], int)
-N_y_new = np.empty([1, N + 1], int)
+N_x_new = np.empty([1, N + 1], float)
+N_y_new = np.empty([1, N + 1], float)
 # 随机在1000*1000的空间内生成N辆电单车的坐标
 x = []
 y = []
 for i in range(1, N+1):
-    N_x[0][i] = random.randint(1, edge_n)
-    N_y[0][i] = random.randint(1, edge_n)
+    N_x[0][i] = round(random.uniform(1, edge_n), 2)
+    N_y[0][i] = round(random.uniform(1, edge_n), 2)
     x.append(N_x[0][i])
     y.append(N_y[0][i])
 
@@ -74,14 +74,14 @@ plt.ylim([0 - 1,edge_n + 1]) #设置绘图Y边界
 plt.show()
 
 # 定义 每个节点消耗的功率
-P_i = np.empty([1, N + 1], int)
+P_i = np.empty([1, N + 1], float)
 # 将从小到大排序的节点消耗功率，保存到P_i_temp临时数组中，以便后期查询知道其时那个节点的功率
-P_i_temp = np.empty([1, N + 1], int)
+P_i_temp = np.empty([1, N + 1], float)
 # 重新标号后的电单车的消耗功率
-P_i_new = np.empty([1, N + 1], int)
+P_i_new = np.empty([1, N + 1], float)
 # 随机生成每辆电单车的功率
 for i in range(1, N + 1):
-    P_i[0][i] = random.randint(1, 10)
+    P_i[0][i] = round(random.uniform(1, 10), 2)
     P_i_temp[0][i] = P_i[0][i]
 
 for i in range(1, N + 1):
@@ -93,13 +93,13 @@ for i in range(1, N + 1):
     print "坐标为：", (N_x[0][i], N_y[0][i])
 # 创建一个N*N的空降，生成邻接矩阵，构造无向图G(V,E)
 # N_distance[Ni][Nj] = x 表示Ni到Nj（或Nj到Ni）的距离为x
-N_distance = np.empty([N + 1, N + 1], int)
+N_distance = np.empty([N + 1, N + 1], float)
 # i和j表示第n个节点
 for i in range(1, N + 1):
     for j in range(i, N + 1):
         if i == j:
             # 自己到自己的距离为0
-            N_distance[i][j] = 0
+            N_distance[i][j] = 0.0
         else:
             # i到j的距离，i<j,因为为无向图，可以使用N_distance[j][i]= N_distance[i][j] 将对称的位置赋相同的值
             # 将当前两个点的坐标提取出来
@@ -118,7 +118,8 @@ for i in range(1, N + 1):
             result = A.a_star_algorithm(first_coordinate, second_coordinate)
             # print "构造回路的result = ", result
             # 电单车i到电单车j（或电单车j到电单车i）的实际距离
-            N_distance[i][j] = result[3]
+            # 缩小距离 单位由厘米变为米
+            N_distance[i][j] = result[3]/100.0
             N_distance[j][i] = N_distance[i][j]
 print "构造无向图："
 for i in range(1, N + 1):
@@ -211,7 +212,8 @@ for i in range(0, N + 1):
             # print "第二个坐标：", second_coordinate
             result = A.a_star_algorithm(first_coordinate, second_coordinate)
             # print "构造回路的result = ", result
-            N_distance[i][j] = result[3]
+            # 缩小距离 单位由厘米变为米
+            N_distance[i][j] = result[3]/100.0
             N_distance[j][i] = N_distance[i][j]
 print "新的无向图："
 for i in range(0, N + 1):
