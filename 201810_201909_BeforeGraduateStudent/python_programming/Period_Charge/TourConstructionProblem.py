@@ -26,8 +26,10 @@ def select_sort(array):
     return
 
 
-N = 5    # 假设我有N辆电单车
-edge_n = 10 # 假设定义的二维空间范围是 edge_n * edge_n
+N = 4    # 假设我有N辆电单车
+edge_n = 1000 # 假设定义的二维空间范围是 edge_n * edge_n
+# 表示充电桩的位置，暂时定义在这
+S = [0, 0]
 # 初始化电单车在二维空间中的坐标
 N_x = np.empty([1, N + 1], float)
 N_y = np.empty([1, N + 1], float)
@@ -81,7 +83,8 @@ P_i_temp = np.empty([1, N + 1], float)
 P_i_new = np.empty([1, N + 1], float)
 # 随机生成每辆电单车的功率
 for i in range(1, N + 1):
-    P_i[0][i] = round(random.uniform(1, 10), 2)
+    P_i[0][i] = round(random.uniform(95, 115), 2)
+    # P_i[0][i] = round(random.uniform(150, 180), 2)
     P_i_temp[0][i] = P_i[0][i]
 
 for i in range(1, N + 1):
@@ -118,8 +121,8 @@ for i in range(1, N + 1):
             result = A.a_star_algorithm(first_coordinate, second_coordinate)
             # print "构造回路的result = ", result
             # 电单车i到电单车j（或电单车j到电单车i）的实际距离
-            # 缩小距离 单位由厘米变为米
-            N_distance[i][j] = result[3]/100.0
+            # 距离取两位小数，就好
+            N_distance[i][j] = round(result[3],2)
             N_distance[j][i] = N_distance[i][j]
 print "构造无向图："
 for i in range(1, N + 1):
@@ -129,11 +132,8 @@ for i in range(1, N + 1):
     # 将无向图打印出来看看
     print N_distance_list
 
-# for i in range(1, N + 1):
-#    print "P_i_temp[0][", i, "]=", P_i_temp[0][i]
+# 将功率进行排序
 select_sort(P_i_temp)
-# for i in range(1, N + 1):
-#     print "P_i_temp[0][", i, "]=", P_i_temp[0][i]
 
 for i in range(1, N + 1):
     for j in range(1, N + 1):
@@ -153,8 +153,7 @@ for i in range(1, N + 1):
 for i in range(1, N + 1):
     print "坐标为：", (N_x_new[0][i], N_y_new[0][i])
 
-# 表示充电桩的位置，暂时定义在这
-S = [0, 0]
+
 # 表示充电桩S的坐标，加入了N中
 N_x_new[0][0] = S[0]
 N_y_new[0][0] = S[1]
@@ -212,8 +211,7 @@ for i in range(0, N + 1):
             # print "第二个坐标：", second_coordinate
             result = A.a_star_algorithm(first_coordinate, second_coordinate)
             # print "构造回路的result = ", result
-            # 缩小距离 单位由厘米变为米
-            N_distance[i][j] = result[3]/100.0
+            N_distance[i][j] = round(result[3], 2)
             N_distance[j][i] = N_distance[i][j]
 print "新的无向图："
 for i in range(0, N + 1):
@@ -251,12 +249,12 @@ while i <= N:
         # 应用可调度性判定算法判定再加入Nk后Rz的可调度性
         # 如果Rz不可以可调度，则将Nk从回路中取出
         # 可调度性判断
-        Em = 50000  # MC的总能量为65 kj
-        qm = 8  # Mc移动功耗为qm = 8 J/m
-        qc = 100  # qc*n 为能量传输率，qc= 4.45 W
+        Em = 72000  # MC的总能量为72000 kj
+        qm = 110  # Mc移动功耗为qm = 10 J/m
+        qc = 1800  # qc*n 为能量传输率，qc= 4.45 W
         nl = 0.5  # 类似于效率一样，占比多少 n = 0.5
-        T = 2000  # 充电周期需要知道10s
-        vm = 0.3  # MC的移动速度0.3m/s
+        T = 7200  # 充电周期需要知道10s
+        vm = 20  # MC的移动速度0.3m/s
         print "加入了Nk节点的R_list =", R_list
         # 返回可调度性
         # result = True 可调度

@@ -7,17 +7,18 @@
 
 
 import numpy as np
+import math
 # debug_flag 为调试标志，为True是开启调试模式， 为False时关闭调试模式
 debug_flag = False
 # 本程序未考虑负的坐标系
 # create_2D_space[][] = 2 时为障碍
 # create_2D_space[][] = 0 时为空地
 # create_2D_space[][] = 1 时为起点和中点
-n = 1000            # 定义二维平面大小
+n = 1000          # 定义二维平面大小
 # 定义 每个位置的g值
-g = np.empty([n + 1, n + 1], int)
+g = np.empty([n + 1, n + 1], float)
 # 定义 每个位置的h值
-h = np.empty([n + 1, n + 1], int)
+h = np.empty([n + 1, n + 1], float)
 # 构造二维平面
 create_2D_space = np.empty([n + 1, n + 1], int)
 # 开放列表open_list_S,用于存放当前操作点周围的点，或之前操作的点周围的点，不能是障碍点，它的值为0或1
@@ -118,7 +119,7 @@ def possibilities_position(parent_position, goal_position):
         if create_2D_space[left_position_x][left_position_y] != 2:  # 选中的方块不是障碍
             # h值的计算方法
             left_h_value = (abs(end_position[0] - left_position_x) + abs(
-                end_position[1] - left_position_y)) * 10
+                end_position[1] - left_position_y)) * 1
             h[left_position_x][left_position_y] = left_h_value
 
             if open_list_S[left_position_x][left_position_y] != 1:  # 保证它不在open_list_S里面
@@ -126,14 +127,14 @@ def possibilities_position(parent_position, goal_position):
                 close_list_C[left_position_x][left_position_y] = 0
                 # 目前该位置的g的计算
                 # 现在的g值 = 当前位置的g值加上移动所加的值
-                now_g = g[parent_position[0]][parent_position[1]] + 10
+                now_g = g[parent_position[0]][parent_position[1]] + 1
                 g[left_position_x][left_position_y] = now_g
 
             else:  # 该点在open_list_S里面，则应该判断上次的g值与本次的g值的大小，只保留小的g值
                 # 原来的g值是这个
                 origin_g = g[left_position_x][left_position_y]
                 # 现在的g值 = 当前位置的g值加上移动所加的值
-                now_g = g[parent_position[0]][parent_position[1]] + 10
+                now_g = g[parent_position[0]][parent_position[1]] + 1
                 # 如果现在的g值比以前的g值小了，则修改g值，否则保持原来的g值
                 if now_g < origin_g:
                     g[left_position_x][left_position_y] = now_g
@@ -164,7 +165,7 @@ def possibilities_position(parent_position, goal_position):
         if create_2D_space[up_position_x][up_position_y] != 2:  # 选中的方块不是障碍
             # h值计算
             up_h_value = (abs(end_position[0] - up_position_x) + abs(
-                end_position[1] - up_position_y)) * 10
+                end_position[1] - up_position_y)) * 1
             h[up_position_x][up_position_y] = up_h_value
 
             if open_list_S[up_position_x][up_position_y] != 1:  # 保证它不在open_list_S里面
@@ -172,14 +173,14 @@ def possibilities_position(parent_position, goal_position):
                 close_list_C[up_position_x][up_position_y] = 0
                 # 目前该位置的g值的计算
                 # 现在的g值 = 当前位置的g值加上移动所加的值
-                now_g = g[parent_position[0]][parent_position[1]] + 10
+                now_g = g[parent_position[0]][parent_position[1]] + 1
                 g[up_position_x][up_position_y] = now_g
 
             else:  # 该点在open_list_S里面，则应该判断上次的g值与本次的g值的大小，只保留小的g值
                 # 原来的g值是这个
                 origin_g = g[up_position_x][up_position_y]
                 # 现在的g值 = 当前位置的g值加上移动所加的值
-                now_g = g[parent_position[0]][parent_position[1]] + 10
+                now_g = g[parent_position[0]][parent_position[1]] + 1
                 # 如果现在的g值比以前的g值小了，则修改g值，否则保持原来的g值
                 if now_g < origin_g:
                     g[up_position_x][up_position_y] = now_g
@@ -209,7 +210,7 @@ def possibilities_position(parent_position, goal_position):
         if create_2D_space[right_position_x][right_position_y] != 2:  # 选中的方块不是障碍
             # h值计算
             right_h_value = (abs(end_position[0] - right_position_x) + abs(
-                end_position[1] - right_position_y)) * 10
+                end_position[1] - right_position_y)) * 1
             h[right_position_x][right_position_y] = right_h_value
 
             if open_list_S[right_position_x][right_position_y] != 1:
@@ -217,14 +218,14 @@ def possibilities_position(parent_position, goal_position):
                 close_list_C[right_position_x][right_position_y] = 0
                 # 目前该位置的g 和 h的值的计算
                 # 现在的g值 = 当前位置的g值加上移动所加的值
-                now_g = g[parent_position[0]][parent_position[1]] + 10
+                now_g = g[parent_position[0]][parent_position[1]] + 1
                 g[right_position_x][right_position_y] = now_g
 
             else:  # 该点在open_list_S里面，则应该判断上次的g值与本次的g值的大小，只保留小的g值
                 # 原来的g值是这个
                 origin_g = g[right_position_x][right_position_y]
                 # 现在的g值 = 当前位置的g值加上移动所加的值
-                now_g = g[parent_position[0]][parent_position[1]] + 10
+                now_g = g[parent_position[0]][parent_position[1]] + 1
                 # 如果现在的g值比以前的g值小了，则修改g值，否则保持原来的g值
                 if now_g < origin_g:
                     g[right_position_x][right_position_y] = now_g
@@ -254,7 +255,7 @@ def possibilities_position(parent_position, goal_position):
         if create_2D_space[down_position_x][down_position_y] != 2:  # 选中的方块不是障碍
             # h值计算
             down_h_value = (abs(end_position[0] - down_position_x) + abs(
-                end_position[1] - down_position_y)) * 10
+                end_position[1] - down_position_y)) * 1
             h[down_position_x][down_position_y] = down_h_value
 
             if open_list_S[down_position_x][down_position_y] != 1:
@@ -262,14 +263,14 @@ def possibilities_position(parent_position, goal_position):
                 close_list_C[down_position_x][down_position_y] = 0
                 # 目前该位置的g 值的计算
                 # 现在的g值 = 当前位置的g值加上移动所加的值
-                now_g = g[parent_position[0]][parent_position[1]] + 10
+                now_g = g[parent_position[0]][parent_position[1]] + 1
                 g[down_position_x][down_position_y] = now_g
 
             else:  # 该点在open_list_S里面，则应该判断上次的g值与本次的g值的大小，只保留小的g值
                 # 原来的g值是这个
                 origin_g = g[down_position_x][down_position_y]
                 # 现在的g值 = 当前位置的g值加上移动所加的值
-                now_g = g[parent_position[0]][parent_position[1]] + 10
+                now_g = g[parent_position[0]][parent_position[1]] + 1
                 # 如果现在的g值比以前的g值小了，则修改g值，否则保持原来的g值
                 if now_g < origin_g:
                     g[down_position_x][down_position_y] = now_g
@@ -302,7 +303,7 @@ def possibilities_position(parent_position, goal_position):
             if create_2D_space[left_up_position_x][left_up_position_y] != 2:  # 选中的方块不是障碍
                 # h值计算
                 left_up_h_value = (abs(end_position[0] - left_up_position_x) + abs(
-                    end_position[1] - left_up_position_y)) * 10
+                    end_position[1] - left_up_position_y)) * 1
                 h[left_up_position_x][left_up_position_y] = left_up_h_value
 
                 if open_list_S[left_up_position_x][left_up_position_y] != 1:
@@ -310,14 +311,14 @@ def possibilities_position(parent_position, goal_position):
                     close_list_C[left_up_position_x][left_up_position_y] = 0
                     # 目前该位置的g 值的计算
                     # 现在的g值 = 当前位置的g值加上移动所加的值
-                    now_g = g[parent_position[0]][parent_position[1]] + 14
+                    now_g = g[parent_position[0]][parent_position[1]] + 1.4
                     g[left_up_position_x][left_up_position_y] = now_g
 
                 else:  # 该点在open_list_S里面，则应该判断上次的g值与本次的g值的大小，只保留小的g值
                     # 原来的g值是这个
                     origin_g = g[left_up_position_x][left_up_position_y]
                     # 现在的g值 = 当前位置的g值加上移动所加的值
-                    now_g = g[parent_position[0]][parent_position[1]] + 14
+                    now_g = g[parent_position[0]][parent_position[1]] + 1.4
                     # 如果现在的g值比以前的g值小了，则修改g值，否则保持原来的g值
                     if now_g < origin_g:
                         g[left_up_position_x][left_up_position_y] = now_g
@@ -346,7 +347,7 @@ def possibilities_position(parent_position, goal_position):
             if create_2D_space[right_up_position_x][right_up_position_y] != 2:  # 选中的方块不是障碍
                 # h值计算
                 right_up_h_value = (abs(end_position[0] - right_up_position_x) + abs(
-                    end_position[1] - right_up_position_y)) * 10
+                    end_position[1] - right_up_position_y)) * 1
                 h[right_up_position_x][right_up_position_y] = right_up_h_value
 
                 if open_list_S[right_up_position_x][right_up_position_y] != 1:
@@ -354,14 +355,14 @@ def possibilities_position(parent_position, goal_position):
                     close_list_C[right_up_position_x][right_up_position_y] = 0
                     # 目前该位置的g 和 h的值的计算
                     # 现在的g值 = 当前位置的g值加上移动所加的值
-                    now_g = g[parent_position[0]][parent_position[1]] + 14
+                    now_g = g[parent_position[0]][parent_position[1]] + 1.4
                     g[right_up_position_x][right_up_position_y] = now_g
 
                 else:  # 该点在open_list_S里面，则应该判断上次的g值与本次的g值的大小，只保留小的g值
                     # 原来的g值是这个
                     origin_g = g[right_up_position_x][right_up_position_y]
                     # 现在的g值 = 当前位置的g值加上移动所加的值
-                    now_g = g[parent_position[0]][parent_position[1]] + 14
+                    now_g = g[parent_position[0]][parent_position[1]] + 1.4
                     # 如果现在的g值比以前的g值小了，则修改g值，否则保持原来的g值
                     if now_g < origin_g:
                         g[right_up_position_x][right_up_position_y] = now_g
@@ -391,7 +392,7 @@ def possibilities_position(parent_position, goal_position):
             if create_2D_space[right_down_position_x][right_down_position_y] != 2:  # 选中的方块不是障碍
                 # h值计算
                 right_down_h_value = (abs(end_position[0] - right_down_position_x) + abs(
-                    end_position[1] - right_down_position_y)) * 10
+                    end_position[1] - right_down_position_y)) * 1
                 h[right_down_position_x][right_down_position_y] = right_down_h_value
 
                 if open_list_S[right_down_position_x][right_down_position_y] != 1:
@@ -399,14 +400,14 @@ def possibilities_position(parent_position, goal_position):
                     close_list_C[right_down_position_x][right_down_position_y] = 0
                     # 目前该位置的g 和 h的值的计算
                     # 现在的g值 = 当前位置的g值加上移动所加的值
-                    now_g = g[parent_position[0]][parent_position[1]] + 14
+                    now_g = g[parent_position[0]][parent_position[1]] + 1.4
                     g[right_down_position_x][right_down_position_y] = now_g
 
                 else:  # 该点在open_list_S里面，则应该判断上次的g值与本次的g值的大小，只保留小的g值
                     # 原来的g值是这个
                     origin_g = g[right_down_position_x][right_down_position_y]
                     # 现在的g值 = 当前位置的g值加上移动所加的值
-                    now_g = g[parent_position[0]][parent_position[1]] + 14
+                    now_g = g[parent_position[0]][parent_position[1]] + 1.4
                     # 如果现在的g值比以前的g值小了，则修改g值，否则保持原来的g值
                     if now_g < origin_g:
                         g[right_down_position_x][right_down_position_y] = now_g
@@ -436,7 +437,7 @@ def possibilities_position(parent_position, goal_position):
             if create_2D_space[left_down_position_x][left_down_position_y] != 2:
                 # h值计算
                 left_down_h_value = (abs(end_position[0] - left_down_position_x) + abs(
-                    end_position[1] - left_down_position_y)) * 10
+                    end_position[1] - left_down_position_y)) * 1
                 h[left_down_position_x][left_down_position_y] = left_down_h_value
 
                 if open_list_S[left_down_position_x][left_down_position_y] != 1:
@@ -444,14 +445,14 @@ def possibilities_position(parent_position, goal_position):
                     close_list_C[left_down_position_x][left_down_position_y] = 0
                     # 目前该位置的g 和 h的值的计算
                     # 现在的g值 = 当前位置的g值加上移动所加的值
-                    now_g = g[parent_position[0]][parent_position[1]] + 14
+                    now_g = g[parent_position[0]][parent_position[1]] + 1.4
                     g[left_down_position_x][left_down_position_y] = now_g
 
                 else:  # 该点在open_list_S里面，则应该判断上次的g值与本次的g值的大小，只保留小的g值
                     # 原来的g值是这个
                     origin_g = g[left_down_position_x][left_down_position_y]
                     # 现在的g值 = 当前位置的g值加上移动所加的值
-                    now_g = g[parent_position[0]][parent_position[1]] + 14
+                    now_g = g[parent_position[0]][parent_position[1]] + 1.4
                     # 如果现在的g值比以前的g值小了，则修改g值，否则保持原来的g值
                     if now_g < origin_g:
                         g[left_down_position_x][left_down_position_y] = now_g
@@ -503,50 +504,81 @@ def a_star_algorithm(first_coordinate, second_coordinate):
     # start_position = [1, 1]  # 起始坐标
     # end_position = [1000, 1000]  # 目标坐标
 
-    start_position_new = first_coordinate
-    end_position_new = second_coordinate
-    # print "start_position_new =", start_position_new
-    # print "end_position_new =", end_position_new
+    start_position = first_coordinate
+    end_position = second_coordinate
     
-    # 此处表示将输入数值即坐标值扩大100倍， 单位由米转换为厘米
-    start_position =[] 
-    start_position.append(int(start_position_new[0]*100.0))
-    start_position.append(int(start_position_new[1]*100.0))
+    # 程序初始化
+    start_position_new =start_position
+    end_position_new = end_position
+    # print "start_position =", start_position 
+    # print "end_position =", end_position
+    x_0 = start_position[0]
+    y_0 = start_position[1]
+    x_1 = end_position[0]
+    y_1 = end_position[1]
+    start_position_new[0] = int(start_position_new[0])
+    start_position_new[1] = int(start_position_new[1])
+    end_position_new[0] = int(end_position_new[0])
+    end_position_new[1] = int(end_position_new[1])
     
-    end_position = []
-    end_position.append(int(end_position_new[0]*100.0))
-    end_position.append(int(end_position_new[1]*100.0))
-
+    init(start_position_new, end_position_new)
+    # 设置障碍
+    set_obstacle()
+    # print "x_0 =", x_0
+    # print "y_0 =", y_0
+    # print "x_1 =", x_1
+    # print "y_1 =", y_1
     # print "start_position =", start_position
     # print "end_position =", end_position
     
-    # 程序初始化
-    init(start_position, end_position)
-    # 设置障碍
-    set_obstacle()
-    parent = start_position
-    g[parent[0]][parent[1]] = 0  # 目标的横坐标
-    h[parent[0]][parent[1]] = 0  # 目标的纵坐标
-    # 初始化标志位，位置坐标，还有距离
-    result = [False, parent[0], parent[1], 0]
-    # print "result = ", result
-    while end_position[0] != parent[0] or end_position[1] != parent[1]:
-        # 从二维平面里面操作
-        result = possibilities_position(parent, end_position)
-        # result 中包含4个内容，找到目标的标志Flag，目标横坐标x，目标纵坐标y，距离的值distance
-        # print "result =", result
-        # 找到目标点后，终止程序
-        if end_position[0] == parent[0] and end_position[1] == parent[1]:
-            break
-        # 将已经操作过的点，放入close_list_C[][]中，不再被查询
-        open_list_S[parent[0]][parent[1]] = 0
-        close_list_C[parent[0]][parent[1]] = 1
-        create_2D_space[parent[0]][parent[1]] = 2  # 把它当成障碍了，不再查询
-        # 从当前找出的最短距离的点进行操作
-        parent[0] = result[1]
-        parent[1] = result[2]
-    # print "the final result is ", result
-    return result
+    if abs(start_position_new[0] - end_position_new[0]) < 1 and abs(start_position_new[1] - end_position_new[1]) < 1:
+        # print "两个点都在同一个单位区域内"
+        # print "start_position =", start_position
+        # print "end_position =", end_position
+        result_new = []
+        result_new.append(True)
+        result_new.append(end_position[0])
+        result_new.append(end_position[1])
+        # 利用欧几里得距离公式计算
+        Distance = math.sqrt(math.pow((x_0-x_1),2)+math.pow((y_0-y_1),2))
+        # 取两位小数
+        Distance = round(Distance, 2)
+        # print "同一个区域的距离为Distance =", Distance 
+        result_new.append(Distance)
+        result = result_new
+        return result
+    else:
+        # print "两个点不在同一个单位区域内"
+        start_position[0] = int(start_position[0])
+        start_position[1] = int(start_position[1])
+        end_position[0] = int(end_position[0])
+        end_position[1] = int(end_position[1])
+        # print "start_position =", start_position
+        # print "end_position =", end_position
+        parent = start_position
+       
+        g[parent[0]][parent[1]] = 0  # 目标的横坐标的g值
+        h[parent[0]][parent[1]] = 0  # 目标的纵坐标的h值
+        # print "result = ", result
+        # 初始化标志位，位置坐标，还有距离
+        result = [False, parent[0], parent[1], 0]
+        while end_position[0] != parent[0] or end_position[1] != parent[1]:
+            # 从二维平面里面操作
+            result = possibilities_position(parent, end_position)
+            # result 中包含4个内容，找到目标的标志Flag，目标横坐标x，目标纵坐标y，距离的值distance
+            # print "result =", result
+            # 找到目标点后，终止程序
+            if end_position[0] == parent[0] and end_position[1] == parent[1]:
+                break
+            # 将已经操作过的点，放入close_list_C[][]中，不再被查询
+            open_list_S[parent[0]][parent[1]] = 0
+            close_list_C[parent[0]][parent[1]] = 1
+            create_2D_space[parent[0]][parent[1]] = 2  # 把它当成障碍了，不再查询
+            # 从当前找出的最短距离的点进行操作
+            parent[0] = result[1]
+            parent[1] = result[2]
+        # print "the final result is ", result
+        return result
 
 
 
