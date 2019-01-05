@@ -12,8 +12,8 @@ import JudgingWhetherScheduled as B
 import matplotlib.pyplot as plt
 
 # 数据初始化
-N = 50    # 假设我有N辆电单车
-edge_n = 150 # 假设定义的二维空间范围是 edge_n * edge_n
+N = 10    # 假设我有N辆电单车
+edge_n = 100 # 假设定义的二维空间范围是 edge_n * edge_n
 # 表示充电桩的位置，暂时定义在这
 S = [0, 0]
 # 初始化电单车在二维空间中的坐标
@@ -104,7 +104,7 @@ def CreateDistanceMatrix(N_x_x,N_y_y):
                 # print "第一个坐标：", first_coordinate
                 # print "第二个坐标：", second_coordinate
                 result = A.a_star_algorithm(first_coordinate, second_coordinate)
-                # print "构造回路的result = ", result
+                print "构造回路的result = ", result
                 # 电单车i到电单车j（或电单车j到电单车i）的实际距离
                 # 距离取两位小数，就好
                 N_distance_temp[i][j] = round(result[3],2)
@@ -136,7 +136,7 @@ def CreateDistanceNewMatrix(N_x_x,N_y_y):
                 # print "第一个坐标：", first_coordinate
                 # print "第二个坐标：", second_coordinate
                 result = A.a_star_algorithm(first_coordinate, second_coordinate)
-                # print "构造回路的result = ", result
+                print "构造回路的result = ", result
                 # 电单车i到电单车j（或电单车j到电单车i）的实际距离
                 # 距离取两位小数，就好
                 N_distance_temp[i][j] = round(result[3],2)
