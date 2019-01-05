@@ -14,7 +14,7 @@ debug_flag = False
 # create_2D_space[][] = 2 时为障碍
 # create_2D_space[][] = 0 时为空地
 # create_2D_space[][] = 1 时为起点和中点
-n = 1000          # 定义二维平面大小
+n = 2000          # 定义二维平面大小
 # 定义 每个位置的g值
 g = np.empty([n + 1, n + 1], float)
 # 定义 每个位置的h值

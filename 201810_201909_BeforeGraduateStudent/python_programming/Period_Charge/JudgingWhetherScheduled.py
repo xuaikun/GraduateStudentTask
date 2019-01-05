@@ -49,16 +49,21 @@ def judging_whether_scheduled(N, P, Em, qc, qm, nl, R, vm, N_distance, T):
     for i in range(0, R_len - 1):
         D = D + N_distance[R[i]][R[i+1]]
     # 还要加上一条返回S的路
-    D = D + N_distance[R[R_len - 1]][R[0]]
+    # 保留两位小数
+    D = round(D + N_distance[R[R_len - 1]][R[0]], 2)
 
-    print "总距离D = ", D
+    print "当前子回路的总距离D = ", D
     psum = 0
-    for i in range(1, N + 1):
-        psum = psum + P[0][i]
+    # 只计算当前加入子回路的电单车的功率
+    for i in range(1, R_len):
+        # S点的psum不计算
+        psum = psum + P[0][R[i]]
+    # 保留两位小数
+    psum = round(psum, 2)
     print "总能耗psum =", psum
     # 两个决策条件
-    factor_1 = (D*qc*nl)/(vm*(qc*nl-psum))
-    factor_2 = (psum*((D*qc)/(vm*(qc*nl-psum)))) + (D*qm)
+    factor_1 = round((D*qc*nl)/(vm*(qc*nl-psum)), 2)
+    factor_2 = round(((psum*((D*qc)/(vm*(qc*nl-psum)))) + (D*qm)), 2)
     #  可调度的标志
     # success_flag = True 可调度
     # success_flag = False 不可调度
