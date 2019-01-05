@@ -10,18 +10,21 @@ import random
 import A_Star_Algorithm as A
 import JudgingWhetherScheduled as B
 import matplotlib.pyplot as plt
+import time
 
 # 数据初始化
-N = 10    # 假设我有N辆电单车
-edge_n = 100 # 假设定义的二维空间范围是 edge_n * edge_n
-# 表示充电桩的位置，暂时定义在这
-S = [0, 0]
+N = 5    # 假设我有N辆电单车
+edge_n = 500 # 假设定义的二维空间范围是 edge_n * edge_n
+
 # 初始化电单车在二维空间中的坐标
 N_x = np.empty([1, N + 1], float)
 N_y = np.empty([1, N + 1], float)
 # 重新编号后的节点的标号改变，对应的坐标的标号获得修改，相关值的大小未被修改
 N_x_new = np.empty([1, N + 1], float)
 N_y_new = np.empty([1, N + 1], float)
+
+N_x_final = np.empty([1, N + 1], float)
+N_y_final = np.empty([1, N + 1], float)
 
 # 定义 每个节点消耗的功率
 P_i = np.empty([1, N + 1], float)
@@ -30,9 +33,9 @@ P_i_temp = np.empty([1, N + 1], float)
 # 重新标号后的电单车的消耗功率
 P_i_new = np.empty([1, N + 1], float)
 
-# 创建一个N*N的空降，生成邻接矩阵，构造无向图G(V,E)
-# N_distance[Ni][Nj] = x 表示Ni到Nj（或Nj到Ni）的距离为x
-N_distance = np.empty([N + 1, N + 1], float)
+# 每辆电单车的能量
+Es_i = np.empty([1, N + 1], float)
+
 
 # 用来保存充电回来的子集
 R = np.empty([N + 1, 1], list)
@@ -79,68 +82,95 @@ def AllNodeLink(x, y):
     plt.show()
     return
 
-# 创建邻接矩阵
-def CreateDistanceMatrix(N_x_x,N_y_y):
+
+# 创建邻接矩阵，对于重新排序的节点创建邻接矩阵
+def CreateDistanceMatrix(N_x_x, N_y_y, n, N_i_new):
     # i和j表示第n个节点
-    N_distance_temp = np.empty([N + 1, N + 1], float)
-    for i in range(1, N + 1):
-        for j in range(i, N + 1):
+    # print "N_x_x =", N_x_x
+    # print "N_y_y =", N_y_y
+    # print "len(N_i_new) =", n
+    # print "len(N_i_new) =", len(N_i_new)
+    # print "N_i_new =", N_i_new
+    N_distance_temp = np.empty([n, n], float)
+    for i in range(0, n):
+        for j in range(0, n):
+            N_distance_temp[i][j] = 0.0
+    for i in range(0, n):
+        for j in range(i, n):
             if i == j:
                 # 自己到自己的距离为0
                 N_distance_temp[i][j] = 0.0
             else:
                 # i到j的距离，i<j,因为为无向图，可以使用N_distance[j][i]= N_distance[i][j] 将对称的位置赋相同的值
                 # 将当前两个点的坐标提取出来
+                
                 x1 = N_x_x[0][i]
                 y1 = N_y_y[0][i]
+                
                 first_coordinate = []
                 first_coordinate.append(x1)
                 first_coordinate.append(y1)
                 x2 = N_x_x[0][j]
                 y2 = N_y_y[0][j]
+                
                 second_coordinate = []
                 second_coordinate.append(x2)
                 second_coordinate.append(y2)
                 # print "第一个坐标：", first_coordinate
                 # print "第二个坐标：", second_coordinate
                 result = A.a_star_algorithm(first_coordinate, second_coordinate)
-                print "构造回路的result = ", result
+                # print "构造回路的result = ", result
                 # 电单车i到电单车j（或电单车j到电单车i）的实际距离
                 # 距离取两位小数，就好
                 N_distance_temp[i][j] = round(result[3],2)
-                N_distance_temp[j][i] = N_distance_temp[i][j]
+                N_distance_temp[j][i] = round((N_distance_temp[i][j]), 2)
+    # print "N_distance_temp"
+    # PrintNewMatrix(N_distance_temp, len(N_i))
     return N_distance_temp
 
-# 创建新邻接矩阵
-def CreateDistanceNewMatrix(N_x_x,N_y_y):
+# 创建新邻接矩阵，对于过程中创建的邻接矩阵
+def CreateDistanceNewMatrix(N_x_x, N_y_y, n, N_i_new):
     # i和j表示第n个节点
-    N_distance_temp = np.empty([N + 1, N + 1], float)
-    for i in range(0, N + 1):
-        for j in range(i, N + 1):
+    # print "N_x_x =", N_x_x
+    # print "N_y_y =", N_y_y
+    # print "len(N_i_new) =", n
+    # print "len(N_i_new) =", len(N_i_new)
+    # print "N_i_new =", N_i_new
+    N_distance_temp = np.empty([n, n], float)
+    for i in range(0, n):
+        for j in range(0, n):
+            N_distance_temp[i][j] = 0.0
+    for i in range(0, n):
+        for j in range(i, n):
             if i == j:
                 # 自己到自己的距离为0
                 N_distance_temp[i][j] = 0.0
             else:
                 # i到j的距离，i<j,因为为无向图，可以使用N_distance[j][i]= N_distance[i][j] 将对称的位置赋相同的值
                 # 将当前两个点的坐标提取出来
-                x1 = N_x_x[0][i]
-                y1 = N_y_y[0][i]
+               
+                x1 = N_x_x[0][N_i_new[i]]
+                y1 = N_y_y[0][N_i_new[i]]
+                
                 first_coordinate = []
                 first_coordinate.append(x1)
                 first_coordinate.append(y1)
-                x2 = N_x_x[0][j]
-                y2 = N_y_y[0][j]
+                x2 = N_x_x[0][N_i_new[j]]
+                y2 = N_y_y[0][N_i_new[j]]
+                
                 second_coordinate = []
                 second_coordinate.append(x2)
                 second_coordinate.append(y2)
                 # print "第一个坐标：", first_coordinate
                 # print "第二个坐标：", second_coordinate
                 result = A.a_star_algorithm(first_coordinate, second_coordinate)
-                print "构造回路的result = ", result
+                # print "构造回路的result = ", result
                 # 电单车i到电单车j（或电单车j到电单车i）的实际距离
                 # 距离取两位小数，就好
                 N_distance_temp[i][j] = round(result[3],2)
-                N_distance_temp[j][i] = N_distance_temp[i][j]
+                N_distance_temp[j][i] = round((N_distance_temp[i][j]), 2)
+    # print "N_distance_temp"
+    # PrintNewMatrix(N_distance_temp, len(N_i))
     return N_distance_temp
 
 # 将节点前后连接起来
@@ -189,11 +219,11 @@ def PrintMatrix(N_distance_parm):
     return
 
 # 重新打印邻接矩阵
-def PrintNewMatrix(N_distance_parm):
+def PrintNewMatrix(N_distance_parm, n):
     print "新的无向图："
-    for i in range(0, N + 1):
+    for i in range(0, n):
         N_distance_list = []
-        for j in range(0, N + 1):
+        for j in range(0, n):
             N_distance_list.append(N_distance_parm[i][j])
         print N_distance_list
     return
@@ -290,25 +320,33 @@ def ChangeChildrenTour(P_temp, N_distance_temp):
 if __name__ == "__main__":
     # 随机在1000*1000的空间内生成N辆电单车的坐标
     # 将生成的电单车坐标分别保存到x,y列表中
+    # 保存节点序号的
+    N_i = []
+    N_i.append(0)
     x = []
     y = []
     for i in range(1, N+1):
         N_x[0][i] = round(random.uniform(1, edge_n), 2)
         N_y[0][i] = round(random.uniform(1, edge_n), 2)
+        # 每辆点电单车的电量，初始化为840Kj
+        Es_i[0][i] = 840000
+        N_i.append(i)
         x.append(N_x[0][i])
         y.append(N_y[0][i])
-    
+    # 程序开始运行，计时开始
+    start_time = time.time()
     print "x =", x
     print "y =", y
-    
+    print "N_i =", N_i
     # 将电单车之间两两连接起来画图
     AllNodeLink(x, y)
     
     # 随机生成每辆电单车的功率
     for i in range(1, N + 1):
+        # 单位为 W
         P_i[0][i] = round(random.uniform(95, 115), 2)
         # P_i[0][i] = round(random.uniform(150, 180), 2)
-        P_i_temp[0][i] = P_i[0][i]
+        # P_i_temp[0][i] = P_i[0][i]
     
     for i in range(1, N + 1):
         print "P_i[0][", i, "]=", P_i[0][i]
@@ -316,53 +354,154 @@ if __name__ == "__main__":
     # 打印生成的N辆电单车的坐标
     for i in range(1, N + 1):
         print "坐标为：", (N_x[0][i], N_y[0][i])
+
+    # 电单车停止时间
+    # time.sleep(1)
     
-    # 建立邻接矩阵
-    N_distance = CreateDistanceMatrix(N_x, N_y)
+    # 将节点坐标复制
+    N_x_new = N_x
+    N_y_new = N_y
     
-    # 打印当前的邻接矩阵
-    PrintMatrix(N_distance)
-    
-    # 将功率进行排序
-    select_sort(P_i_temp)
-    
-    for i in range(1, N + 1):
-        for j in range(1, N + 1):
-            # 只要从小到大遍历，那么对于相同大小值之前的位置不变
-            if P_i_temp[0][i] == P_i[0][j]:
-                # j 为之前的电单车的标号
-                P_i_new[0][i] = P_i[0][j]
-                N_x_new[0][i] = N_x[0][j]
-                N_y_new[0][i] = N_y[0][j]
-                P_i[0][j] = 1000
-    
-                # 可能有很多组这样的值，但只有第一组符合
-                break
-    
-    for i in range(1, N + 1):
-        print "P_i_new[0][", i, "]=", P_i_new[0][i]
-    for i in range(1, N + 1):
-        print "坐标为：", (N_x_new[0][i], N_y_new[0][i])
-    
-    
+    # S表示充电桩的位置，暂时放在第一个服务节点的附近
+    S = []
+    S_x = N_x_new[0][1] + 1
+    S_y = N_y_new[0][1] + 1
+    S.append(S_x)
+    S.append(S_y)
+    print "充电桩坐标为：", (S[0], S[1])
     # 表示充电桩S的坐标，加入了N中
     N_x_new[0][0] = S[0]
     N_y_new[0][0] = S[1]
     
-    x = N_x_new[0]
-    y = N_y_new[0]
+    
+    # 电单车能量到此开始计算减少了多少
+    end_time = time.time()
+    Es_temp = []
+    for i in range(1 , N + 1):
+        Es_temp.append(Es_i[0][i])    
+    print "开始时Es_i =", Es_temp 
+    # 准备充电之前都在运行
+    for i in range(1, N + 1):
+        Es_i[0][N_i[i]] = round((Es_i[0][N_i[i]] - P_i[0][N_i[i]]*(end_time - start_time)), 2)
+    
+    # 备份N_i
+    N_i_temp = N_i
+    # 最优的操作节点排序
+    Node_optimal_sort = []
+    # 先把S点放进去
+    Node_optimal_sort.append(0)
+    # 每个节点都需要操作
+    # 直到 len(N_i) = 1 表明里面只剩下当前充电桩S的位置节点
+    # 就退出while
+    while 1 != len(N_i):
+        # S统计到各个节点的距离
+        # 统计电单车剩余的能量
+        print "len(N_i) =", len(N_i)
+        print "N_i =", N_i
+        N_distance_temp = []
+        Es_temp = []
+        # 创建一个N*N的空降，生成邻接矩阵，构造无向图G(V,E)
+        # N_distance[Ni][Nj] = x 表示Ni到Nj（或Nj到Ni）的距离为x
+        N_distance = np.empty([len(N_i), len(N_i)], float)
+        for i in range(0, len(N_i)):
+            for j in range(0, len(N_i)):
+                N_distance[i][j] = 0.0
+        # print "邻接矩阵矩阵初始化"
+        # PrintNewMatrix(N_distance, len(N_i))
+        # 加入S点后，邻接矩阵每次都会更新，之后每次都会减少节点
+        # print "N_x_new = ",N_x_new
+        # print "N_y_new = ",N_y_new
+        # 为什么使用len(N_i_temp)
+        N_distance = CreateDistanceNewMatrix(N_x_new, N_y_new, len(N_i), N_i)
+        # 重新打印邻接矩阵
+        PrintNewMatrix(N_distance, len(N_i))
+        # 只考虑当前所剩下的节点，不包括S点（N_i[0]）
+        for i in range(1 , len(N_i)):
+            N_distance_temp.append(N_distance[0][i])
+            Es_temp.append(Es_i[0][N_i[i]])  
+        print "S到每辆电单车的距离 =", N_distance_temp
+        print "结束时Es_i =", Es_temp 
+        
+        # a 为剩余能量所占比重
+        # b 为S到各电单车距离所占比重
+        # P 为综合考虑剩余能量和S到各电单车距离所占比重考虑的最终值
+        a = 0.2
+        b = 1.0 - a
+        # 只考虑了当前一次，所以得看看如何把所有的点考虑进去，每个点都要考虑到
+        # 只考虑当前所剩下的节点，不包括S点（N_i[0]）
+        # 假设开始时的P非常非常的大
+        P = 10000000.0
+        for i in range(1 , len(N_i)):
+            # print "Es_i[0][", N_i[i], "] =", Es_i[0][N_i[i]] 
+            # print "N_distance[0][", i, "] =", N_distance[0][i]
+            print "N_i[", i, "]=", N_i[i],"a*Es_i[0][N_i[i]] + b*N_distance[0][i]=", round((a*Es_i[0][N_i[i]] + b*N_distance[0][i]), 2)
+            if P > a*Es_i[0][N_i[i]] + b*N_distance[0][i]:
+                P = a*Es_i[0][N_i[i]] + b*N_distance[0][i]
+                optimal_N_i = N_i[i]
+        # 将当前最优的节点从原来的列表中删除
+        print "当前最优的节点是optimal_N_i =", optimal_N_i 
+        Node_optimal_sort.append(optimal_N_i)
+        N_i.remove(optimal_N_i)
+        # 更新S的位置，S位置为上次充电的电单车
+        N_i[0] = optimal_N_i
+        # np.delete(N_distance, N_distance)
+    
+    
+    #  最优的节点序列已经找出
+    
+    print "最优的节点序列Node_optimal_sort =", Node_optimal_sort
+    # Node_optimal_sort = [0, 1, 3, 2]
+    
+    # 对原来的排序进行改变     
+    for i in range(0, len(Node_optimal_sort)):
+        N_x_final[0][i] = N_x_new[0][Node_optimal_sort[i]]
+        N_y_final[0][i] = N_y_new[0][Node_optimal_sort[i]]
+        
+        P_i[0][Node_optimal_sort[i]] = round(P_i[0][Node_optimal_sort[i]],2)
+        P_i_new[0][i] = round(P_i[0][Node_optimal_sort[i]],2)
+    # 排序完成 
+    x = N_x_final[0]
+    y = N_y_final[0]
+    
+    
+    print "N_x_new = ",N_x_new
+    print "N_y_new = ",N_y_new
+    
+    print "N_x_final = ",N_x_final
+    print "N_y_final = ",N_y_final
+    
+    print "P_i =", P_i
+    print "P_i_new =", P_i_new
+    
+    # print "len(Node_optimal_sort) =", len(Node_optimal_sort)
+    N_distance = np.empty([len(Node_optimal_sort), len(Node_optimal_sort)], float)
+    for i in range(0, len(Node_optimal_sort)):
+        for j in range(0, len(Node_optimal_sort)):
+            N_distance[i][j] = 0.0
+    # print "邻接矩阵矩阵初始化"
+    # PrintNewMatrix(N_distance, len(N_i))
+    # 加入S点后，邻接矩阵每次都会更新，之后每次都会减少节点
+    # 延时1s，应该是电脑反应不过来，出现错误
+    time.sleep(1)
+    # N_x_final = N_x_final
+    # N_y_final = N_y_final
+    # print "N_x_final =", N_x_final
+    # print "N_y_final =", N_y_final
+    
+    # 与上面的索引生成邻接矩阵不一样，这里是直接产生邻接矩阵
+    # 这里是已经排好序的列表
+    N_distance = CreateDistanceMatrix(N_x_final, N_y_final, len(Node_optimal_sort), Node_optimal_sort)
+    # 重新打印邻接矩阵
+    PrintNewMatrix(N_distance, len(Node_optimal_sort))
+    
     
     # 加入S点后，将电单车前后连接起来
     NodeToOtherNodeLink(x, y)
-    
-    # 加入S点后，重新构造邻接矩阵
-    N_distance = CreateDistanceNewMatrix(N_x_new, N_y_new)
-    # 重新打印邻接矩阵
-    PrintNewMatrix(N_distance)
-    
+   
     print "开始构造子回路"
     
     # 构造充电子回路
+    # P_i_new, N_distance 可以代表重新节点排序
     result = ChangeChildrenTour(P_i_new, N_distance)
     R = result[0]
     z = result[1]

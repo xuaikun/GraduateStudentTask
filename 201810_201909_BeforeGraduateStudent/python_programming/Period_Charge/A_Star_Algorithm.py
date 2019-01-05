@@ -533,7 +533,7 @@ def a_star_algorithm(first_coordinate, second_coordinate):
     # print "end_position =", end_position
     
     if abs(start_position_new[0] - end_position_new[0]) < 1 and abs(start_position_new[1] - end_position_new[1]) < 1:
-        print "两个点都在同一个单位区域内"
+        # print "两个点都在同一个单位区域内"
         # print "start_position =", start_position
         # print "end_position =", end_position
         result_new = []
@@ -549,7 +549,7 @@ def a_star_algorithm(first_coordinate, second_coordinate):
         result = result_new
         return result
     else:
-        print "两个点不在同一个单位区域内"
+        # print "两个点不在同一个单位区域内"
         start_position[0] = int(start_position[0])
         start_position[1] = int(start_position[1])
         end_position[0] = int(end_position[0])
