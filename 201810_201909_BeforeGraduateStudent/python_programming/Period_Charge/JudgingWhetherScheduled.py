@@ -4,41 +4,7 @@
 # 算法输入：电单车数目N，电单车功率列表，移动充电车总能量，充电功率，移动功率
 # 充电效率，哈密顿回路，移动速度，节点之间的邻接矩阵，总周期
 # 算法输出：调度标志
-
-import numpy as np
 # 算法功能：判定一个充电回路P是否可调度
-'''
-    Es = 10  # 每个传感器节点总能量为Es = 10kj
-    n = 4  # n 表示P中包好的传感器个数P=<N0,N1,……Nk,Nk+1>其中N0 = Nk+1 = S 不用计算
-    # p[0][i] = 0.01  # 每个传感器功耗相同为p[0][i] = 0.01W
-    p = np.empty([1, n + 1], float)
-    for i in range(0, n):
-        # N0 = Nk+1 = S 它的功率不用参与计算，直接赋值为0
-        if i == 0 or i == n - 1:
-            p[0][i] = 0
-        else:
-            p[0][i] = 0.01
-        # print "p[0][", i, "] = ", p[0][i]
-    Em = 65  # MC的总能量为x kj
-    qm = 8  # Mc移动功耗为qm = 8 J/m
-    qc = 4.45  # qc*n 为能量传输率，qc= 4.45 W
-    nl = 0.5  # 类似于效率一样，占比多少 n = 0.5
-    T = 10  # 充电周期需要知道10s
-    vm = 0.3  # MC的移动速度0.3m/s
-    N = n
-    P = p
-    R = [1, 2, 3, 4]
-    N_distance = np.empty([N + 1, N + 1], int)
-    for i in range(1, N + 1):
-        for j in range(i, N + 1):
-            if j == i:
-                N_distance[i][j] = 0
-            else:
-                N_distance[i][j] = 2
-                N_distance[j][i] = N_distance[i][j]
-    '''
-
-
 def judging_whether_scheduled(N, P, Em, qc, qm, nl, R, vm, N_distance, T):
 
     # 统计R中节点个数

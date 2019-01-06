@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import time
 
 # 数据初始化
-N = 5    # 假设我有N辆电单车
+N = 3   # 假设我有N辆电单车
 edge_n = 500 # 假设定义的二维空间范围是 edge_n * edge_n
 
 # 初始化电单车在二维空间中的坐标
@@ -86,11 +86,6 @@ def AllNodeLink(x, y):
 # 创建邻接矩阵，对于重新排序的节点创建邻接矩阵
 def CreateDistanceMatrix(N_x_x, N_y_y, n, N_i_new):
     # i和j表示第n个节点
-    # print "N_x_x =", N_x_x
-    # print "N_y_y =", N_y_y
-    # print "len(N_i_new) =", n
-    # print "len(N_i_new) =", len(N_i_new)
-    # print "N_i_new =", N_i_new
     N_distance_temp = np.empty([n, n], float)
     for i in range(0, n):
         for j in range(0, n):
@@ -124,18 +119,11 @@ def CreateDistanceMatrix(N_x_x, N_y_y, n, N_i_new):
                 # 距离取两位小数，就好
                 N_distance_temp[i][j] = round(result[3],2)
                 N_distance_temp[j][i] = round((N_distance_temp[i][j]), 2)
-    # print "N_distance_temp"
-    # PrintNewMatrix(N_distance_temp, len(N_i))
     return N_distance_temp
 
 # 创建新邻接矩阵，对于过程中创建的邻接矩阵
 def CreateDistanceNewMatrix(N_x_x, N_y_y, n, N_i_new):
     # i和j表示第n个节点
-    # print "N_x_x =", N_x_x
-    # print "N_y_y =", N_y_y
-    # print "len(N_i_new) =", n
-    # print "len(N_i_new) =", len(N_i_new)
-    # print "N_i_new =", N_i_new
     N_distance_temp = np.empty([n, n], float)
     for i in range(0, n):
         for j in range(0, n):
@@ -169,8 +157,6 @@ def CreateDistanceNewMatrix(N_x_x, N_y_y, n, N_i_new):
                 # 距离取两位小数，就好
                 N_distance_temp[i][j] = round(result[3],2)
                 N_distance_temp[j][i] = round((N_distance_temp[i][j]), 2)
-    # print "N_distance_temp"
-    # PrintNewMatrix(N_distance_temp, len(N_i))
     return N_distance_temp
 
 # 将节点前后连接起来
@@ -206,17 +192,6 @@ def NodeToOtherNodeLink(x, y):
     plt.ylim([0 - 1,edge_n + 1]) #设置绘图Y边界
     plt.show()
     return 
-
-# 打印邻接矩阵
-def PrintMatrix(N_distance_parm):
-    print "构造无向图："
-    for i in range(1, N + 1):
-        N_distance_list = []
-        for j in range(1, N + 1):
-            N_distance_list.append(N_distance_parm[i][j])
-        # 将无向图打印出来看看
-        print N_distance_list
-    return
 
 # 重新打印邻接矩阵
 def PrintNewMatrix(N_distance_parm, n):
@@ -325,6 +300,7 @@ if __name__ == "__main__":
     N_i.append(0)
     x = []
     y = []
+    v = 5   # 初始化电单车的运行速度为 5m/s
     for i in range(1, N+1):
         N_x[0][i] = round(random.uniform(1, edge_n), 2)
         N_y[0][i] = round(random.uniform(1, edge_n), 2)
@@ -362,18 +338,6 @@ if __name__ == "__main__":
     N_x_new = N_x
     N_y_new = N_y
     
-    # S表示充电桩的位置，暂时放在第一个服务节点的附近
-    S = []
-    S_x = N_x_new[0][1] + 1
-    S_y = N_y_new[0][1] + 1
-    S.append(S_x)
-    S.append(S_y)
-    print "充电桩坐标为：", (S[0], S[1])
-    # 表示充电桩S的坐标，加入了N中
-    N_x_new[0][0] = S[0]
-    N_y_new[0][0] = S[1]
-    
-    
     # 电单车能量到此开始计算减少了多少
     end_time = time.time()
     Es_temp = []
@@ -384,6 +348,29 @@ if __name__ == "__main__":
     for i in range(1, N + 1):
         Es_i[0][N_i[i]] = round((Es_i[0][N_i[i]] - P_i[0][N_i[i]]*(end_time - start_time)), 2)
     
+    # 我们要看看那个节点那个节点剩余的能量最少 反过来说就是功耗最大的
+    P_i_Max = 0  # 初始化功率最大为P_i_Max = 0
+    for i in range(1, N + 1):
+        if P_i_Max <  P_i[0][N_i[i]] :
+            # 更新当前最大的功率的点
+            P_i_Max = P_i[0][N_i[i]]
+            # 保存功率最大的节点
+            P_i_Max_Node = N_i[i]
+    print "剩余能量最少的节点是：", P_i_Max_Node
+    
+    # S表示充电桩的位置，它的开始时坐标的确定，主要是，靠近剩余能量最小的节点或者说功率最大的点
+    S = []
+    S_x = N_x_new[0][P_i_Max_Node] + 1
+    S_y = N_y_new[0][P_i_Max_Node] + 1
+    S.append(S_x)
+    S.append(S_y)
+    print "充电桩坐标为：", (S[0], S[1])
+    # 表示充电桩S的坐标，加入了N中
+    N_x_new[0][0] = S[0]
+    N_y_new[0][0] = S[1]
+    
+    
+   
     # 备份N_i
     N_i_temp = N_i
     # 最优的操作节点排序
