@@ -11,9 +11,9 @@ import A_Star_Algorithm as A
 import JudgingWhetherScheduled as B
 import matplotlib.pyplot as plt
 import time
-
+import math
 # 数据初始化
-N = 3   # 假设我有N辆电单车
+N = 5   # 假设我有N辆电单车
 edge_n = 500 # 假设定义的二维空间范围是 edge_n * edge_n
 
 # 初始化电单车在二维空间中的坐标
@@ -36,6 +36,8 @@ P_i_new = np.empty([1, N + 1], float)
 # 每辆电单车的能量
 Es_i = np.empty([1, N + 1], float)
 
+# 每辆电单车的所要走的方向
+alpha = np.empty([1, N + 1], float)
 
 # 用来保存充电回来的子集
 R = np.empty([N + 1, 1], list)
@@ -306,6 +308,8 @@ if __name__ == "__main__":
         N_y[0][i] = round(random.uniform(1, edge_n), 2)
         # 每辆点电单车的电量，初始化为840Kj
         Es_i[0][i] = 840000
+        # 电车运行方向的初始化
+        alpha[0][i] = random.randint(0, 360)
         N_i.append(i)
         x.append(N_x[0][i])
         y.append(N_y[0][i])
@@ -338,16 +342,12 @@ if __name__ == "__main__":
     N_x_new = N_x
     N_y_new = N_y
     
-    # 电单车能量到此开始计算减少了多少
-    end_time = time.time()
+    # 打印 初始化的节点啊的总能量
     Es_temp = []
     for i in range(1 , N + 1):
         Es_temp.append(Es_i[0][i])    
     print "开始时Es_i =", Es_temp 
-    # 准备充电之前都在运行
-    for i in range(1, N + 1):
-        Es_i[0][N_i[i]] = round((Es_i[0][N_i[i]] - P_i[0][N_i[i]]*(end_time - start_time)), 2)
-    
+   
     # 我们要看看那个节点那个节点剩余的能量最少 反过来说就是功耗最大的
     P_i_Max = 0  # 初始化功率最大为P_i_Max = 0
     for i in range(1, N + 1):
@@ -380,29 +380,76 @@ if __name__ == "__main__":
     # 每个节点都需要操作
     # 直到 len(N_i) = 1 表明里面只剩下当前充电桩S的位置节点
     # 就退出while
+    
+    # 打印生成的N辆电单车的坐标
+    for i in range(0, N + 1):
+        print "坐标为：", (N_x_new[0][i], N_y_new[0][i])
+    alpha_temp = []
+    for i in range(1 , len(N_i)):
+        alpha_temp.append(alpha[0][i])
+    print "alpha =", alpha_temp 
     while 1 != len(N_i):
-        # S统计到各个节点的距离
-        # 统计电单车剩余的能量
+       
         print "len(N_i) =", len(N_i)
         print "N_i =", N_i
-        N_distance_temp = []
-        Es_temp = []
+        end_time = time.time()
+        print "while() end_time =", end_time, "s"
+        t = (end_time - start_time)
+        
+        print "电单车运行的时间为：t =", t
+        # 重新开始计算时间，为什么从这开始呢？主要是构建邻接矩阵比较花时间，而且期间所花不属于电单车运行时间
+        start_time = time.time()
+        print "while() start_time = ", start_time, "s"
+        
+        # 更新节点剩余的能量
+        # 更新电单车的坐标，毕竟运行了好久，早已经离开了之前的初始的位置
+        # 后期优化的时候我们应该考虑边界问题，如果当前的位置已经超过边界，则应该改变运动方向
+        for i in range(1, len(N_i)):
+            Es_i[0][N_i[i]] = round((Es_i[0][N_i[i]] - P_i[0][N_i[i]]*t), 2)
+            # 考虑到边界问题，先将改变之前的坐标记录下来
+            N_x_new_temp = N_x_new[0][N_i[i]]
+            N_y_new_temp = N_y_new[0][N_i[i]] 
+            print "备份的坐标为：", (N_x_new_temp, N_y_new_temp)
+            N_x_new[0][N_i[i]] = round((N_x_new[0][N_i[i]] + v*t*math.cos(alpha[0][N_i[i]]/180.0*math.pi)), 2)
+            N_y_new[0][N_i[i]] = round((N_y_new[0][N_i[i]] + v*t*math.sin(alpha[0][N_i[i]]/180.0*math.pi)), 2)
+            print "更新坐标为：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
+            # 检查坐标有没有超过边界, 表示超界了，表示当前需要改变运行方向
+            # 为什么用while（）一定保证，坐标合理才能进行下一步操作
+            while(N_x_new[0][N_i[i]] < 1 or N_x_new[0][N_i[i]] > edge_n) or (
+                    N_y_new[0][N_i[i]] < 1 or N_y_new[0][N_i[i]] > edge_n ): 
+                # 更新电单车运行方向
+                print "当前更新的坐标越界了：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
+                print "之前备份的坐标为：", (N_x_new_temp, N_y_new_temp)
+                alpha[0][N_i[i]] = random.randint(0, 360)
+                # 用上面备份的当前的坐标，重新往重新生成的方向前进
+                N_x_new[0][N_i[i]] = round((N_x_new_temp + v*t*math.cos(alpha[0][N_i[i]]/180.0*math.pi)), 2)
+                N_y_new[0][N_i[i]] = round((N_y_new_temp + v*t*math.sin(alpha[0][N_i[i]]/180.0*math.pi)), 2)
+                print "重新更新坐标为：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
+        
+        for i in range(0, len(N_i)):
+            print "更新坐标为：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
         # 创建一个N*N的空降，生成邻接矩阵，构造无向图G(V,E)
         # N_distance[Ni][Nj] = x 表示Ni到Nj（或Nj到Ni）的距离为x
         N_distance = np.empty([len(N_i), len(N_i)], float)
         for i in range(0, len(N_i)):
             for j in range(0, len(N_i)):
                 N_distance[i][j] = 0.0
-        # print "邻接矩阵矩阵初始化"
-        # PrintNewMatrix(N_distance, len(N_i))
+       
         # 加入S点后，邻接矩阵每次都会更新，之后每次都会减少节点
-        # print "N_x_new = ",N_x_new
-        # print "N_y_new = ",N_y_new
-        # 为什么使用len(N_i_temp)
         N_distance = CreateDistanceNewMatrix(N_x_new, N_y_new, len(N_i), N_i)
         # 重新打印邻接矩阵
         PrintNewMatrix(N_distance, len(N_i))
+        
         # 只考虑当前所剩下的节点，不包括S点（N_i[0]）
+        # 准备充电之前都在运行
+        
+        # 电单车能量到此开始计算减少了多少
+        # 好好考虑 这个时间如何处理
+        
+        # S统计到各个节点的距离
+        # 统计电单车剩余的能量
+        N_distance_temp = []
+        Es_temp = []
         for i in range(1 , len(N_i)):
             N_distance_temp.append(N_distance[0][i])
             Es_temp.append(Es_i[0][N_i[i]])  
@@ -431,16 +478,18 @@ if __name__ == "__main__":
         N_i.remove(optimal_N_i)
         # 更新S的位置，S位置为上次充电的电单车
         N_i[0] = optimal_N_i
-        # np.delete(N_distance, N_distance)
+       
     
     
     #  最优的节点序列已经找出
     
     print "最优的节点序列Node_optimal_sort =", Node_optimal_sort
     # Node_optimal_sort = [0, 1, 3, 2]
-    
+    Node_New_sort = []
     # 对原来的排序进行改变     
     for i in range(0, len(Node_optimal_sort)):
+        # 对节点重新排号
+        Node_New_sort.append(i)
         N_x_final[0][i] = N_x_new[0][Node_optimal_sort[i]]
         N_y_final[0][i] = N_y_new[0][Node_optimal_sort[i]]
         
@@ -453,7 +502,7 @@ if __name__ == "__main__":
     
     print "N_x_new = ",N_x_new
     print "N_y_new = ",N_y_new
-    
+    print "重新编号的节点序列Node_New_sort =", Node_New_sort
     print "N_x_final = ",N_x_final
     print "N_y_final = ",N_y_final
     
@@ -469,11 +518,6 @@ if __name__ == "__main__":
     # PrintNewMatrix(N_distance, len(N_i))
     # 加入S点后，邻接矩阵每次都会更新，之后每次都会减少节点
     # 延时1s，应该是电脑反应不过来，出现错误
-    time.sleep(1)
-    # N_x_final = N_x_final
-    # N_y_final = N_y_final
-    # print "N_x_final =", N_x_final
-    # print "N_y_final =", N_y_final
     
     # 与上面的索引生成邻接矩阵不一样，这里是直接产生邻接矩阵
     # 这里是已经排好序的列表
