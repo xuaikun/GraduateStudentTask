@@ -12,8 +12,9 @@ import JudgingWhetherScheduled as B
 import matplotlib.pyplot as plt
 import time
 import math
+from matplotlib.ticker import MultipleLocator
 # 数据初始化
-N = 5   # 假设我有N辆电单车
+N = 6   # 假设我有N辆电单车
 edge_n = 500 # 假设定义的二维空间范围是 edge_n * edge_n
 
 # 初始化电单车在二维空间中的坐标
@@ -57,32 +58,97 @@ def select_sort(array):
 
 # 分别存放所有点的横坐标和纵坐标，一一对应
 # 将图中离散的点一一连接
-def AllNodeLink(x, y):
+obstacle_coordinate = np.empty([2, 1], list)
+obstacle_coordinate[0][0] = [30,400,333,111,444]
+obstacle_coordinate[1][0] = [50,100,400,322,123]
+def AllNodeLink(x, y, obstacle_coordinate_new):
     x_list = x
     y_list = y
-    
+    x_obstacle_list = obstacle_coordinate_new[0][0]
+    y_obstacle_list = obstacle_coordinate_new[1][0]
+    # 调整生成的图片的大小
+    plt.rcParams['figure.figsize'] = (10.0, 10.0) # 设置figure_size尺寸
     #创建图并命名
     plt.figure('Scatter fig')
+    plt.title('S & Node')
     ax = plt.gca()
+    
+    plt.grid()
+    # 图片坐标刻度设置
+    ax.xaxis.set_major_locator(MultipleLocator(10))
+    ax.yaxis.set_major_locator(MultipleLocator(10))
     #设置x轴、y轴名称
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
+    ax.set_xlabel('X(m)')
+    ax.set_ylabel('Y(m)')
     
     print "x_list =", x_list
     print "y_list =", y_list
-    ax.scatter(x_list, y_list,color = 'red', marker = 'o')
-    # 将所有节点一一连起来
-    for i in range(0, len(x_list)):
-        for j in range(0, len(y_list)):
-            # 两两连接
-            x_temp = [x_list[i], x_list[j]]
-            y_temp = [y_list[i], y_list[j]]
-            plt.plot(x_temp, y_temp)
+    # 每个节点用红圈圈表示出来
+    ax.scatter(x_list, y_list,color = 'r', marker = 'o')
+    ax.scatter(x_obstacle_list, y_obstacle_list,color = 'g', marker = '8')
+    # S点为红色正方形，并且大一点
+    ax.scatter(x_list[0], y_list[0], s = 100, color = 'red', marker = 's')
+ 
+    ax.text(x_list[0], y_list[0], 'S&B', fontsize=20)
+    for i in range(1, len(y_list)):
+        ax.text(x_list[i], y_list[i], i, fontsize = 10)
+    # 将所有节点与充电桩S连起来
+    for j in range(1, len(y_list)):
+        # 两两连接
+        x_temp = [x_list[0], x_list[j]]
+        y_temp = [y_list[0], y_list[j]]
+        # 调节途中线条颜色，粗细
+        plt.plot(x_temp, y_temp, 'b',linewidth=0.5)
             
     plt.xlim([0 - 1,edge_n + 1]) #设置绘图X边界                                                                                                   
     plt.ylim([0 - 1,edge_n + 1]) #设置绘图Y边界
     plt.show()
     return
+
+# 将节点前后连接起来
+def NodeToOtherNodeLink(x, y, label):
+    print "x =", x
+    print "y =", y
+    #分别存放所有点的横坐标和纵坐标，一一对应
+    x_list = x
+    y_list = y
+    
+    #创建图并命名
+    plt.figure('Scatter fig')
+    plt.title('S & Node')
+    ax = plt.gca()
+    plt.grid()
+     # 图片坐标刻度设置
+    ax.xaxis.set_major_locator(MultipleLocator(10))
+    ax.yaxis.set_major_locator(MultipleLocator(10))
+    #设置x轴、y轴名称
+    ax.set_xlabel('X(m)')
+    ax.set_ylabel('Y(m)')
+    
+    print "x_list =", x_list
+    print "y_list =", y_list
+    ax.scatter(x_list, y_list,color = 'red', marker = 'o')
+    # S点为红色正方形，并且大一点
+    ax.scatter(x_list[0], y_list[0], s = 100, color = 'red', marker = 's')
+ 
+    ax.text(x_list[0], y_list[0], 'S&B', fontsize=20)
+    for i in range(1, len(y_list)):
+        ax.text(x_list[i], y_list[i], i, fontsize = 10)
+    # 将节点连接构成回路
+    for i in range(0, N):
+        # 前后连接
+        x_temp = [x_list[i], x_list[i+1]]
+        y_temp = [y_list[i], y_list[i+1]]
+        plt.plot(x_temp, y_temp, label,linewidth=1)
+        if i == N - 1:
+            print 'i =', i
+            x_temp = [x_list[i + 1], x_list[0]]
+            y_temp = [y_list[i + 1], y_list[0]]
+            plt.plot(x_temp, y_temp, label,linewidth=1)
+    plt.xlim([0 - 1,edge_n + 1]) #设置绘图X边界                                                                                                   
+    plt.ylim([0 - 1,edge_n + 1]) #设置绘图Y边界
+    plt.show()
+    return 
 
 
 # 创建邻接矩阵，对于重新排序的节点创建邻接矩阵
@@ -160,40 +226,6 @@ def CreateDistanceNewMatrix(N_x_x, N_y_y, n, N_i_new):
                 N_distance_temp[i][j] = round(result[3],2)
                 N_distance_temp[j][i] = round((N_distance_temp[i][j]), 2)
     return N_distance_temp
-
-# 将节点前后连接起来
-def NodeToOtherNodeLink(x, y):
-    print "x =", x
-    print "y =", y
-    #分别存放所有点的横坐标和纵坐标，一一对应
-    x_list = x
-    y_list = y
-    
-    #创建图并命名
-    plt.figure('Scatter fig')
-    ax = plt.gca()
-    #设置x轴、y轴名称
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
-    
-    print "x_list =", x_list
-    print "y_list =", y_list
-    ax.scatter(x_list, y_list,color = 'red', marker = 'o')
-    # 将节点连接构成回路
-    for i in range(0, N):
-        # 前后连接
-        x_temp = [x_list[i], x_list[i+1]]
-        y_temp = [y_list[i], y_list[i+1]]
-        plt.plot(x_temp, y_temp)
-        if i == N - 1:
-            print 'i =', i
-            x_temp = [x_list[i + 1], x_list[0]]
-            y_temp = [y_list[i + 1], y_list[0]]
-            plt.plot(x_temp, y_temp)
-    plt.xlim([0 - 1,edge_n + 1]) #设置绘图X边界                                                                                                   
-    plt.ylim([0 - 1,edge_n + 1]) #设置绘图Y边界
-    plt.show()
-    return 
 
 # 重新打印邻接矩阵
 def PrintNewMatrix(N_distance_parm, n):
@@ -300,8 +332,6 @@ if __name__ == "__main__":
     # 保存节点序号的
     N_i = []
     N_i.append(0)
-    x = []
-    y = []
     v = 5   # 初始化电单车的运行速度为 5m/s
     for i in range(1, N+1):
         N_x[0][i] = round(random.uniform(1, edge_n), 2)
@@ -311,16 +341,15 @@ if __name__ == "__main__":
         # 电车运行方向的初始化
         alpha[0][i] = random.randint(0, 360)
         N_i.append(i)
-        x.append(N_x[0][i])
-        y.append(N_y[0][i])
+        
     # 程序开始运行，计时开始
     start_time = time.time()
-    print "x =", x
-    print "y =", y
-    print "N_i =", N_i
-    # 将电单车之间两两连接起来画图
-    AllNodeLink(x, y)
     
+    print "N_i =", N_i
+    
+     # 将节点坐标复制
+    N_x_new = N_x
+    N_y_new = N_y
     # 随机生成每辆电单车的功率
     for i in range(1, N + 1):
         # 单位为 W
@@ -331,23 +360,6 @@ if __name__ == "__main__":
     for i in range(1, N + 1):
         print "P_i[0][", i, "]=", P_i[0][i]
     
-    # 打印生成的N辆电单车的坐标
-    for i in range(1, N + 1):
-        print "坐标为：", (N_x[0][i], N_y[0][i])
-
-    # 电单车停止时间
-    # time.sleep(1)
-    
-    # 将节点坐标复制
-    N_x_new = N_x
-    N_y_new = N_y
-    
-    # 打印 初始化的节点啊的总能量
-    Es_temp = []
-    for i in range(1 , N + 1):
-        Es_temp.append(Es_i[0][i])    
-    print "开始时Es_i =", Es_temp 
-   
     # 我们要看看那个节点那个节点剩余的能量最少 反过来说就是功耗最大的
     P_i_Max = 0  # 初始化功率最大为P_i_Max = 0
     for i in range(1, N + 1):
@@ -360,14 +372,44 @@ if __name__ == "__main__":
     
     # S表示充电桩的位置，它的开始时坐标的确定，主要是，靠近剩余能量最小的节点或者说功率最大的点
     S = []
-    S_x = N_x_new[0][P_i_Max_Node] + 1
-    S_y = N_y_new[0][P_i_Max_Node] + 1
+    # S 的坐标比较讲究，不能部署到边界上
+    if N_x_new[0][P_i_Max_Node] < edge_n - 1:
+        S_x = N_x_new[0][P_i_Max_Node] + 1
+    else:
+        S_x = N_x_new[0][P_i_Max_Node] - 1
+        
+    if N_y_new[0][P_i_Max_Node] < edge_n - 1:
+        S_y = N_y_new[0][P_i_Max_Node] + 1
+    else:
+        S_y = N_y_new[0][P_i_Max_Node] - 1
     S.append(S_x)
     S.append(S_y)
     print "充电桩坐标为：", (S[0], S[1])
     # 表示充电桩S的坐标，加入了N中
     N_x_new[0][0] = S[0]
     N_y_new[0][0] = S[1]
+    x = []
+    y = []
+    for i in range(0, N + 1):
+        x.append(N_x[0][i])
+        y.append(N_y[0][i])
+    print "x =", x
+    print "y =", y
+    # 将电单车之间两两连接起来画图
+    AllNodeLink(x, y,obstacle_coordinate)
+    
+   
+    # 打印生成的N辆电单车的坐标
+    for i in range(0, N + 1):
+        print "坐标为：", (N_x[0][i], N_y[0][i])
+
+   
+    # 打印 初始化的节点啊的总能量
+    Es_temp = []
+    for i in range(1 , N + 1):
+        Es_temp.append(Es_i[0][i])    
+    print "开始时Es_i =", Es_temp 
+   
     
     # 备份N_i
     N_i_temp = N_i
@@ -524,7 +566,7 @@ if __name__ == "__main__":
     PrintNewMatrix(N_distance, len(Node_optimal_sort))
     
     # 加入S点后，将电单车前后连接起来
-    NodeToOtherNodeLink(x, y)
+    NodeToOtherNodeLink(x, y, 'b')
    
     print "开始构造子回路"
     

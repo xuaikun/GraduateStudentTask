@@ -87,7 +87,17 @@ psum只计算当前加入回路的节点的功率的总和，并不是所有节�
 
 #### S位置的选取
 充电桩S的位置选取：开始时先不考虑S到各电单车的距离，只是考虑每辆电单车剩余能量，将S放在当前剩余能量最小的电单车旁边。选择剩余能量最少的节点优先服务
-
+#### 对于S的坐标的计算，还得注意不能越界：
+S 的坐标比较讲究，不能部署到边界上
+if N_x_new[0][P_i_Max_Node] < edge_n - 20:
+    S_x = N_x_new[0][P_i_Max_Node] + 20
+else:
+    S_x = N_x_new[0][P_i_Max_Node] - 20
+    
+if N_y_new[0][P_i_Max_Node] < edge_n - 20:
+    S_y = N_y_new[0][P_i_Max_Node] + 20
+else:
+    S_y = N_y_new[0][P_i_Max_Node] - 20
 ##### 节点是运动和静止的定义
 ##### 运动：
 电单车的能量一直不断消耗，节点的位置在不断发生变化，直到通过节点剩余能量与节点到S的距离，选择它为下一个充电节点后，它的位置才固定（静止）。（实际场景中，这些电单车实际上是在不断运动的），每次MCV要选择下一个充电节点的时候，电单车的位置固定，一旦选择后，被选中过的节点位置固定，其余节点继续运动。
@@ -106,3 +116,22 @@ alpha = random.randomint(0, 360),
 ##### 新坐标为（x',y'）的计算，已经验证，可行
 x' = x + v·t·cos(alpha/180·pi)
 y' = y + v·t·sin(alpha/180·pi)
+
+### 2019年1月7日：
+对于第一个图：我们可以将所有的节点（电单车）指向充电桩S点
+###### 离散点处理scatter参数参考的链接：
+https://blog.csdn.net/anneqiqi/article/details/64125186#
+###### 途中点的标注annotate
+https://blog.csdn.net/leaf_zizi/article/details/82886755
+###### 画图中plot的使用方法：
+https://blog.csdn.net/cjcrxzz/article/details/79627483
+###### 调整图片的大小以及像素等：
+https://blog.csdn.net/weixin_34613450/article/details/80678522
+###### 图片中线条的粗细和坐标刻度的设置
+https://blog.csdn.net/u010358304/article/details/78906768
+###### 图片坐标刻度设置
+https://blog.csdn.net/hfut_jf/article/details/50755260
+###### 添加网格 plt.grid()
+
+为了贴切实际，障碍大小应该达到10mx10m，在网格中将障碍的位置涂绿
+应该先放置障碍，然后再生成电单车节点
