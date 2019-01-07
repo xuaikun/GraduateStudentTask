@@ -369,8 +369,6 @@ if __name__ == "__main__":
     N_x_new[0][0] = S[0]
     N_y_new[0][0] = S[1]
     
-    
-   
     # 备份N_i
     N_i_temp = N_i
     # 最优的操作节点排序
@@ -393,13 +391,11 @@ if __name__ == "__main__":
         print "len(N_i) =", len(N_i)
         print "N_i =", N_i
         end_time = time.time()
+        print "while() start_time = ", start_time, "s"
         print "while() end_time =", end_time, "s"
         t = (end_time - start_time)
         
-        print "电单车运行的时间为：t =", t
-        # 重新开始计算时间，为什么从这开始呢？主要是构建邻接矩阵比较花时间，而且期间所花不属于电单车运行时间
-        start_time = time.time()
-        print "while() start_time = ", start_time, "s"
+        print "电单车运行的时间为：t =", t, "s"
         
         # 更新节点剩余的能量
         # 更新电单车的坐标，毕竟运行了好久，早已经离开了之前的初始的位置
@@ -439,7 +435,10 @@ if __name__ == "__main__":
         N_distance = CreateDistanceNewMatrix(N_x_new, N_y_new, len(N_i), N_i)
         # 重新打印邻接矩阵
         PrintNewMatrix(N_distance, len(N_i))
+        # 重新开始计算时间，为什么从这开始呢？主要是构建邻接矩阵比较花时间，而且期间所花不属于电单车运行时间
+        start_time = time.time()
         
+        time.sleep(2)
         # 只考虑当前所剩下的节点，不包括S点（N_i[0]）
         # 准备充电之前都在运行
         
@@ -517,14 +516,12 @@ if __name__ == "__main__":
     # print "邻接矩阵矩阵初始化"
     # PrintNewMatrix(N_distance, len(N_i))
     # 加入S点后，邻接矩阵每次都会更新，之后每次都会减少节点
-    # 延时1s，应该是电脑反应不过来，出现错误
     
     # 与上面的索引生成邻接矩阵不一样，这里是直接产生邻接矩阵
     # 这里是已经排好序的列表
     N_distance = CreateDistanceMatrix(N_x_final, N_y_final, len(Node_optimal_sort), Node_optimal_sort)
     # 重新打印邻接矩阵
     PrintNewMatrix(N_distance, len(Node_optimal_sort))
-    
     
     # 加入S点后，将电单车前后连接起来
     NodeToOtherNodeLink(x, y)
