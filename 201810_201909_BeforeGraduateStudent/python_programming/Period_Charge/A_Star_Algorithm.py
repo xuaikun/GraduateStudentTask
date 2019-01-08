@@ -70,7 +70,7 @@ def init(start_position, end_position):
     close_list_C[start_position[0]][start_position[1]] = 0
 
 
-def set_obstacle():
+def set_obstacle(obstacle_coordinate, obstacle_num):
     # 此函数用于设置障碍的
     # create_2D_space[2][5] = 2
     # create_2D_space[3][4] = 2
@@ -79,6 +79,28 @@ def set_obstacle():
     # create_2D_space[4][4] = 2
     # 当前点(8,7)为障碍
     # create_2D_space[8][7] = 2
+    x_down_list = obstacle_coordinate[0]
+    x_up_list  = obstacle_coordinate[1]
+
+    # 障碍纵坐标y的范围
+    y_down_list = obstacle_coordinate[2]
+    y_up_list = obstacle_coordinate[3]
+    for i in range(0, obstacle_num):
+        x_down_value= x_down_list[0][i]
+        x_up_value= x_up_list[0][i]
+        y_down_value= y_down_list[0][i]
+        y_up_value= y_up_list[0][i]
+        # 遍历横坐标
+        # print "x_down_value =", x_down_value
+        # print "x_up_value =", x_up_value
+        # print "y_down_value =", y_down_value
+        # print "y_up_value =", y_up_value
+        for j in range(x_down_value,x_up_value + 1):
+            # 遍历纵坐标
+            for k in range(y_down_value, y_up_value + 1):
+                # （x_down_value+x_up_value）*(y_down_value + y_up_value)区域都是障碍
+                create_2D_space[j][k] = 2
+                # print "create_2D_space[", j, "][", k, "] =", create_2D_space[j][k] 
     return
 
 
@@ -499,7 +521,7 @@ def possibilities_position(parent_position, goal_position):
     return result_list
 
 
-def a_star_algorithm(first_coordinate, second_coordinate):
+def a_star_algorithm(first_coordinate, second_coordinate, obstacle_coordinate, obstacle_num):
     # print "program begin……"
     # 坐标自己定
     # start_position = [1, 1]  # 起始坐标
@@ -524,13 +546,9 @@ def a_star_algorithm(first_coordinate, second_coordinate):
     
     init(start_position_new, end_position_new)
     # 设置障碍
-    set_obstacle()
-    # print "x_0 =", x_0
-    # print "y_0 =", y_0
-    # print "x_1 =", x_1
-    # print "y_1 =", y_1
-    # print "start_position =", start_position
-    # print "end_position =", end_position
+    # print "开始设置障碍"
+    set_obstacle(obstacle_coordinate, obstacle_num)
+    # print "结束设置障碍"
     
     if abs(start_position_new[0] - end_position_new[0]) < 1 and abs(start_position_new[1] - end_position_new[1]) < 1:
         # print "两个点都在同一个单位区域内"

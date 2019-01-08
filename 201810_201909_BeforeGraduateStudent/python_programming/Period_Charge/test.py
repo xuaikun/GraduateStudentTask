@@ -5,9 +5,11 @@ import random
 import time
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
+import TourConstructionProblem as T
 # 数据初始化
-N = 10   # 假设我有N辆电单车
-edge_n = 500 # 假设定义的二维空间范围是 edge_n * edge_n
+N = 5   # 假设我有N辆电单车
+edge_n = 10 # 假设定义的二维空间范围是 edge_n * edge_n
+obstacles_Num = 5 # 障碍 数量
 # 初始化电单车在二维空间中的坐标
 N_x = np.empty([1, N + 1], float)
 N_y = np.empty([1, N + 1], float)
@@ -22,7 +24,7 @@ P_i = np.empty([1, N + 1], float)
 # 分别存放所有点的横坐标和纵坐标，一一对应
 # 将图中离散的点一一连接
 obstacle_coordinate = []
-obstacles_Num =20
+
 x_down = np.empty([1, obstacles_Num], int)
 x_up = np.empty([1, obstacles_Num], int)
 y_down = np.empty([1, obstacles_Num], int)
@@ -54,7 +56,7 @@ def AllNodeLink(x, y, obstacle_coordinate_new):
         y_down_value= y_down_list[0][j]
         y_up_value= y_up_list[0][j]
        
-        plt.fill_between(range(x_down_value, x_up_value), y_down_value , y_up_value, facecolor='green')
+        plt.fill_between(range(x_down_value, x_up_value+1), y_down_value , y_up_value, facecolor='green')
     ax.scatter((x_down_list[0][1]+x_up_list[0][1])/2, (
              y_down_list[0][1]+y_up_list[0][1])/2, s = 100, color = 'green',label = 'Obstacle', marker = 's')
     # 图片坐标刻度设置
@@ -62,8 +64,8 @@ def AllNodeLink(x, y, obstacle_coordinate_new):
     # ax.xaxis.set_major_locator(MultipleLocator(100))
     # ax.yaxis.set_major_locator(MultipleLocator(40))
     
-    ax.xaxis.set_major_locator(MultipleLocator(40))
-    ax.yaxis.set_major_locator(MultipleLocator(20))
+    ax.xaxis.set_major_locator(MultipleLocator(1))
+    ax.yaxis.set_major_locator(MultipleLocator(1))
     #设置x轴、y轴名称
     ax.set_xlabel('X(m)')
     ax.set_ylabel('Y(m)')
@@ -122,15 +124,15 @@ def NodeToOtherNodeLink(x, y, label, obstacle_coordinate_new):
         y_down_value= y_down_list[0][j]
         y_up_value= y_up_list[0][j]
        
-        plt.fill_between(range(x_down_value, x_up_value), y_down_value , y_up_value, facecolor='green')
+        plt.fill_between(range(x_down_value, x_up_value+1), y_down_value , y_up_value, facecolor='green')
     ax.scatter((x_down_list[0][1]+x_up_list[0][1])/2, (
              y_down_list[0][1]+y_up_list[0][1])/2, s = 100, color = 'green',label = 'Obstacle', marker = 's')
     # 图片坐标刻度设置
     # 2000*2000
     # ax.xaxis.set_major_locator(MultipleLocator(100))
     # ax.yaxis.set_major_locator(MultipleLocator(40))
-    ax.xaxis.set_major_locator(MultipleLocator(40))
-    ax.yaxis.set_major_locator(MultipleLocator(20))
+    ax.xaxis.set_major_locator(MultipleLocator(1))
+    ax.yaxis.set_major_locator(MultipleLocator(1))
     #设置x轴、y轴名称
     ax.set_xlabel('X(m)')
     ax.set_ylabel('Y(m)')
@@ -171,18 +173,18 @@ print "x_down =", x_down
 print "y_down =", y_down
 # 保证障碍在要操作的二维区域内
 for i in range(0, obstacles_Num):
-    if x_down[0][i] < edge_n - 10:
-        x_up[0][i] = x_down[0][i] + 10
+    if x_down[0][i] <= edge_n - 1:
+        x_up[0][i] = x_down[0][i] + 1
     else:
         x_temp = x_down[0][i]
         x_up[0][i] = x_temp
-        x_down[0][i] = x_temp - 10
-    if y_down[0][i] < edge_n - 10:
-        y_up[0][i] = y_down[0][i] + 10
+        x_down[0][i] = x_temp - 1
+    if y_down[0][i] <= edge_n - 1:
+        y_up[0][i] = y_down[0][i] + 1
     else:
         y_temp = y_down[0][i]
         y_up[0][i] = y_temp
-        y_down[0][i] = y_temp - 10
+        y_down[0][i] = y_temp - 1
 print "x_down =", x_down
 print "x_up =", x_up
 print "y_down =", y_down
@@ -210,8 +212,8 @@ for i in range(1, N+1):
         # print "初始化j =", j
         j_temp = j
         equal_flag = True
-        if((N_x[0][i] > x_down[0][j_temp]) and (N_x[0][i] < x_up[0][j_temp])) and(
-                (N_y[0][i] > y_down[0][j_temp]) and (N_y[0][i] < y_up[0][j_temp])):
+        if((N_x[0][i] > (x_down[0][j_temp]-1)) and (N_x[0][i] < (x_up[0][j_temp]+1))) and(
+                (N_y[0][i] > (y_down[0][j_temp]-1)) and (N_y[0][i] < (y_up[0][j_temp]+1))):
             print "初始j_temp =", j_temp
             j_temp = j_temp + 1
             print "更新的j_temp =", j_temp
@@ -277,16 +279,11 @@ print "剩余能量最少的节点是：", P_i_Max_Node
 
 # S表示充电桩的位置，它的开始时坐标的确定，主要是，靠近剩余能量最小的节点或者说功率最大的点
 S = []
-# S 的坐标比较讲究，不能部署到边界上
-if N_x_new[0][P_i_Max_Node] < edge_n - 1:
-    S_x = N_x_new[0][P_i_Max_Node] + 1
-else:
-    S_x = N_x_new[0][P_i_Max_Node] - 1
-    
-if N_y_new[0][P_i_Max_Node] < edge_n - 1:
-    S_y = N_y_new[0][P_i_Max_Node] + 1
-else:
-    S_y = N_y_new[0][P_i_Max_Node] - 1
+S_x_flag = True
+S_y_flag = True
+# S 的坐标比较讲究，直接放在功耗最大的节点旁边
+S_x = N_x_new[0][P_i_Max_Node]
+S_y = N_y_new[0][P_i_Max_Node]
 S.append(S_x)
 S.append(S_y)
 print "充电桩坐标为：", (S[0], S[1])
@@ -304,3 +301,10 @@ print "y =", y
 AllNodeLink(x, y,obstacle_coordinate)
 # 将哈密顿回路连接起来
 NodeToOtherNodeLink(x, y, 'g', obstacle_coordinate)
+print "N_x_new =", N_x_new
+print "N_y_new =", N_y_new
+print "len(x)= ", len(x)
+print "obstacle_coordinate =", obstacle_coordinate
+print "obstacles_Num =", obstacles_Num
+distance = T.CreateDistanceMatrix(N_x_new, N_y_new, len(x), N_i, obstacle_coordinate, obstacles_Num)
+T.PrintNewMatrix(distance, len(x))

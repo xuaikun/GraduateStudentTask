@@ -14,9 +14,9 @@ import time
 import math
 from matplotlib.ticker import MultipleLocator
 # 数据初始化
-N = 10   # 假设我有N辆电单车
+N = 5   # 假设我有N辆电单车
 edge_n = 500 # 假设定义的二维空间范围是 edge_n * edge_n
-
+obstacles_Num =20  # 障碍个数
 # 初始化电单车在二维空间中的坐标
 N_x = np.empty([1, N + 1], float)
 N_y = np.empty([1, N + 1], float)
@@ -43,6 +43,13 @@ alpha = np.empty([1, N + 1], float)
 # 用来保存充电回来的子集
 R = np.empty([N + 1, 1], list)
 
+# 障碍坐标范围
+obstacle_coordinate = []
+x_down = np.empty([1, obstacles_Num], int)
+x_up = np.empty([1, obstacles_Num], int)
+y_down = np.empty([1, obstacles_Num], int)
+y_up = np.empty([1, obstacles_Num], int)
+
 # 定义选择排序 A
 def select_sort(array):
     length = array.shape[1]
@@ -58,12 +65,6 @@ def select_sort(array):
 
 # 分别存放所有点的横坐标和纵坐标，一一对应
 # 将图中离散的点一一连接
-obstacle_coordinate = []
-obstacles_Num =20
-x_down = np.empty([1, obstacles_Num], int)
-x_up = np.empty([1, obstacles_Num], int)
-y_down = np.empty([1, obstacles_Num], int)
-y_up = np.empty([1, obstacles_Num], int)
 
 def AllNodeLink(x, y, obstacle_coordinate_new):
     x_list = x
@@ -91,7 +92,7 @@ def AllNodeLink(x, y, obstacle_coordinate_new):
         y_down_value= y_down_list[0][j]
         y_up_value= y_up_list[0][j]
        
-        plt.fill_between(range(x_down_value, x_up_value), y_down_value , y_up_value, facecolor='green')
+        plt.fill_between(range(x_down_value, x_up_value+1), y_down_value , y_up_value, facecolor='green')
     ax.scatter((x_down_list[0][1]+x_up_list[0][1])/2, (
              y_down_list[0][1]+y_up_list[0][1])/2, s = 100, color = 'green',label = 'Obstacle', marker = 's')
     # 图片坐标刻度设置
@@ -100,7 +101,7 @@ def AllNodeLink(x, y, obstacle_coordinate_new):
     # ax.yaxis.set_major_locator(MultipleLocator(40))
     
     ax.xaxis.set_major_locator(MultipleLocator(40))
-    ax.yaxis.set_major_locator(MultipleLocator(20))
+    ax.yaxis.set_major_locator(MultipleLocator(40))
     #设置x轴、y轴名称
     ax.set_xlabel('X(m)')
     ax.set_ylabel('Y(m)')
@@ -159,7 +160,7 @@ def NodeToOtherNodeLink(x, y, label, obstacle_coordinate_new):
         y_down_value= y_down_list[0][j]
         y_up_value= y_up_list[0][j]
        
-        plt.fill_between(range(x_down_value, x_up_value), y_down_value , y_up_value, facecolor='green')
+        plt.fill_between(range(x_down_value, x_up_value+1), y_down_value , y_up_value, facecolor='green')
     ax.scatter((x_down_list[0][1]+x_up_list[0][1])/2, (
              y_down_list[0][1]+y_up_list[0][1])/2, s = 100, color = 'green',label = 'Obstacle', marker = 's')
     # 图片坐标刻度设置
@@ -167,7 +168,7 @@ def NodeToOtherNodeLink(x, y, label, obstacle_coordinate_new):
     # ax.xaxis.set_major_locator(MultipleLocator(100))
     # ax.yaxis.set_major_locator(MultipleLocator(40))
     ax.xaxis.set_major_locator(MultipleLocator(40))
-    ax.yaxis.set_major_locator(MultipleLocator(20))
+    ax.yaxis.set_major_locator(MultipleLocator(40))
     #设置x轴、y轴名称
     ax.set_xlabel('X(m)')
     ax.set_ylabel('Y(m)')
@@ -202,7 +203,7 @@ def NodeToOtherNodeLink(x, y, label, obstacle_coordinate_new):
 
 
 # 创建邻接矩阵，对于重新排序的节点创建邻接矩阵
-def CreateDistanceMatrix(N_x_x, N_y_y, n, N_i_new):
+def CreateDistanceMatrix(N_x_x, N_y_y, n, N_i_new, obstacle_coordinate_new, obstacle_num_new):
     # i和j表示第n个节点
     N_distance_temp = np.empty([n, n], float)
     for i in range(0, n):
@@ -231,8 +232,8 @@ def CreateDistanceMatrix(N_x_x, N_y_y, n, N_i_new):
                 second_coordinate.append(y2)
                 # print "第一个坐标：", first_coordinate
                 # print "第二个坐标：", second_coordinate
-                result = A.a_star_algorithm(first_coordinate, second_coordinate)
-                # print "构造回路的result = ", result
+                result = A.a_star_algorithm(first_coordinate, second_coordinate, obstacle_coordinate_new, obstacle_num_new)
+                print "构造回路的result = ", result
                 # 电单车i到电单车j（或电单车j到电单车i）的实际距离
                 # 距离取两位小数，就好
                 N_distance_temp[i][j] = round(result[3],2)
@@ -240,7 +241,7 @@ def CreateDistanceMatrix(N_x_x, N_y_y, n, N_i_new):
     return N_distance_temp
 
 # 创建新邻接矩阵，对于过程中创建的邻接矩阵
-def CreateDistanceNewMatrix(N_x_x, N_y_y, n, N_i_new):
+def CreateDistanceNewMatrix(N_x_x, N_y_y, n, N_i_new, obstacle_coordinate_new, obstacle_num_new):
     # i和j表示第n个节点
     N_distance_temp = np.empty([n, n], float)
     for i in range(0, n):
@@ -269,8 +270,8 @@ def CreateDistanceNewMatrix(N_x_x, N_y_y, n, N_i_new):
                 second_coordinate.append(y2)
                 # print "第一个坐标：", first_coordinate
                 # print "第二个坐标：", second_coordinate
-                result = A.a_star_algorithm(first_coordinate, second_coordinate)
-                # print "构造回路的result = ", result
+                result = A.a_star_algorithm(first_coordinate, second_coordinate, obstacle_coordinate_new, obstacle_num_new)
+                print "构造回路的result = ", result
                 # 电单车i到电单车j（或电单车j到电单车i）的实际距离
                 # 距离取两位小数，就好
                 N_distance_temp[i][j] = round(result[3],2)
@@ -426,8 +427,9 @@ if __name__ == "__main__":
             # print "初始化j =", j
             j_temp = j
             equal_flag = True
-            if((N_x[0][i] > x_down[0][j_temp]) and (N_x[0][i] < x_up[0][j_temp])) and(
-                    (N_y[0][i] > y_down[0][j_temp]) and (N_y[0][i] < y_up[0][j_temp])):
+            # 电单车坐标的设置，扩大到障碍外围至少+1m处
+            if((N_x[0][i] > (x_down[0][j_temp]-1)) and (N_x[0][i] < (x_up[0][j_temp]+1))) and(
+                (N_y[0][i] > (y_down[0][j_temp]-1)) and (N_y[0][i] < (y_up[0][j_temp]+1))):
                 print "初始j_temp =", j_temp
                 j_temp = j_temp + 1
                 print "更新的j_temp =", j_temp
@@ -491,18 +493,14 @@ if __name__ == "__main__":
             P_i_Max_Node = N_i[i]
     print "剩余能量最少的节点是：", P_i_Max_Node
     
+   
     # S表示充电桩的位置，它的开始时坐标的确定，主要是，靠近剩余能量最小的节点或者说功率最大的点
     S = []
-    # S 的坐标比较讲究，不能部署到边界上
-    if N_x_new[0][P_i_Max_Node] < edge_n - 1:
-        S_x = N_x_new[0][P_i_Max_Node] + 1
-    else:
-        S_x = N_x_new[0][P_i_Max_Node] - 1
-        
-    if N_y_new[0][P_i_Max_Node] < edge_n - 1:
-        S_y = N_y_new[0][P_i_Max_Node] + 1
-    else:
-        S_y = N_y_new[0][P_i_Max_Node] - 1
+    S_x_flag = True
+    S_y_flag = True
+    # S 的坐标比较讲究，直接放在功耗最大的节点旁边
+    S_x = N_x_new[0][P_i_Max_Node]
+    S_y = N_y_new[0][P_i_Max_Node]
     S.append(S_x)
     S.append(S_y)
     print "充电桩坐标为：", (S[0], S[1])
@@ -595,7 +593,7 @@ if __name__ == "__main__":
                 N_distance[i][j] = 0.0
        
         # 加入S点后，邻接矩阵每次都会更新，之后每次都会减少节点
-        N_distance = CreateDistanceNewMatrix(N_x_new, N_y_new, len(N_i), N_i)
+        N_distance = CreateDistanceNewMatrix(N_x_new, N_y_new, len(N_i), N_i, obstacle_coordinate, obstacles_Num)
         # 重新打印邻接矩阵
         PrintNewMatrix(N_distance, len(N_i))
         # 重新开始计算时间，为什么从这开始呢？主要是构建邻接矩阵比较花时间，而且期间所花不属于电单车运行时间
@@ -682,7 +680,7 @@ if __name__ == "__main__":
     
     # 与上面的索引生成邻接矩阵不一样，这里是直接产生邻接矩阵
     # 这里是已经排好序的列表
-    N_distance = CreateDistanceMatrix(N_x_final, N_y_final, len(Node_optimal_sort), Node_optimal_sort)
+    N_distance = CreateDistanceMatrix(N_x_final, N_y_final, len(Node_optimal_sort), Node_optimal_sort, obstacle_coordinate, obstacles_Num)
     # 重新打印邻接矩阵
     PrintNewMatrix(N_distance, len(Node_optimal_sort))
     
