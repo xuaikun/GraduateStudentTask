@@ -21,14 +21,48 @@ P_i = np.empty([1, N + 1], float)
 
 # 分别存放所有点的横坐标和纵坐标，一一对应
 # 将图中离散的点一一连接
-obstacle_coordinate = np.empty([2, 1], list)
-obstacle_coordinate[0][0] = [30,400,333,111,444]
-obstacle_coordinate[1][0] = [50,100,400,322,123]
+obstacle_coordinate = []
+obstacles_Num =20
+x_down = np.empty([1, obstacles_Num], int)
+x_up = np.empty([1, obstacles_Num], int)
+y_down = np.empty([1, obstacles_Num], int)
+y_up = np.empty([1, obstacles_Num], int)
+
+for i in range(0, obstacles_Num):
+    x_down[0][i] = (random.randint(1, edge_n))
+    y_down[0][i] = (random.randint(1, edge_n))
+print "x_down =", x_down
+print "y_down =", y_down
+# 保证障碍在要操作的二维区域内
+for i in range(0, obstacles_Num):
+    if x_down[0][i] < edge_n - 10:
+        x_up[0][i] = x_down[0][i] + 10
+    else:
+        x_temp = x_down[0][i]
+        x_up[0][i] = x_temp
+        x_down[0][i] = x_temp - 10
+    if y_down[0][i] < edge_n - 10:
+        y_up[0][i] = y_down[0][i] + 10
+    else:
+        y_temp = y_down[0][i]
+        y_up[0][i] = y_temp
+        y_down[0][i] = y_temp - 10
+print "x_down =", x_down
+print "x_up =", x_up
+print "y_down =", y_down
+print "y_up =", y_up
+obstacle_coordinate.append(x_down)
+obstacle_coordinate.append(x_up)
+obstacle_coordinate.append(y_down)
+obstacle_coordinate.append(y_up)
+print "obstacle_coordinate =", obstacle_coordinate
+
 def AllNodeLink(x, y, obstacle_coordinate_new):
     x_list = x
     y_list = y
-    x_obstacle_list = obstacle_coordinate_new[0][0]
-    y_obstacle_list = obstacle_coordinate_new[1][0]
+    
+    # x_obstacle_list = obstacle_coordinate_new[0][0]
+    # y_obstacle_list = obstacle_coordinate_new[1][0]
     # 调整生成的图片的大小
     plt.rcParams['figure.figsize'] = (10.0, 10.0) # 设置figure_size尺寸
     #创建图并命名
@@ -37,9 +71,28 @@ def AllNodeLink(x, y, obstacle_coordinate_new):
     ax = plt.gca()
     
     plt.grid()
+    # 障碍坐标区域使用绿色表示
+    # range(40, 81) 表示选中横坐标的范围
+    # 障碍横坐标x的范围
+    x_down_list = obstacle_coordinate_new[0]
+    x_up_list  = obstacle_coordinate_new[1]
+    # 障碍纵坐标y的范围
+    y_down_list = obstacle_coordinate_new[2]
+    y_up_list = obstacle_coordinate_new[3]
+    for j in range(0, obstacles_Num):
+        x_down_value= x_down_list[0][j]
+        x_up_value= x_up_list[0][j]
+        y_down_value= y_down_list[0][j]
+        y_up_value= y_up_list[0][j]
+        
+        plt.fill_between(range(x_down_value, x_up_value), y_down_value , y_up_value, facecolor='green')
     # 图片坐标刻度设置
-    ax.xaxis.set_major_locator(MultipleLocator(10))
-    ax.yaxis.set_major_locator(MultipleLocator(10))
+    # 2000*2000
+    # ax.xaxis.set_major_locator(MultipleLocator(100))
+    # ax.yaxis.set_major_locator(MultipleLocator(40))
+    
+    ax.xaxis.set_major_locator(MultipleLocator(40))
+    ax.yaxis.set_major_locator(MultipleLocator(20))
     #设置x轴、y轴名称
     ax.set_xlabel('X(m)')
     ax.set_ylabel('Y(m)')
@@ -48,11 +101,11 @@ def AllNodeLink(x, y, obstacle_coordinate_new):
     print "y_list =", y_list
     # 每个节点用红圈圈表示出来
     ax.scatter(x_list, y_list,color = 'r', marker = 'o')
-    ax.scatter(x_obstacle_list, y_obstacle_list,color = 'g', marker = '8')
+    # ax.scatter(x_obstacle_list, y_obstacle_list,color = 'g', marker = '8')
     # S点为红色正方形，并且大一点
-    ax.scatter(x_list[0], y_list[0], s = 100, color = 'red', marker = 's')
+    ax.scatter(x_list[0], y_list[0], s = 100, color = 'k', marker = 's')
  
-    ax.text(x_list[0], y_list[0], 'S&B', fontsize=20)
+    ax.text(x_list[0], y_list[0], 'S', fontsize=20)
     for i in range(1, len(y_list)):
         ax.text(x_list[i], y_list[i], i, fontsize = 10)
     # 将所有节点与充电桩S连起来
@@ -81,9 +134,12 @@ def NodeToOtherNodeLink(x, y, label):
     plt.title('S & Node')
     ax = plt.gca()
     plt.grid()
-     # 图片坐标刻度设置
-    ax.xaxis.set_major_locator(MultipleLocator(10))
-    ax.yaxis.set_major_locator(MultipleLocator(10))
+    # 图片坐标刻度设置
+    # 2000*2000
+    # ax.xaxis.set_major_locator(MultipleLocator(100))
+    # ax.yaxis.set_major_locator(MultipleLocator(40))
+    ax.xaxis.set_major_locator(MultipleLocator(40))
+    ax.yaxis.set_major_locator(MultipleLocator(20))
     #设置x轴、y轴名称
     ax.set_xlabel('X(m)')
     ax.set_ylabel('Y(m)')
@@ -92,9 +148,9 @@ def NodeToOtherNodeLink(x, y, label):
     print "y_list =", y_list
     ax.scatter(x_list, y_list,color = 'red', marker = 'o')
     # S点为红色正方形，并且大一点
-    ax.scatter(x_list[0], y_list[0], s = 100, color = 'red', marker = 's')
+    ax.scatter(x_list[0], y_list[0], s = 100, color = 'k', marker = 's')
  
-    ax.text(x_list[0], y_list[0], 'S&B', fontsize=20)
+    ax.text(x_list[0], y_list[0], 'S', fontsize=20)
     for i in range(1, len(y_list)):
         ax.text(x_list[i], y_list[i], i, fontsize = 10)
     # 将节点连接构成回路

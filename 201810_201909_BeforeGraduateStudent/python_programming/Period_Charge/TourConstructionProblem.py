@@ -87,9 +87,9 @@ def AllNodeLink(x, y, obstacle_coordinate_new):
     ax.scatter(x_list, y_list,color = 'r', marker = 'o')
     ax.scatter(x_obstacle_list, y_obstacle_list,color = 'g', marker = '8')
     # S点为红色正方形，并且大一点
-    ax.scatter(x_list[0], y_list[0], s = 100, color = 'red', marker = 's')
+    ax.scatter(x_list[0], y_list[0], s = 100, color = 'k', marker = 's')
  
-    ax.text(x_list[0], y_list[0], 'S&B', fontsize=20)
+    ax.text(x_list[0], y_list[0], 'S', fontsize=20)
     for i in range(1, len(y_list)):
         ax.text(x_list[i], y_list[i], i, fontsize = 10)
     # 将所有节点与充电桩S连起来
@@ -129,9 +129,9 @@ def NodeToOtherNodeLink(x, y, label):
     print "y_list =", y_list
     ax.scatter(x_list, y_list,color = 'red', marker = 'o')
     # S点为红色正方形，并且大一点
-    ax.scatter(x_list[0], y_list[0], s = 100, color = 'red', marker = 's')
+    ax.scatter(x_list[0], y_list[0], s = 100, color = 'k', marker = 's')
  
-    ax.text(x_list[0], y_list[0], 'S&B', fontsize=20)
+    ax.text(x_list[0], y_list[0], 'S', fontsize=20)
     for i in range(1, len(y_list)):
         ax.text(x_list[i], y_list[i], i, fontsize = 10)
     # 将节点连接构成回路
