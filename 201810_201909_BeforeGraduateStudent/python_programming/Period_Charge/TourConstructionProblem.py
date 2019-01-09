@@ -15,8 +15,8 @@ import math
 from matplotlib.ticker import MultipleLocator
 # 数据初始化
 N = 5   # 假设我有N辆电单车
-edge_n = 500 # 假设定义的二维空间范围是 edge_n * edge_n
-obstacles_Num =20  # 障碍个数
+edge_n = 10 # 假设定义的二维空间范围是 edge_n * edge_n
+obstacles_Num =5  # 障碍个数
 # 初始化电单车在二维空间中的坐标
 N_x = np.empty([1, N + 1], float)
 N_y = np.empty([1, N + 1], float)
@@ -94,14 +94,16 @@ def AllNodeLink(x, y, obstacle_coordinate_new):
        
         plt.fill_between(range(x_down_value, x_up_value+1), y_down_value , y_up_value, facecolor='green')
     ax.scatter((x_down_list[0][1]+x_up_list[0][1])/2, (
-             y_down_list[0][1]+y_up_list[0][1])/2, s = 100, color = 'green',label = 'Obstacle', marker = 's')
+             y_down_list[0][1]+y_up_list[0][1])/2, color = 'green',label = 'Obstacle', marker = 's')
     # 图片坐标刻度设置
     # 2000*2000
     # ax.xaxis.set_major_locator(MultipleLocator(100))
     # ax.yaxis.set_major_locator(MultipleLocator(40))
     
-    ax.xaxis.set_major_locator(MultipleLocator(40))
-    ax.yaxis.set_major_locator(MultipleLocator(40))
+    # ax.xaxis.set_major_locator(MultipleLocator(40))
+    # ax.yaxis.set_major_locator(MultipleLocator(40))
+    ax.xaxis.set_major_locator(MultipleLocator(1))
+    ax.yaxis.set_major_locator(MultipleLocator(1))
     #设置x轴、y轴名称
     ax.set_xlabel('X(m)')
     ax.set_ylabel('Y(m)')
@@ -162,13 +164,15 @@ def NodeToOtherNodeLink(x, y, label, obstacle_coordinate_new):
        
         plt.fill_between(range(x_down_value, x_up_value+1), y_down_value , y_up_value, facecolor='green')
     ax.scatter((x_down_list[0][1]+x_up_list[0][1])/2, (
-             y_down_list[0][1]+y_up_list[0][1])/2, s = 100, color = 'green',label = 'Obstacle', marker = 's')
+             y_down_list[0][1]+y_up_list[0][1])/2, color = 'green',label = 'Obstacle', marker = 's')
     # 图片坐标刻度设置
     # 2000*2000
     # ax.xaxis.set_major_locator(MultipleLocator(100))
     # ax.yaxis.set_major_locator(MultipleLocator(40))
-    ax.xaxis.set_major_locator(MultipleLocator(40))
-    ax.yaxis.set_major_locator(MultipleLocator(40))
+    # ax.xaxis.set_major_locator(MultipleLocator(40))
+    # ax.yaxis.set_major_locator(MultipleLocator(40))
+    ax.xaxis.set_major_locator(MultipleLocator(1))
+    ax.yaxis.set_major_locator(MultipleLocator(1))
     #设置x轴、y轴名称
     ax.set_xlabel('X(m)')
     ax.set_ylabel('Y(m)')
@@ -232,7 +236,7 @@ def CreateDistanceMatrix(N_x_x, N_y_y, n, N_i_new, obstacle_coordinate_new, obst
                 second_coordinate.append(y2)
                 # print "第一个坐标：", first_coordinate
                 # print "第二个坐标：", second_coordinate
-                result = A.a_star_algorithm(first_coordinate, second_coordinate, obstacle_coordinate_new, obstacle_num_new)
+                result = A.a_star_algorithm(first_coordinate, second_coordinate, obstacle_coordinate_new, obstacle_num_new, True)
                 print "构造回路的result = ", result
                 # 电单车i到电单车j（或电单车j到电单车i）的实际距离
                 # 距离取两位小数，就好
@@ -270,7 +274,7 @@ def CreateDistanceNewMatrix(N_x_x, N_y_y, n, N_i_new, obstacle_coordinate_new, o
                 second_coordinate.append(y2)
                 # print "第一个坐标：", first_coordinate
                 # print "第二个坐标：", second_coordinate
-                result = A.a_star_algorithm(first_coordinate, second_coordinate, obstacle_coordinate_new, obstacle_num_new)
+                result = A.a_star_algorithm(first_coordinate, second_coordinate, obstacle_coordinate_new, obstacle_num_new, True)
                 print "构造回路的result = ", result
                 # 电单车i到电单车j（或电单车j到电单车i）的实际距离
                 # 距离取两位小数，就好
@@ -374,31 +378,35 @@ def ChangeChildrenTour(P_temp, N_distance_temp):
     result.append(z)
     return result
 
-
-
-# 程序从这里开始执行
-if __name__ == "__main__":
-    
+# 设置障碍
+def Set_obstacles():    
     # 随机生成障碍区域
+    '''
     for i in range(0, obstacles_Num):
         x_down[0][i] = (random.randint(1, edge_n))
         y_down[0][i] = (random.randint(1, edge_n))
+
     print "x_down =", x_down
     print "y_down =", y_down
     # 保证障碍在要操作的二维区域内
     for i in range(0, obstacles_Num):
-        if x_down[0][i] < edge_n - 10:
-            x_up[0][i] = x_down[0][i] + 10
+        if x_down[0][i] < edge_n - 1:
+            x_up[0][i] = x_down[0][i] + 1
         else:
             x_temp = x_down[0][i]
             x_up[0][i] = x_temp
-            x_down[0][i] = x_temp - 10
-        if y_down[0][i] < edge_n - 10:
-            y_up[0][i] = y_down[0][i] + 10
+            x_down[0][i] = x_temp - 1
+        if y_down[0][i] < edge_n - 1:
+            y_up[0][i] = y_down[0][i] + 1
         else:
             y_temp = y_down[0][i]
             y_up[0][i] = y_temp
-            y_down[0][i] = y_temp - 10
+            y_down[0][i] = y_temp - 1
+    '''
+    x_down[0] = [1,1,1,4,9]
+    x_up[0] = [2,2,2,5,10]
+    y_down[0] = [3,6,7,8,9]
+    y_up[0] = [4,7,8,9,10]
     print "x_down =", x_down
     print "x_up =", x_up
     print "y_down =", y_down
@@ -408,6 +416,14 @@ if __name__ == "__main__":
     obstacle_coordinate.append(y_down)
     obstacle_coordinate.append(y_up)
     print "obstacle_coordinate =", obstacle_coordinate
+    return obstacle_coordinate
+
+
+
+# 程序从这里开始执行
+if __name__ == "__main__":
+
+    obstacle_coordinate = Set_obstacles()
     # 随机在1000*1000的空间内生成N辆电单车的坐标
     # 将生成的电单车坐标分别保存到x,y列表中
     # 保存节点序号的
@@ -415,6 +431,7 @@ if __name__ == "__main__":
     N_i.append(0)
     v = 5   # 初始化电单车的运行速度为 5m/s
     # 保证电单车不在障碍区域内
+    '''
     for i in range(1, N+1):
         print "i =", i
         N_x[0][i] = round(random.uniform(1, edge_n), 2)
@@ -464,22 +481,31 @@ if __name__ == "__main__":
         # 电车运行方向的初始化
         alpha[0][i] = random.randint(0, 360)
         N_i.append(i)
+        '''
+    N_x[0] = [0, 2.72, 3.55, 9.64, 2.87, 7.0]
+    N_y[0] = [0, 9.03, 2.86, 7.34, 1.25, 3.46]
+    alpha[0]= [0, 107.0,289.0,177.0,146.0,358.0]
+    Es_i[0]=[0, 840000,840000,840000,840000,840000]
+    N_i = [0,1,2,3,4,5]
+    
         
     # 程序开始运行，计时开始
     start_time = time.time()
-    
+    time.sleep(1)
     print "N_i =", N_i
     
      # 将节点坐标复制
     N_x_new = N_x
     N_y_new = N_y
     # 随机生成每辆电单车的功率
+    '''
     for i in range(1, N + 1):
         # 单位为 W
         P_i[0][i] = round(random.uniform(95, 115), 2)
         # P_i[0][i] = round(random.uniform(150, 180), 2)
         # P_i_temp[0][i] = P_i[0][i]
-    
+    '''
+    P_i[0] = [0, 1, 2, 3, 5, 4]
     for i in range(1, N + 1):
         print "P_i[0][", i, "]=", P_i[0][i]
     
@@ -561,28 +587,88 @@ if __name__ == "__main__":
         # 更新节点剩余的能量
         # 更新电单车的坐标，毕竟运行了好久，早已经离开了之前的初始的位置
         # 后期优化的时候我们应该考虑边界问题，如果当前的位置已经超过边界，则应该改变运动方向
+        # 不仅仅是考虑边界，还得考虑运动过程中，遇到障碍应该避开
         for i in range(1, len(N_i)):
             Es_i[0][N_i[i]] = round((Es_i[0][N_i[i]] - P_i[0][N_i[i]]*t), 2)
             # 考虑到边界问题，先将改变之前的坐标记录下来
             N_x_new_temp = N_x_new[0][N_i[i]]
             N_y_new_temp = N_y_new[0][N_i[i]] 
+            N_x_new_temp_new = N_x_new[0][N_i[i]]
+            N_y_new_temp_new = N_y_new[0][N_i[i]]
             print "备份的坐标为：", (N_x_new_temp, N_y_new_temp)
             N_x_new[0][N_i[i]] = round((N_x_new[0][N_i[i]] + v*t*math.cos(alpha[0][N_i[i]]/180.0*math.pi)), 2)
             N_y_new[0][N_i[i]] = round((N_y_new[0][N_i[i]] + v*t*math.sin(alpha[0][N_i[i]]/180.0*math.pi)), 2)
             print "更新坐标为：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
+           
             # 检查坐标有没有超过边界, 表示超界了，表示当前需要改变运行方向
             # 为什么用while（）一定保证，坐标合理才能进行下一步操作
-            while(N_x_new[0][N_i[i]] < 1 or N_x_new[0][N_i[i]] > edge_n) or (
-                    N_y_new[0][N_i[i]] < 1 or N_y_new[0][N_i[i]] > edge_n ): 
-                # 更新电单车运行方向
-                print "当前更新的坐标越界了：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
-                print "之前备份的坐标为：", (N_x_new_temp, N_y_new_temp)
-                alpha[0][N_i[i]] = random.randint(0, 360)
-                # 用上面备份的当前的坐标，重新往重新生成的方向前进
-                N_x_new[0][N_i[i]] = round((N_x_new_temp + v*t*math.cos(alpha[0][N_i[i]]/180.0*math.pi)), 2)
-                N_y_new[0][N_i[i]] = round((N_y_new_temp + v*t*math.sin(alpha[0][N_i[i]]/180.0*math.pi)), 2)
-                print "重新更新坐标为：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
-        
+            # 为了在运动时避开障碍，设置两种状态
+            # （1）在无障碍情况下计算距离
+            # （2）在有障碍的情况下再计算一次距离
+            # 如果两次距离相等，则中途没有障碍，可以直接到达目的位置
+            # 反之，不相等，则中途出现障碍，不能直接到大目的地，需要改变运动方向
+            # obstacle_flag = True 表明空间存在障碍
+            while True:
+                # 判断坐标是否越界
+                while((N_x_new[0][N_i[i]] < 1 or N_x_new[0][N_i[i]] > edge_n) or (
+                        N_y_new[0][N_i[i]] < 1 or N_y_new[0][N_i[i]] > edge_n )): 
+                    # 更新电单车运行方向
+                    print "当前更新的坐标越界了：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
+                    print "之前备份的坐标为：", (N_x_new_temp, N_y_new_temp)
+                    alpha[0][N_i[i]] = random.randint(0, 360)
+                    # 用上面备份的当前的坐标，重新往重新生成的方向前进
+                    N_x_new[0][N_i[i]] = round((N_x_new_temp + v*t*math.cos(alpha[0][N_i[i]]/180.0*math.pi)), 2)
+                    N_y_new[0][N_i[i]] = round((N_y_new_temp + v*t*math.sin(alpha[0][N_i[i]]/180.0*math.pi)), 2)
+                    print "重新更新坐标为：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
+                # 越界处理完成的标志，表示已经不越界
+                crossing_flag = True
+                # 还得保证当前终点不属于任何一个障碍区域内
+                first_coordinate = []
+                second_coordinate = []
+                first_coordinate.append(N_x_new_temp)
+                first_coordinate.append(N_y_new_temp)
+                second_coordinate.append(N_x_new[0][N_i[i]])
+                second_coordinate.append(N_y_new[0][N_i[i]])
+                print "备份的坐标（起始）first_coordinate =", first_coordinate
+                print "更新的坐标（终点）second_coordinate =", second_coordinate
+                print "无障碍"
+                distance_no_obstacle =A.a_star_algorithm(first_coordinate, second_coordinate, obstacle_coordinate, obstacles_Num, False)
+                
+                first_coordinate = []
+                second_coordinate = []
+                first_coordinate.append(N_x_new_temp_new)
+                first_coordinate.append(N_y_new_temp_new)
+                second_coordinate.append(N_x_new[0][N_i[i]])
+                second_coordinate.append(N_y_new[0][N_i[i]])
+                
+                print "备份的坐标（起始）first_coordinate =", first_coordinate
+                print "更新的坐标（终点）second_coordinate =", second_coordinate
+                print "有障碍"
+                distance_obstacle =A.a_star_algorithm(first_coordinate, second_coordinate, obstacle_coordinate, obstacles_Num, True)
+                # 表明两次同一点同一终点，所得距离不相等，说明行驶过程中遇到障碍，需要变向
+                # 判断是否需要变向
+                change_direction_flag = True
+                # 如果终点坐标在障碍区域内，也需要改变运动方向
+                print "distance_no_obstacle =", distance_no_obstacle
+                print "distance_obstacle =", distance_obstacle
+                # 终点在障碍区域内或者运动过程中遇到障碍都将改变即将到达的位置的坐标
+                if distance_no_obstacle[3] != distance_obstacle[3] or distance_obstacle[0] is False:
+                    change_direction_flag = False
+                    print "运行到这个坐标时遇到障碍：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
+                    print "之前备份的坐标为：", (N_x_new_temp, N_y_new_temp)
+                    alpha[0][N_i[i]] = random.randint(0, 360)
+                    # 用上面备份的当前的坐标，重新往重新生成的方向前进
+                    N_x_new[0][N_i[i]] = round((N_x_new_temp + v*t*math.cos(alpha[0][N_i[i]]/180.0*math.pi)), 2)
+                    N_y_new[0][N_i[i]] = round((N_y_new_temp + v*t*math.sin(alpha[0][N_i[i]]/180.0*math.pi)), 2)
+                    print "重新更新坐标为：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
+                if crossing_flag is True and change_direction_flag is True:
+                    print "起点到终点途中不存在障碍或终点不存在与障碍区域"
+                    print "退出while()"
+                    break
+        print "################################\n"
+        print "################################\n"
+        print "################################\n"
+        print "\n"
         for i in range(0, len(N_i)):
             print "更新坐标为：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
         # 创建一个N*N的空降，生成邻接矩阵，构造无向图G(V,E)
@@ -599,7 +685,7 @@ if __name__ == "__main__":
         # 重新开始计算时间，为什么从这开始呢？主要是构建邻接矩阵比较花时间，而且期间所花不属于电单车运行时间
         start_time = time.time()
         
-        time.sleep(2)
+        time.sleep(1.8)
         # 只考虑当前所剩下的节点，不包括S点（N_i[0]）
         # 准备充电之前都在运行
         

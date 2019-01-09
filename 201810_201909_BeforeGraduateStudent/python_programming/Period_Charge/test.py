@@ -58,7 +58,7 @@ def AllNodeLink(x, y, obstacle_coordinate_new):
        
         plt.fill_between(range(x_down_value, x_up_value+1), y_down_value , y_up_value, facecolor='green')
     ax.scatter((x_down_list[0][1]+x_up_list[0][1])/2, (
-             y_down_list[0][1]+y_up_list[0][1])/2, s = 100, color = 'green',label = 'Obstacle', marker = 's')
+             y_down_list[0][1]+y_up_list[0][1])/2, color = 'green',label = 'Obstacle', marker = 's')
     # 图片坐标刻度设置
     # 2000*2000
     # ax.xaxis.set_major_locator(MultipleLocator(100))
@@ -126,7 +126,7 @@ def NodeToOtherNodeLink(x, y, label, obstacle_coordinate_new):
        
         plt.fill_between(range(x_down_value, x_up_value+1), y_down_value , y_up_value, facecolor='green')
     ax.scatter((x_down_list[0][1]+x_up_list[0][1])/2, (
-             y_down_list[0][1]+y_up_list[0][1])/2, s = 100, color = 'green',label = 'Obstacle', marker = 's')
+             y_down_list[0][1]+y_up_list[0][1])/2, color = 'green',label = 'Obstacle', marker = 's')
     # 图片坐标刻度设置
     # 2000*2000
     # ax.xaxis.set_major_locator(MultipleLocator(100))
