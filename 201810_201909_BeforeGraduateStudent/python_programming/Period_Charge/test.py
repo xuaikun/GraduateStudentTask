@@ -6,8 +6,9 @@ import time
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 import TourConstructionProblem as T
+import A_Star_Algorithm as A
 # 数据初始化
-N = 5   # 假设我有N辆电单车
+N = 2   # 假设我有N辆电单车
 edge_n = 10 # 假设定义的二维空间范围是 edge_n * edge_n
 obstacles_Num = 5 # 障碍 数量
 # 初始化电单车在二维空间中的坐标
@@ -166,25 +167,10 @@ def NodeToOtherNodeLink(x, y, label, obstacle_coordinate_new):
     return 
 
 # 随机生成障碍区域
-for i in range(0, obstacles_Num):
-    x_down[0][i] = (random.randint(1, edge_n))
-    y_down[0][i] = (random.randint(1, edge_n))
-print "x_down =", x_down
-print "y_down =", y_down
-# 保证障碍在要操作的二维区域内
-for i in range(0, obstacles_Num):
-    if x_down[0][i] <= edge_n - 1:
-        x_up[0][i] = x_down[0][i] + 1
-    else:
-        x_temp = x_down[0][i]
-        x_up[0][i] = x_temp
-        x_down[0][i] = x_temp - 1
-    if y_down[0][i] <= edge_n - 1:
-        y_up[0][i] = y_down[0][i] + 1
-    else:
-        y_temp = y_down[0][i]
-        y_up[0][i] = y_temp
-        y_down[0][i] = y_temp - 1
+x_down[0] = [1,1,1,4,9]
+x_up[0] = [2,2,2,5,10]
+y_down[0] = [3,6,7,8,9]
+y_up[0] = [4,7,8,9,10]
 print "x_down =", x_down
 print "x_up =", x_up
 print "y_down =", y_down
@@ -196,58 +182,12 @@ obstacle_coordinate.append(y_up)
 print "obstacle_coordinate =", obstacle_coordinate
 
 N_i = []
-N_i.append(0)
 v = 5   # 初始化电单车的运行速度为 5m/s
-
-# 保证电单车不在障碍区域内
-for i in range(1, N+1):
-    print "i =", i
-    N_x[0][i] = round(random.uniform(1, edge_n), 2)
-    N_y[0][i] = round(random.uniform(1, edge_n), 2)
-    print "第一层for循环"
-    print "N_x[0][", i, "] =", N_x[0][i]
-    print "N_y[0][", i, "] =", N_y[0][i] 
-    j = 0
-    while(j != obstacles_Num):
-        # print "初始化j =", j
-        j_temp = j
-        equal_flag = True
-        if((N_x[0][i] > (x_down[0][j_temp]-1)) and (N_x[0][i] < (x_up[0][j_temp]+1))) and(
-                (N_y[0][i] > (y_down[0][j_temp]-1)) and (N_y[0][i] < (y_up[0][j_temp]+1))):
-            print "初始j_temp =", j_temp
-            j_temp = j_temp + 1
-            print "更新的j_temp =", j_temp
-            print "equal_flag =", equal_flag 
-            if equal_flag is True:
-                print "表示有电单车在障碍区域里面了，不符合,更新当前电单车坐标"
-                N_x[0][i] = round(random.uniform(1, edge_n), 2)
-                N_y[0][i] = round(random.uniform(1, edge_n), 2)
-                print "第二层for循环更新值"
-                print "N_x[0][", i, "] =", N_x[0][i]
-                print "N_y[0][", i, "] =", N_y[0][i]
-                j_temp = 0
-                j = 0
-                print "更新j =", j
-                print "更新j_temp =", j_temp
-            equal_flag = False
-            
-            
-            if j_temp >= obstacles_Num:
-                j = j_temp 
-                print "退出while（）"
-                break
-        else:
-            j = j + 1
-            if j >= obstacles_Num:
-                print "退出while（）"
-                break
-        
-        
-    # 每辆点电单车的电量，初始化为840Kj
-    Es_i[0][i] = 840000
-    # 电车运行方向的初始化
-    alpha[0][i] = random.randint(0, 360)
-    N_i.append(i)
+N_x[0] = [0, 2.72,2.87]
+N_y[0] = [0, 9.03, 1.25]
+alpha[0]= [0, 107.0,146.0]
+Es_i[0]=[0, 840000,840000]
+N_i = [0,1,2]
     
 # 程序开始运行，计时开始
 start_time = time.time()
@@ -258,14 +198,10 @@ print "N_i =", N_i
 N_x_new = N_x
 N_y_new = N_y
 # 随机生成每辆电单车的功率
-for i in range(1, N + 1):
-    # 单位为 W
-    P_i[0][i] = round(random.uniform(95, 115), 2)
-    # P_i[0][i] = round(random.uniform(150, 180), 2)
-    # P_i_temp[0][i] = P_i[0][i]
-
+P_i[0] = [0, 1, 5]
 for i in range(1, N + 1):
     print "P_i[0][", i, "]=", P_i[0][i]
+
 
 # 我们要看看那个节点那个节点剩余的能量最少 反过来说就是功耗最大的
 P_i_Max = 0  # 初始化功率最大为P_i_Max = 0
@@ -306,5 +242,36 @@ print "N_y_new =", N_y_new
 print "len(x)= ", len(x)
 print "obstacle_coordinate =", obstacle_coordinate
 print "obstacles_Num =", obstacles_Num
-distance = T.CreateDistanceMatrix(N_x_new, N_y_new, len(x), N_i, obstacle_coordinate, obstacles_Num)
-T.PrintNewMatrix(distance, len(x))
+x1 = 2
+y1 = 9
+
+first_coordinate = []
+first_coordinate.append(x1)
+first_coordinate.append(y1)
+x2 = 9
+y2 = 9
+
+second_coordinate = []
+second_coordinate.append(x2)
+second_coordinate.append(y2)
+
+print "无障碍"
+distance_no_obstacle = A.a_star_algorithm(first_coordinate, second_coordinate, obstacle_coordinate, obstacles_Num, False)
+print "distance_no_obstacle =", distance_no_obstacle
+print "有障碍"
+x1 = 2
+y1 = 9
+
+first_coordinate = []
+first_coordinate.append(x1)
+first_coordinate.append(y1)
+x2 = 9
+y2 = 9
+
+second_coordinate = []
+second_coordinate.append(x2)
+second_coordinate.append(y2)
+distance_obstacle = A.a_star_algorithm(first_coordinate, second_coordinate, obstacle_coordinate, obstacles_Num, True)
+print "distance_obstacle =", distance_obstacle
+# distance = T.CreateDistanceMatrix(N_x_new, N_y_new, len(x), N_i, obstacle_coordinate, obstacles_Num)
+# T.PrintNewMatrix(distance, len(x))

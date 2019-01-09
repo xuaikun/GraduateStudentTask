@@ -8,6 +8,7 @@
 
 import numpy as np
 import math
+import time
 # debug_flag 为调试标志，为True是开启调试模式， 为False时关闭调试模式
 debug_flag = False
 # 本程序未考虑负的坐标系
@@ -47,8 +48,9 @@ def init(start_position, end_position):
     # 其中为1的点为起始点或者目标点
     # 已经走过的地方，可以用2表示，不能再被再一次访问，也表示障碍
     for i in range(1, n + 1):
-        for j in range(1, n + 1):
+        for j in range(i, n + 1):
             create_2D_space[i][j] = 0
+            create_2D_space[j][i] = create_2D_space[i][j]
     # 外围一层变成障碍
     for i in range(0, n + 2):
         create_2D_space[0][i] = 2
@@ -127,7 +129,7 @@ def possibilities_position(parent_position, goal_position):
     # 将当前操作的点置为临时障碍
     temp_obstacle_x.append(parent_position[0])
     temp_obstacle_y.append(parent_position[1])
-    create_2D_space[parent_position[0]][parent_position[1]] = 2  # 把它当成障碍了，不再查询
+    create_2D_space[parent_position[0]][parent_position[1]] = 2  # 临时障碍，需要时可以置为空间
     
     # 起始坐标
     start_point = parent_position 
@@ -147,7 +149,7 @@ def possibilities_position(parent_position, goal_position):
     down_position_x = parent_position[0]
     down_position_y = parent_position[1] - 1
     around_obstacle_num = 0
-
+    # 检查当前点正反向四周障碍的数量
     if create_2D_space[left_position_x][left_position_y] == 2:
         around_obstacle_num = around_obstacle_num + 1
     if create_2D_space[up_position_x][up_position_y] == 2:
@@ -158,34 +160,36 @@ def possibilities_position(parent_position, goal_position):
         around_obstacle_num = around_obstacle_num + 1
     # 如果当前节点周围周围，存在至少3面有障碍，则当前点置为障碍
     # 针对数值小的平面进行操作
-    print "around_obstacle_num = ", around_obstacle_num
-    
-    if around_obstacle_num >= 3:
-        print "当前节点周围至少存在三面障碍，将其置为永久障碍"
-        perpetual_obstacle_x.append(parent_position[0])
-        perpetual_obstacle_y.append(parent_position[1])
-        create_2D_space[parent_position[0]][parent_position[1]] = 2
-        print "create_2D_space[", parent_position[0],"][",parent_position[1
-                              ],"=",create_2D_space[parent_position[0]][parent_position[1]]
-        # 必须是遇到三面有障碍的节点才行
+    # print "around_obstacle_num = ", around_obstacle_num
+    # print "temp_obstacle_x =", temp_obstacle_x
+    # print "temp_obstacle_y =", temp_obstacle_y
+    # print "perpetual_obstacle_x =", perpetual_obstacle_x
+    # print "perpetual_obstacle_y =", perpetual_obstacle_y
+    if around_obstacle_num > 3:
+        print "当前节点周围存在四面障碍，将其置为永久障碍"
+        print "临时障碍释放为可以遍历的空间"
         for i in range(0, len(temp_obstacle_x)):
             # 将除了当前的节点外，暂时的障碍全部释放为可以遍历的空间
-            if temp_obstacle_x[i] != parent_position[0] and temp_obstacle_y[i] != parent_position[1]:
-                create_2D_space[temp_obstacle_x[i]][temp_obstacle_y[i]] = 0
+            # print "清空temp_obstacle"
+            # if temp_obstacle_x[0] != parent_position[0] and temp_obstacle_y[0] != parent_position[1]:
+            create_2D_space[temp_obstacle_x[0]][temp_obstacle_y[0]] = 0
+            # print "create_2D_space[",temp_obstacle_x[0],"][",temp_obstacle_y[0],"]=",create_2D_space[temp_obstacle_x[0]][temp_obstacle_y[0]]
+            temp_obstacle_x.remove(temp_obstacle_x[0])
+            temp_obstacle_y.remove(temp_obstacle_y[0])
+            # print "temp_obstacle_x =", temp_obstacle_x
+            # print "temp_obstacle_y =", temp_obstacle_y
+            # print "perpetual_obstacle_x =", perpetual_obstacle_x
+            # print "perpetual_obstacle_y =", perpetual_obstacle_y
+        # 把这个点置为永久障碍点，以后都不会在进来这个区域
+        perpetual_obstacle_x.append(parent_position[0])
+        perpetual_obstacle_y.append(parent_position[1])
+        # 将当前四面环绕障碍的点设置为永久障碍
+        create_2D_space[parent_position[0]][parent_position[1]] = 2
+        # print "create_2D_space[", parent_position[0],"][",parent_position[1
+        #                      ],"=",create_2D_space[parent_position[0]][parent_position[1]]       
         
     end_position = goal_position
     result_list = []
-    '''
-    elif create_2D_space[parent_position[0]][parent_position[1]] == 2:
-        print "########################\n"
-        print "起点在障碍区域内,退出A*算法程序\n"
-        print "########################\n"
-        result_list.append(False)
-        result_list.append(parent_position[0])
-        result_list.append(parent_position[1])
-        result_list.append(10000000)
-        # exit
-    '''
     # 首先判断要到达的终点是不是在障碍区域内
     if create_2D_space[end_position[0]][end_position[1]]==2 :
         print "终点在障碍区域内,退出A*算法程序"
@@ -601,8 +605,12 @@ def possibilities_position(parent_position, goal_position):
                     # 只需要找出一组当前最优解就行
                     break
         #  获取当前最优距离
+        # print "g[", goal_x, "][", goal_y, "] =", g[goal_x][goal_y] 
+        # print "h[", goal_x, "][", goal_y, "] =", h[goal_x][goal_y]
+        
         f_star = g[goal_x][goal_y] + h[goal_x][goal_y]
         f_star = round(f_star, 2) 
+        # print "f_star =", f_star
         # 用列表保存4个数据,运行结束的标志，当前操作点的两个坐标，到目前位置的最有距离
         
         result_list.append(success_flag)
@@ -613,6 +621,7 @@ def possibilities_position(parent_position, goal_position):
             print "parent_position =", parent_position
             print "goal_position =", goal_position
             print "程序出错"
+            exit
     return result_list
 
 
@@ -621,7 +630,21 @@ def a_star_algorithm(first_coordinate, second_coordinate, obstacle_coordinate, o
     # 坐标自己定
     # start_position = [1, 1]  # 起始坐标
     # end_position = [1000, 1000]  # 目标坐标
-
+    if obstacle_flag is True:
+        print "每次操作暂时障碍时，先初始化"
+        for i in range(0, len(temp_obstacle_x)):
+            
+            # print "temp_obstacle_x =", temp_obstacle_x
+            # print "temp_obstacle_y =", temp_obstacle_y
+            # print "len(temp_obstacle_x) =", len(temp_obstacle_x)
+            if len(temp_obstacle_x) != 0:
+                temp_obstacle_x.remove(temp_obstacle_x[0])
+                temp_obstacle_y.remove(temp_obstacle_y[0])
+        print "每次操作永久障碍时，先初始化"
+        for i in range(0, len(perpetual_obstacle_x)):
+            if len(perpetual_obstacle_x) != 0:
+                perpetual_obstacle_x.remove(perpetual_obstacle_x[0])
+                perpetual_obstacle_y.remove(perpetual_obstacle_y[0])
     start_position = first_coordinate
     end_position = second_coordinate
     
@@ -684,8 +707,29 @@ def a_star_algorithm(first_coordinate, second_coordinate, obstacle_coordinate, o
         # print "result = ", result
         # 初始化标志位，位置坐标，还有距离
         result = [False, parent[0], parent[1], 0]
+        # 保留这个初始点的值，用于后期检验结果用
+        new_x = start_position[0]
+        new_y = start_position[1]
+        # print "start_position =", start_position
+        # print "new_x =", new_x
+        # print "new_y =", new_y
         while end_position[0] != parent[0] or end_position[1] != parent[1]:
             # 从二维平面里面操作
+            # print "while()"
+            # print "new_x =", new_x
+            # print "new_y =", new_y
+            # 因为g+h= f f的值一直没变，可能会回到原来的地方，需要将临时障碍释放为可以遍历的空间
+            if new_x == parent[0] and new_y == parent[1]:
+                print "说明又重新回到起点了"
+                # print "延时5s"
+                # time.sleep(5)
+                for i in range(0, len(temp_obstacle_x)):
+                    create_2D_space[temp_obstacle_x[0]][temp_obstacle_y[0]] = 0
+                    temp_obstacle_x.remove(temp_obstacle_x[0])
+                    temp_obstacle_y.remove(temp_obstacle_y[0])
+            
+            # print "temp_obstacle_x =", temp_obstacle_x
+            # print "temp_obstacle_y =", temp_obstacle_y
             result = possibilities_position(parent, end_position)
             # result 中包含4个内容，找到目标的标志Flag，目标横坐标x，目标纵坐标y，距离的值distance
             # print "result =", result
@@ -699,7 +743,8 @@ def a_star_algorithm(first_coordinate, second_coordinate, obstacle_coordinate, o
             # 从当前找出的最短距离的点进行操作
             parent[0] = result[1]
             parent[1] = result[2]
-            print "产生的parent =", parent
+            # 打印每一步的操作的节点
+            # print "产生的parent =", parent
             # if parent[0] == 0 and parent[1] == 0:
             #     print "表示终点在障碍区域内"
             #     print "程序出错，退出A*算法"
