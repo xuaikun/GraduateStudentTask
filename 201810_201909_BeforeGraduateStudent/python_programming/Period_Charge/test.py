@@ -7,10 +7,15 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 import TourConstructionProblem as T
 import A_Star_Algorithm as A
+
 # 数据初始化
-N = 2   # 假设我有N辆电单车
-edge_n = 10 # 假设定义的二维空间范围是 edge_n * edge_n
+N = 5   # 假设我有N辆电单车
+
+edge_n = 100 # 假设定义的二维空间范围是 edge_n * edge_n
 obstacles_Num = 5 # 障碍 数量
+kedu = 10
+# 用来保存充电回来的子集
+R = np.empty([N + 1, 1], list)
 # 初始化电单车在二维空间中的坐标
 N_x = np.empty([1, N + 1], float)
 N_y = np.empty([1, N + 1], float)
@@ -65,8 +70,8 @@ def AllNodeLink(x, y, obstacle_coordinate_new):
     # ax.xaxis.set_major_locator(MultipleLocator(100))
     # ax.yaxis.set_major_locator(MultipleLocator(40))
     
-    ax.xaxis.set_major_locator(MultipleLocator(1))
-    ax.yaxis.set_major_locator(MultipleLocator(1))
+    ax.xaxis.set_major_locator(MultipleLocator(kedu))
+    ax.yaxis.set_major_locator(MultipleLocator(kedu))
     #设置x轴、y轴名称
     ax.set_xlabel('X(m)')
     ax.set_ylabel('Y(m)')
@@ -132,8 +137,8 @@ def NodeToOtherNodeLink(x, y, label, obstacle_coordinate_new):
     # 2000*2000
     # ax.xaxis.set_major_locator(MultipleLocator(100))
     # ax.yaxis.set_major_locator(MultipleLocator(40))
-    ax.xaxis.set_major_locator(MultipleLocator(1))
-    ax.yaxis.set_major_locator(MultipleLocator(1))
+    ax.xaxis.set_major_locator(MultipleLocator(kedu))
+    ax.yaxis.set_major_locator(MultipleLocator(kedu))
     #设置x轴、y轴名称
     ax.set_xlabel('X(m)')
     ax.set_ylabel('Y(m)')
@@ -167,10 +172,33 @@ def NodeToOtherNodeLink(x, y, label, obstacle_coordinate_new):
     return 
 
 # 随机生成障碍区域
-x_down[0] = [1,1,1,4,9]
-x_up[0] = [2,2,2,5,10]
-y_down[0] = [3,6,7,8,9]
-y_up[0] = [4,7,8,9,10]
+
+for i in range(0, obstacles_Num):
+    x_down[0][i] = (random.randint(1, edge_n))
+    y_down[0][i] = (random.randint(1, edge_n))
+
+print "x_down =", x_down
+print "y_down =", y_down
+# 保证障碍在要操作的二维区域内
+p = 1   # 表示障碍的边长 为pm
+for i in range(0, obstacles_Num):
+    if x_down[0][i] < edge_n - p:
+        x_up[0][i] = x_down[0][i] + p
+    else:
+        x_temp = x_down[0][i]
+        x_up[0][i] = x_temp
+        x_down[0][i] = x_temp - p
+    if y_down[0][i] < edge_n - p:
+        y_up[0][i] = y_down[0][i] + p
+    else:
+        y_temp = y_down[0][i]
+        y_up[0][i] = y_temp
+        y_down[0][i] = y_temp - p
+
+# x_down[0] = [1,1,1,4,9]
+# x_up[0] = [2,2,2,5,10]
+# y_down[0] = [3,6,7,8,9]
+# y_up[0] = [4,7,8,9,10]
 print "x_down =", x_down
 print "x_up =", x_up
 print "y_down =", y_down
@@ -183,11 +211,17 @@ print "obstacle_coordinate =", obstacle_coordinate
 
 N_i = []
 v = 5   # 初始化电单车的运行速度为 5m/s
-N_x[0] = [0, 2.72,2.87]
-N_y[0] = [0, 9.03, 1.25]
-alpha[0]= [0, 107.0,146.0]
-Es_i[0]=[0, 840000,840000]
-N_i = [0,1,2]
+N_i.append(0)
+for i in range(1, N+1):
+    print "i =", i
+    N_x[0][i] = round(random.uniform(1, edge_n), 2)
+    N_y[0][i] = round(random.uniform(1, edge_n), 2)
+
+    # 每辆点电单车的电量，初始化为840Kj
+    Es_i[0][i] = 840000
+    # 电车运行方向的初始化
+    alpha[0][i] = random.randint(0, 360)
+    N_i.append(i)
     
 # 程序开始运行，计时开始
 start_time = time.time()
@@ -198,7 +232,11 @@ print "N_i =", N_i
 N_x_new = N_x
 N_y_new = N_y
 # 随机生成每辆电单车的功率
-P_i[0] = [0, 1, 5]
+for i in range(1, N + 1):
+        # 单位为 W
+        P_i[0][i] = round(random.uniform(95, 115), 2)
+        # P_i[0][i] = round(random.uniform(150, 180), 2)
+        # P_i_temp[0][i] = P_i[0][i]
 for i in range(1, N + 1):
     print "P_i[0][", i, "]=", P_i[0][i]
 
@@ -273,5 +311,32 @@ second_coordinate.append(x2)
 second_coordinate.append(y2)
 distance_obstacle = A.a_star_algorithm(first_coordinate, second_coordinate, obstacle_coordinate, obstacles_Num, True)
 print "distance_obstacle =", distance_obstacle
+
 # distance = T.CreateDistanceMatrix(N_x_new, N_y_new, len(x), N_i, obstacle_coordinate, obstacles_Num)
 # T.PrintNewMatrix(distance, len(x))
+R_list0 = [0,1,2]
+R_list1 = [0,3,4]
+R_list2 = [0, 5]
+# 用来保存充电回来的子集
+R = np.empty([N + 1, 1], list)
+for i in range(0, N + 1):
+    R[i][0] = ' '
+R[0][0] = R_list0
+R[1][0] = R_list1
+R[2][0] = R_list2
+for i in range(0, N + 1):
+    if  len(R[i][0]) != 1:
+        list_new = R[i][0]
+        print "type(list_new) is", type(list_new)
+        print "len(list_new) =", len(list_new)
+        print "list_new =", list_new
+        x = []
+        y = []
+        for j in range(0, len(list_new)):
+            x.append(N_x_new[0][list_new[i]])
+            y.append(N_x_new[0][list_new[i]])
+        print "x =", x
+        print "y =", y
+        print "obstacle_coordinate =", obstacle_coordinate
+        NodeToOtherNodeLink(x, y, 'g', obstacle_coordinate)
+

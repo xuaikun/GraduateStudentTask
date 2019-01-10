@@ -15,9 +15,9 @@ import math
 from matplotlib.ticker import MultipleLocator
 # 数据初始化
 N = 5   # 假设我有N辆电单车
-edge_n = 100 # 假设定义的二维空间范围是 edge_n * edge_n
+edge_n = 500 # 假设定义的二维空间范围是 edge_n * edge_n
 obstacles_Num =20  # 障碍个数
-kedu = 10  # 表示坐标间隔
+kedu = 20  # 表示坐标间隔
 # 初始化电单车在二维空间中的坐标
 N_x = np.empty([1, N + 1], float)
 N_y = np.empty([1, N + 1], float)
@@ -493,7 +493,7 @@ if __name__ == "__main__":
         
     # 程序开始运行，计时开始
     start_time = time.time()
-    time.sleep(1)
+    # time.sleep(1)
     print "N_i =", N_i
     
      # 将节点坐标复制
