@@ -13,11 +13,17 @@ import matplotlib.pyplot as plt
 import time
 import math
 from matplotlib.ticker import MultipleLocator
+
+# 自己的调色板
+my_color =['b', 'g', 'r', 'c', 'm', 'y', 'k']
+my_style = ['-', '--', '-.', ':']
+my_logo = ['.', 'o', 'v', '^', '>', '<', '1', '2', '3', '4', 's', 'p', '*']
 # 数据初始化
 N = 5   # 假设我有N辆电单车
 edge_n = 500 # 假设定义的二维空间范围是 edge_n * edge_n
 obstacles_Num =20  # 障碍个数
 kedu = 20  # 表示坐标间隔
+p = 10   # 表示障碍的边长 为10m
 # 初始化电单车在二维空间中的坐标
 N_x = np.empty([1, N + 1], float)
 N_y = np.empty([1, N + 1], float)
@@ -92,52 +98,36 @@ def AllNodeLink(x, y, obstacle_coordinate_new):
         x_up_value= x_up_list[0][j]
         y_down_value= y_down_list[0][j]
         y_up_value= y_up_list[0][j]
-       
+        # 障碍填充绿色
         plt.fill_between(range(x_down_value, x_up_value+1), y_down_value , y_up_value, facecolor='green')
+    # 障碍图例显示
     ax.scatter((x_down_list[0][1]+x_up_list[0][1])/2, (
              y_down_list[0][1]+y_up_list[0][1])/2, color = 'green',label = 'Obstacle', marker = 's')
-    # 图片坐标刻度设置
-    # 2000*2000
-    # ax.xaxis.set_major_locator(MultipleLocator(100))
-    # ax.yaxis.set_major_locator(MultipleLocator(40))
-    
-    # ax.xaxis.set_major_locator(MultipleLocator(40))
-    # ax.yaxis.set_major_locator(MultipleLocator(40))
+    # 图片坐标刻度设置 
     ax.xaxis.set_major_locator(MultipleLocator(kedu))
     ax.yaxis.set_major_locator(MultipleLocator(kedu))
     #设置x轴、y轴名称
     ax.set_xlabel('X(m)')
     ax.set_ylabel('Y(m)')
     
-    print "x_list =", x_list
-    print "y_list =", y_list
     # 每个节点用红圈圈表示出来
     ax.scatter(x_list, y_list,color = 'r',label = 'Node', marker = 'o')
     # ax.scatter(x_obstacle_list, y_obstacle_list,color = 'g', marker = '8')
     # S点为红色正方形，并且大一点
     ax.scatter(x_list[0], y_list[0], s = 100, color = 'k',label = 'S', marker = 's')
- 
-    ax.text(x_list[0], y_list[0], 'S', fontsize=20)
+    # 给S点标号
+    ax.text(x_list[0], y_list[0], S_Flag, fontsize=20)
     for i in range(1, len(y_list)):
         ax.text(x_list[i], y_list[i], i, fontsize = 10)
-    # 将所有节点与充电桩S连起来
-    # for j in range(1, len(y_list)):
-        # 两两连接
-        # x_temp = [x_list[0], x_list[j]]
-        # y_temp = [y_list[0], y_list[j]]
-        # 调节途中线条颜色，粗细
-        # plt.plot(x_temp, y_temp, 'b',linewidth=0.5)
+    # 图例位置
     ax.legend(loc='best', edgecolor='black')
-    # plt.legend(loc='best',frameon=False) #去掉图例边框
-    # plt.legend(loc='best',edgecolor='blue') #设置图例边框颜色
-    # plt.legend(loc='best',facecolor='blue') #设置图例背景颜色,若无边框,参数无效
     plt.xlim([0 - 1,edge_n + 1]) #设置绘图X边界                                                                                                   
     plt.ylim([0 - 1,edge_n + 1]) #设置绘图Y边界
     plt.show()
     return
 
 # 将节点前后连接起来
-def NodeToOtherNodeLink(x, y, label, obstacle_coordinate_new):
+def NodeToOtherNodeLink(x, y, obstacle_coordinate_new):
     print "x =", x
     print "y =", y
     #分别存放所有点的横坐标和纵坐标，一一对应
@@ -162,44 +152,132 @@ def NodeToOtherNodeLink(x, y, label, obstacle_coordinate_new):
         x_up_value= x_up_list[0][j]
         y_down_value= y_down_list[0][j]
         y_up_value= y_up_list[0][j]
-       
+        # 障碍填充绿色
         plt.fill_between(range(x_down_value, x_up_value+1), y_down_value , y_up_value, facecolor='green')
+    # 障碍图例显示
     ax.scatter((x_down_list[0][1]+x_up_list[0][1])/2, (
              y_down_list[0][1]+y_up_list[0][1])/2, color = 'green',label = 'Obstacle', marker = 's')
     # 图片坐标刻度设置
-    # 2000*2000
-    # ax.xaxis.set_major_locator(MultipleLocator(100))
-    # ax.yaxis.set_major_locator(MultipleLocator(40))
-    # ax.xaxis.set_major_locator(MultipleLocator(40))
-    # ax.yaxis.set_major_locator(MultipleLocator(40))
     ax.xaxis.set_major_locator(MultipleLocator(kedu))
     ax.yaxis.set_major_locator(MultipleLocator(kedu))
     #设置x轴、y轴名称
     ax.set_xlabel('X(m)')
     ax.set_ylabel('Y(m)')
-    
-    print "x_list =", x_list
-    print "y_list =", y_list
-     # 每个节点用红圈圈表示出来
+    # 每个节点用红圈圈表示出来
     ax.scatter(x_list, y_list,color = 'r',label = 'Node', marker = 'o')
     # ax.scatter(x_obstacle_list, y_obstacle_list,color = 'g', marker = '8')
     # S点为红色正方形，并且大一点
     ax.scatter(x_list[0], y_list[0], s = 100, color = 'k',label = 'S', marker = 's')
+    # S点图例
+    ax.text(x_list[0], y_list[0],  S_Flag, fontsize=20)
     
-    ax.text(x_list[0], y_list[0], 'S', fontsize=20)
     for i in range(1, len(y_list)):
         ax.text(x_list[i], y_list[i], i, fontsize = 10)
     # 将节点连接构成回路
-    for i in range(0, N):
+    q = len(x_list) - 1
+    CSL_string = my_color[random.randint(0, len(my_color)-1)]
+    CSL_string = CSL_string + my_style[random.randint(0, len(my_style)-1)]
+    CSL_string = CSL_string + my_logo[random.randint(0, len(my_logo)-1)]
+    for i in range(0, q):
         # 前后连接
         x_temp = [x_list[i], x_list[i+1]]
         y_temp = [y_list[i], y_list[i+1]]
-        plt.plot(x_temp, y_temp, label,linewidth=1)
-        if i == N - 1:
-            print 'i =', i
+        plt.plot(x_temp, y_temp, CSL_string,linewidth=1)
+        if i == q - 1:
+            # print 'i =', i
             x_temp = [x_list[i + 1], x_list[0]]
             y_temp = [y_list[i + 1], y_list[0]]
-            plt.plot(x_temp, y_temp, label,linewidth=1)
+            plt.plot(x_temp, y_temp, CSL_string,linewidth=1)
+    # 图例定位
+    ax.legend(loc='best', edgecolor='black')
+    plt.xlim([0 - 1,edge_n + 1]) #设置绘图X边界                                                                                                   
+    plt.ylim([0 - 1,edge_n + 1]) #设置绘图Y边界
+    plt.show()
+    return 
+
+# 将子回路首尾连接起来
+def ChildrenTourConstruction(x_new, y_new, obstacle_coordinate_new, R_new):
+    
+    # print "R_new =", R_new
+    # print "x_new =", x_new
+    # print "y_new =", y_new
+    # 用于图例显示MC（）
+    MC_Num = 0
+    # 图例显示的标志
+    plt.figure('Scatter fig')
+    plt.title('S & Node')
+    ax = plt.gca()
+    # 每个节点用红圈圈表示出来
+    ax.scatter(x_new, y_new,color = 'r',label = 'Node', marker = 'o')
+    # 给每个节点标号MC_Num,N表示所有的节点都要标号
+    for k in range(1, N + 1):
+        ax.text(x_new[0][k], y_new[0][k], k, fontsize = 10)
+    legend_flag = True
+    for i in range(0, N + 1):
+        # 表示存在回路才需要连线
+        if  len(R[i][0]) != 1:
+            list_new = R[i][0]
+            x = []
+            y = []
+            for j in range(0, len(list_new)):
+                x.append(x_new[0][list_new[j]])
+                y.append(y_new[0][list_new[j]])
+            #分别存放所有点的横坐标和纵坐标，一一对应
+            x_list = x
+            y_list = y
+            
+             # 障碍坐标区域使用绿色表示
+            # 障碍横坐标x的范围
+            if legend_flag is True:
+                x_down_list = obstacle_coordinate_new[0]
+                x_up_list  = obstacle_coordinate_new[1]
+            
+                # 障碍纵坐标y的范围
+                y_down_list = obstacle_coordinate_new[2]
+                y_up_list = obstacle_coordinate_new[3]
+                for j in range(0, obstacles_Num):
+                    x_down_value= x_down_list[0][j]
+                    x_up_value= x_up_list[0][j]
+                    y_down_value= y_down_list[0][j]
+                    y_up_value= y_up_list[0][j]
+                    # 给障碍填充绿色
+                    plt.fill_between(range(x_down_value, x_up_value+1), y_down_value , y_up_value, facecolor='green')
+                # 障碍图例显示
+                ax.scatter((x_down_list[0][1]+x_up_list[0][1])/2, (
+                         y_down_list[0][1]+y_up_list[0][1])/2, color = 'green',label = 'Obstacle', marker = 's')
+                # 图片坐标刻度设置
+                ax.xaxis.set_major_locator(MultipleLocator(kedu))
+                ax.yaxis.set_major_locator(MultipleLocator(kedu))
+                #设置x轴、y轴名称
+                ax.set_xlabel('X(m)')
+                ax.set_ylabel('Y(m)')
+                # S点为红色正方形，并且大一点
+                ax.scatter(x_list[0], y_list[0], s = 100, color = 'k',label = 'S', marker = 's')
+                ax.text(x_list[0], y_list[0], S_Flag, fontsize=20)
+                legend_flag = False
+            # 将节点连接构成回路
+            # 获取当前回路节点个数
+            q = len(x_list) - 1
+            # 设置回路线条、格式、颜色等等
+            CSL_string = my_color[random.randint(0, len(my_color)-1)]
+            CSL_string = CSL_string + my_style[random.randint(0, len(my_style)-1)]
+            CSL_string = CSL_string + my_logo[random.randint(0, len(my_logo)-1)]
+            # 计算当前是第几个回路
+            MC_Num_temp = MC_Num 
+            label_value = 'MCV' + str(MC_Num_temp)
+            for i in range(0, q):
+                # 前后连接
+                x_temp = [x_list[i], x_list[i+1]]
+                y_temp = [y_list[i], y_list[i+1]]
+                # label 表示线的颜色
+                plt.plot(x_temp, y_temp, CSL_string, linewidth=1)
+                if i == q - 1:
+                    x_temp = [x_list[i + 1], x_list[0]]
+                    y_temp = [y_list[i + 1], y_list[0]]
+                    plt.plot(x_temp, y_temp, CSL_string, label = label_value, linewidth=1)
+            MC_Num = MC_Num + 1
+    plt.grid()
+    plt.legend(loc='best', edgecolor='black')
     ax.legend(loc='best', edgecolor='black')
     plt.xlim([0 - 1,edge_n + 1]) #设置绘图X边界                                                                                                   
     plt.ylim([0 - 1,edge_n + 1]) #设置绘图Y边界
@@ -382,15 +460,14 @@ def ChangeChildrenTour(P_temp, N_distance_temp):
 # 设置障碍
 def Set_obstacles():    
     # 随机生成障碍区域
-    
     for i in range(0, obstacles_Num):
         x_down[0][i] = (random.randint(1, edge_n))
         y_down[0][i] = (random.randint(1, edge_n))
 
-    print "x_down =", x_down
-    print "y_down =", y_down
+    # print "x_down =", x_down
+    # print "y_down =", y_down
     # 保证障碍在要操作的二维区域内
-    p = 10   # 表示障碍的边长 为10m
+
     for i in range(0, obstacles_Num):
         if x_down[0][i] < edge_n - p:
             x_up[0][i] = x_down[0][i] + p
@@ -405,10 +482,6 @@ def Set_obstacles():
             y_up[0][i] = y_temp
             y_down[0][i] = y_temp - p
     
-    # x_down[0] = [1,1,1,4,9]
-    # x_up[0] = [2,2,2,5,10]
-    # y_down[0] = [3,6,7,8,9]
-    # y_up[0] = [4,7,8,9,10]
     print "x_down =", x_down
     print "x_up =", x_up
     print "y_down =", y_down
@@ -417,7 +490,7 @@ def Set_obstacles():
     obstacle_coordinate.append(x_up)
     obstacle_coordinate.append(y_down)
     obstacle_coordinate.append(y_up)
-    print "obstacle_coordinate =", obstacle_coordinate
+    # print "obstacle_coordinate =", obstacle_coordinate
     return obstacle_coordinate
 
 
@@ -435,13 +508,15 @@ if __name__ == "__main__":
     # 保证电单车不在障碍区域内
     
     for i in range(1, N+1):
-        print "i =", i
+        print "准备生成第", i, "个节点坐标~~~~"
         N_x[0][i] = round(random.uniform(1, edge_n), 2)
         N_y[0][i] = round(random.uniform(1, edge_n), 2)
-        print "第一层for循环"
-        print "N_x[0][", i, "] =", N_x[0][i]
-        print "N_y[0][", i, "] =", N_y[0][i] 
+        # print "第一层for循环"
+        # print "N_x[0][", i, "] =", N_x[0][i]
+        # print "N_y[0][", i, "] =", N_y[0][i] 
+        # j为终止条件
         j = 0
+        # 要判断当前生成节点是否存在某一个障碍里面，所以要与每一个障碍区域进行比较
         while(j != obstacles_Num):
             # print "初始化j =", j
             j_temp = j
@@ -449,48 +524,31 @@ if __name__ == "__main__":
             # 电单车坐标的设置，扩大到障碍外围至少+1m处
             if((N_x[0][i] > (x_down[0][j_temp]-1)) and (N_x[0][i] < (x_up[0][j_temp]+1))) and(
                 (N_y[0][i] > (y_down[0][j_temp]-1)) and (N_y[0][i] < (y_up[0][j_temp]+1))):
-                print "初始j_temp =", j_temp
+                # print "初始j_temp =", j_temp
                 j_temp = j_temp + 1
-                print "更新的j_temp =", j_temp
-                print "equal_flag =", equal_flag 
                 if equal_flag is True:
-                    print "表示有电单车在障碍区域里面了，不符合,更新当前电单车坐标"
+                    # print "表示有电单车在障碍区域里面了，不符合,更新当前电单车坐标"
                     N_x[0][i] = round(random.uniform(1, edge_n), 2)
                     N_y[0][i] = round(random.uniform(1, edge_n), 2)
-                    print "第二层for循环更新值"
-                    print "N_x[0][", i, "] =", N_x[0][i]
-                    print "N_y[0][", i, "] =", N_y[0][i]
                     j_temp = 0
                     j = 0
-                    print "更新j =", j
-                    print "更新j_temp =", j_temp
                 equal_flag = False
-                
-                
                 if j_temp >= obstacles_Num:
                     j = j_temp 
-                    print "退出while（）"
+                    # print "退出while（）"
                     break
             else:
                 j = j + 1
                 if j >= obstacles_Num:
-                    print "退出while（）"
+                    # print "退出while（）"
                     break
-            
-            
         # 每辆点电单车的电量，初始化为840Kj
         Es_i[0][i] = 840000
         # 电车运行方向的初始化
         alpha[0][i] = random.randint(0, 360)
         N_i.append(i)
         
-    # N_x[0] = [0, 2.72,2.87]
-    # N_y[0] = [0, 9.03, 1.25]
-    # alpha[0]= [0, 107.0,146.0]
-    # Es_i[0]=[0, 840000,840000]
-    # N_i = [0,1,2]
-    
-        
+    print "节点坐标已经生成"
     # 程序开始运行，计时开始
     start_time = time.time()
     # time.sleep(1)
@@ -505,9 +563,7 @@ if __name__ == "__main__":
         # 单位为 W
         P_i[0][i] = round(random.uniform(95, 115), 2)
         # P_i[0][i] = round(random.uniform(150, 180), 2)
-        # P_i_temp[0][i] = P_i[0][i]
-    
-    # P_i[0] = [0, 1, 5]
+
     for i in range(1, N + 1):
         print "P_i[0][", i, "]=", P_i[0][i]
     
@@ -520,7 +576,8 @@ if __name__ == "__main__":
             # 保存功率最大的节点
             P_i_Max_Node = N_i[i]
     print "剩余能量最少的节点是：", P_i_Max_Node
-    
+    Max_Node = P_i_Max_Node
+    S_Flag = 'S' + '&' + str(Max_Node)
    
     # S表示充电桩的位置，它的开始时坐标的确定，主要是，靠近剩余能量最小的节点或者说功率最大的点
     S = []
@@ -544,8 +601,6 @@ if __name__ == "__main__":
     print "y =", y
     # 将电单车之间两两连接起来画图
     AllNodeLink(x, y,obstacle_coordinate)
-    
-   
     # 打印生成的N辆电单车的坐标
     for i in range(0, N + 1):
         print "坐标为：", (N_x[0][i], N_y[0][i])
@@ -556,8 +611,7 @@ if __name__ == "__main__":
     for i in range(1 , N + 1):
         Es_temp.append(Es_i[0][i])    
     print "开始时Es_i =", Es_temp 
-   
-    
+
     # 备份N_i
     N_i_temp = N_i
     # 最优的操作节点排序
@@ -574,16 +628,14 @@ if __name__ == "__main__":
     alpha_temp = []
     for i in range(1 , len(N_i)):
         alpha_temp.append(alpha[0][i])
-    print "alpha =", alpha_temp 
+    # print "alpha =", alpha_temp 
     while 1 != len(N_i):
-       
-        print "len(N_i) =", len(N_i)
+        # print "len(N_i) =", len(N_i)
         print "N_i =", N_i
         end_time = time.time()
-        print "while() start_time = ", start_time, "s"
-        print "while() end_time =", end_time, "s"
+        # print "while() start_time = ", start_time, "s"
+        # print "while() end_time =", end_time, "s"
         t = (end_time - start_time)
-        
         print "电单车运行的时间为：t =", t, "s"
         
         # 更新节点剩余的能量
@@ -685,10 +737,7 @@ if __name__ == "__main__":
                         print "起点到终点途中不存在障碍或终点不存在与障碍区域"
                         print "退出while()"
                         break
-        print "################################\n"
-        print "################################\n"
-        print "################################\n"
-        print "\n"
+        print "################################"
         for i in range(0, len(N_i)):
             print "更新坐标为：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
         # 创建一个N*N的空降，生成邻接矩阵，构造无向图G(V,E)
@@ -769,6 +818,7 @@ if __name__ == "__main__":
     print "N_x_new = ",N_x_new
     print "N_y_new = ",N_y_new
     print "重新编号的节点序列Node_New_sort =", Node_New_sort
+    S_Flag = 'S' + '&' + str(Node_New_sort[1])
     print "N_x_final = ",N_x_final
     print "N_y_final = ",N_y_final
     
@@ -791,7 +841,7 @@ if __name__ == "__main__":
     PrintNewMatrix(N_distance, len(Node_optimal_sort))
     
     # 加入S点后，将电单车前后连接起来
-    NodeToOtherNodeLink(x, y, 'b', obstacle_coordinate)
+    NodeToOtherNodeLink(x, y, obstacle_coordinate)
    
     print "开始构造子回路"
     
@@ -810,4 +860,6 @@ if __name__ == "__main__":
     # 打印检查产生的充电子回路有多少条，每条子回路由那些节点组成
     for i in range(0, z + 1):
         print R[i]
-
+    print "N_x_final = ",N_x_final
+    print "N_y_final = ",N_y_final
+    ChildrenTourConstruction(N_x_final, N_y_final, obstacle_coordinate, R)

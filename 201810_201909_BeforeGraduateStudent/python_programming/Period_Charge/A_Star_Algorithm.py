@@ -8,7 +8,6 @@
 
 import numpy as np
 import math
-import time
 # debug_flag 为调试标志，为True是开启调试模式， 为False时关闭调试模式
 debug_flag = False
 # 本程序未考虑负的坐标系
@@ -62,16 +61,6 @@ def init(start_position, end_position):
     create_2D_space[start_position[0]][start_position[1]] = 1
     create_2D_space[end_position[0]][end_position[1]] = 1
 
-    # 检查二维平面
-    '''
-    for i in range(1, n + 1):
-        # 将平面按行打印，提前保存到列表里面
-        space_list = []
-        for j in range(1, n + 1):
-            space_list.append(create_2D_space[i][j])
-            if j == n:
-                print space_list
-    '''
     # 若open_list_S[i][j] = 0，表示没有保存数据，表示点(i,j)不能被操作
     # 若open_list_S[1][1] = 1，表示坐标为（1,1）的点在open_list_S中可以被操作
     for i in range(1, n + 1):
@@ -92,11 +81,6 @@ def init(start_position, end_position):
 
 def set_obstacle(obstacle_coordinate, obstacle_num):
     # 此函数用于设置障碍的
-    # create_2D_space[2][5] = 2
-    # create_2D_space[3][4] = 2
-    # create_2D_space[4][3] = 2
-    # create_2D_space[5][2] = 2
-    # create_2D_space[4][4] = 2
     # 当前点(8,7)为障碍
     # create_2D_space[8][7] = 2
     x_down_list = obstacle_coordinate[0]
@@ -111,16 +95,11 @@ def set_obstacle(obstacle_coordinate, obstacle_num):
         y_down_value= y_down_list[0][i]
         y_up_value= y_up_list[0][i]
         # 遍历横坐标
-        # print "x_down_value =", x_down_value
-        # print "x_up_value =", x_up_value
-        # print "y_down_value =", y_down_value
-        # print "y_up_value =", y_up_value
         for j in range(x_down_value,x_up_value + 1):
             # 遍历纵坐标
             for k in range(y_down_value, y_up_value + 1):
                 # （x_down_value+x_up_value）*(y_down_value + y_up_value)区域都是障碍
                 create_2D_space[j][k] = 2
-                # print "create_2D_space[", j, "][", k, "] =", create_2D_space[j][k] 
     return
 
 
@@ -160,33 +139,21 @@ def possibilities_position(parent_position, goal_position):
         around_obstacle_num = around_obstacle_num + 1
     # 如果当前节点周围周围，存在至少3面有障碍，则当前点置为障碍
     # 针对数值小的平面进行操作
-    # print "around_obstacle_num = ", around_obstacle_num
-    # print "temp_obstacle_x =", temp_obstacle_x
-    # print "temp_obstacle_y =", temp_obstacle_y
-    # print "perpetual_obstacle_x =", perpetual_obstacle_x
-    # print "perpetual_obstacle_y =", perpetual_obstacle_y
     if around_obstacle_num > 3:
         print "当前节点周围存在四面障碍，将其置为永久障碍"
         print "临时障碍释放为可以遍历的空间"
         for i in range(0, len(temp_obstacle_x)):
             # 将除了当前的节点外，暂时的障碍全部释放为可以遍历的空间
             # print "清空temp_obstacle"
-            # if temp_obstacle_x[0] != parent_position[0] and temp_obstacle_y[0] != parent_position[1]:
             create_2D_space[temp_obstacle_x[0]][temp_obstacle_y[0]] = 0
-            # print "create_2D_space[",temp_obstacle_x[0],"][",temp_obstacle_y[0],"]=",create_2D_space[temp_obstacle_x[0]][temp_obstacle_y[0]]
             temp_obstacle_x.remove(temp_obstacle_x[0])
             temp_obstacle_y.remove(temp_obstacle_y[0])
-            # print "temp_obstacle_x =", temp_obstacle_x
-            # print "temp_obstacle_y =", temp_obstacle_y
-            # print "perpetual_obstacle_x =", perpetual_obstacle_x
-            # print "perpetual_obstacle_y =", perpetual_obstacle_y
-        # 把这个点置为永久障碍点，以后都不会在进来这个区域
+
+        # 把这个点置为永久障碍点，本次运行中以后都不会在进来这个区域
         perpetual_obstacle_x.append(parent_position[0])
         perpetual_obstacle_y.append(parent_position[1])
         # 将当前四面环绕障碍的点设置为永久障碍
         create_2D_space[parent_position[0]][parent_position[1]] = 2
-        # print "create_2D_space[", parent_position[0],"][",parent_position[1
-        #                      ],"=",create_2D_space[parent_position[0]][parent_position[1]]       
         
     end_position = goal_position
     result_list = []
@@ -605,23 +572,14 @@ def possibilities_position(parent_position, goal_position):
                     # 只需要找出一组当前最优解就行
                     break
         #  获取当前最优距离
-        # print "g[", goal_x, "][", goal_y, "] =", g[goal_x][goal_y] 
-        # print "h[", goal_x, "][", goal_y, "] =", h[goal_x][goal_y]
-        
         f_star = g[goal_x][goal_y] + h[goal_x][goal_y]
         f_star = round(f_star, 2) 
-        # print "f_star =", f_star
         # 用列表保存4个数据,运行结束的标志，当前操作点的两个坐标，到目前位置的最有距离
         
         result_list.append(success_flag)
         result_list.append(goal_x)
         result_list.append(goal_y)
         result_list.append(f_star)
-        if goal_x == 0 and goal_y == 0:
-            print "parent_position =", parent_position
-            print "goal_position =", goal_position
-            print "程序出错"
-            exit
     return result_list
 
 
@@ -631,16 +589,12 @@ def a_star_algorithm(first_coordinate, second_coordinate, obstacle_coordinate, o
     # start_position = [1, 1]  # 起始坐标
     # end_position = [1000, 1000]  # 目标坐标
     if obstacle_flag is True:
-        print "每次操作暂时障碍时，先初始化"
+        # print "每次操作暂时障碍时，先初始化"
         for i in range(0, len(temp_obstacle_x)):
-            
-            # print "temp_obstacle_x =", temp_obstacle_x
-            # print "temp_obstacle_y =", temp_obstacle_y
-            # print "len(temp_obstacle_x) =", len(temp_obstacle_x)
             if len(temp_obstacle_x) != 0:
                 temp_obstacle_x.remove(temp_obstacle_x[0])
                 temp_obstacle_y.remove(temp_obstacle_y[0])
-        print "每次操作永久障碍时，先初始化"
+        # print "每次操作永久障碍时，先初始化"
         for i in range(0, len(perpetual_obstacle_x)):
             if len(perpetual_obstacle_x) != 0:
                 perpetual_obstacle_x.remove(perpetual_obstacle_x[0])
@@ -651,8 +605,7 @@ def a_star_algorithm(first_coordinate, second_coordinate, obstacle_coordinate, o
     # 程序初始化
     start_position_new =start_position
     end_position_new = end_position
-    # print "start_position =", start_position 
-    # print "end_position =", end_position
+    
     x_0 = start_position[0]
     y_0 = start_position[1]
     x_1 = end_position[0]
@@ -669,7 +622,7 @@ def a_star_algorithm(first_coordinate, second_coordinate, obstacle_coordinate, o
     # （1）在无障碍情况下计算距离
     # （2）在有障碍的情况下再计算一次距离
     # 如果两次距离相等，则中途没有障碍，可以直接到达目的位置
-    # 反之，不相等，则中途出现障碍，不能直接到大目的地，需要改变运动方向
+    # 反之，不相等，则中途出现障碍，不能直接到达目的地，需要改变运动方向
     # obstacle_flag = True 表明空间存在障碍
     if obstacle_flag is True:
         print "设置障碍"
@@ -678,8 +631,6 @@ def a_star_algorithm(first_coordinate, second_coordinate, obstacle_coordinate, o
     
     if abs(start_position_new[0] - end_position_new[0]) < 1 and abs(start_position_new[1] - end_position_new[1]) < 1:
         # print "两个点都在同一个单位区域内"
-        # print "start_position =", start_position
-        # print "end_position =", end_position
         result_new = []
         result_new.append(True)
         result_new.append(end_position[0])
@@ -698,61 +649,32 @@ def a_star_algorithm(first_coordinate, second_coordinate, obstacle_coordinate, o
         start_position[1] = int(start_position[1])
         end_position[0] = int(end_position[0])
         end_position[1] = int(end_position[1])
-        # print "start_position =", start_position
-        # print "end_position =", end_position
+        
         parent = start_position
        
         g[parent[0]][parent[1]] = 0  # 目标的横坐标的g值
         h[parent[0]][parent[1]] = 0  # 目标的纵坐标的h值
-        # print "result = ", result
         # 初始化标志位，位置坐标，还有距离
         result = [False, parent[0], parent[1], 0]
         # 保留这个初始点的值，用于后期检验结果用
         new_x = start_position[0]
         new_y = start_position[1]
-        # print "start_position =", start_position
-        # print "new_x =", new_x
-        # print "new_y =", new_y
         while end_position[0] != parent[0] or end_position[1] != parent[1]:
             # 从二维平面里面操作
-            # print "while()"
-            # print "new_x =", new_x
-            # print "new_y =", new_y
             # 因为g+h= f f的值一直没变，可能会回到原来的地方，需要将临时障碍释放为可以遍历的空间
             if new_x == parent[0] and new_y == parent[1]:
-                print "说明又重新回到起点了"
-                # print "延时5s"
-                # time.sleep(5)
+                # print "说明又重新回到起点了"
                 for i in range(0, len(temp_obstacle_x)):
                     create_2D_space[temp_obstacle_x[0]][temp_obstacle_y[0]] = 0
                     temp_obstacle_x.remove(temp_obstacle_x[0])
                     temp_obstacle_y.remove(temp_obstacle_y[0])
-            
-            # print "temp_obstacle_x =", temp_obstacle_x
-            # print "temp_obstacle_y =", temp_obstacle_y
             result = possibilities_position(parent, end_position)
             # result 中包含4个内容，找到目标的标志Flag，目标横坐标x，目标纵坐标y，距离的值distance
-            # print "result =", result
             # 找到目标点后，终止程序
             if end_position[0] == parent[0] and end_position[1] == parent[1]:
                 break
-            # 将已经操作过的点，放入close_list_C[][]中，不再被查询
-            # open_list_S[parent[0]][parent[1]] = 0
-            # close_list_C[parent[0]][parent[1]] = 1
-            
             # 从当前找出的最短距离的点进行操作
             parent[0] = result[1]
             parent[1] = result[2]
-            # 打印每一步的操作的节点
-            # print "产生的parent =", parent
-            # if parent[0] == 0 and parent[1] == 0:
-            #     print "表示终点在障碍区域内"
-            #     print "程序出错，退出A*算法"
-            #     break
-        # print "the final result is ", result
         return result
-
-
-
-
 
