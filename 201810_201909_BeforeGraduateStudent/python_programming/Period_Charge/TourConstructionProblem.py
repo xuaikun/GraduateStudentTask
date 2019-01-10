@@ -15,9 +15,9 @@ import math
 from matplotlib.ticker import MultipleLocator
 # 数据初始化
 N = 5   # 假设我有N辆电单车
-edge_n = 1000 # 假设定义的二维空间范围是 edge_n * edge_n
+edge_n = 100 # 假设定义的二维空间范围是 edge_n * edge_n
 obstacles_Num =20  # 障碍个数
-kedu = 40  # 表示坐标间隔
+kedu = 10  # 表示坐标间隔
 # 初始化电单车在二维空间中的坐标
 N_x = np.empty([1, N + 1], float)
 N_y = np.empty([1, N + 1], float)
@@ -635,41 +635,56 @@ if __name__ == "__main__":
                 second_coordinate.append(N_y_new[0][N_i[i]])
                 print "备份的坐标（起始）first_coordinate =", first_coordinate
                 print "更新的坐标（终点）second_coordinate =", second_coordinate
-                print "无障碍"
-                distance_no_obstacle =A.a_star_algorithm(first_coordinate, second_coordinate, obstacle_coordinate, obstacles_Num, False)
-                # N_x_new[0][N_i[i]] = 1.0
-                # N_y_new[0][N_i[i]] = 2.0
-                first_coordinate = []
-                second_coordinate = []
-                first_coordinate.append(N_x_new_temp_new)
-                first_coordinate.append(N_y_new_temp_new)
-                second_coordinate.append(N_x_new[0][N_i[i]])
-                second_coordinate.append(N_y_new[0][N_i[i]])
                 
-                # print "备份的坐标（起始）first_coordinate =", first_coordinate
-                # print "更新的坐标（终点）second_coordinate =", second_coordinate
+                
                 print "有障碍"
                 distance_obstacle =A.a_star_algorithm(first_coordinate, second_coordinate, obstacle_coordinate, obstacles_Num, True)
-                # 表明两次同一点同一终点，所得距离不相等，说明行驶过程中遇到障碍，需要变向
+               
                 # 判断是否需要变向
                 change_direction_flag = True
                 # 如果终点坐标在障碍区域内，也需要改变运动方向
-                print "distance_no_obstacle =", distance_no_obstacle
-                print "distance_obstacle =", distance_obstacle
-                # 终点在障碍区域内或者运动过程中遇到障碍都将改变即将到达的位置的坐标
-                if distance_no_obstacle[3] != distance_obstacle[3] or distance_obstacle[0] is False:
+                if distance_obstacle[0] is False:
                     change_direction_flag = False
-                    print "运行到这个坐标时遇到障碍：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
+                    print "这个坐标时在障碍区域内：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
                     print "之前备份的坐标为：", (N_x_new_temp, N_y_new_temp)
                     alpha[0][N_i[i]] = random.randint(0, 360)
                     # 用上面备份的当前的坐标，重新往重新生成的方向前进
                     N_x_new[0][N_i[i]] = round((N_x_new_temp + v*t*math.cos(alpha[0][N_i[i]]/180.0*math.pi)), 2)
                     N_y_new[0][N_i[i]] = round((N_y_new_temp + v*t*math.sin(alpha[0][N_i[i]]/180.0*math.pi)), 2)
-                    print "遇到障碍重新更新坐标为：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
-                if crossing_flag is True and change_direction_flag is True:
-                    print "起点到终点途中不存在障碍或终点不存在与障碍区域"
-                    print "退出while()"
-                    break
+                    print "障碍区域内的坐标更新为：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
+                
+                else:
+                    first_coordinate = []
+                    second_coordinate = []
+                    first_coordinate.append(N_x_new_temp_new)
+                    first_coordinate.append(N_y_new_temp_new)
+                    second_coordinate.append(N_x_new[0][N_i[i]])
+                    second_coordinate.append(N_y_new[0][N_i[i]])
+                    # print "备份的坐标（起始）first_coordinate =", first_coordinate
+                    # print "更新的坐标（终点）second_coordinate =", second_coordinate
+                    
+                    print "无障碍"
+                    distance_no_obstacle =A.a_star_algorithm(first_coordinate, second_coordinate, obstacle_coordinate, obstacles_Num, False)
+                    # N_x_new[0][N_i[i]] = 1.0
+                    # N_y_new[0][N_i[i]] = 2.0
+                    print "distance_obstacle =", distance_obstacle
+                    print "distance_no_obstacle =", distance_no_obstacle
+                    # 表明两次同一点同一终点，所得距离不相等，说明行驶过程中遇到障碍，需要变向
+                    # 终点在障碍区域内或者运动过程中遇到障碍都将改变即将到达的位置的坐标
+                    if distance_no_obstacle[3] != distance_obstacle[3]:
+                        change_direction_flag = False
+                        print "运行到这个坐标时遇到障碍：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
+                        print "之前备份的坐标为：", (N_x_new_temp, N_y_new_temp)
+                        alpha[0][N_i[i]] = random.randint(0, 360)
+                        # 用上面备份的当前的坐标，重新往重新生成的方向前进
+                        N_x_new[0][N_i[i]] = round((N_x_new_temp + v*t*math.cos(alpha[0][N_i[i]]/180.0*math.pi)), 2)
+                        N_y_new[0][N_i[i]] = round((N_y_new_temp + v*t*math.sin(alpha[0][N_i[i]]/180.0*math.pi)), 2)
+                        print "遇到障碍重新更新坐标为：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
+               
+                    if crossing_flag is True and change_direction_flag is True:
+                        print "起点到终点途中不存在障碍或终点不存在与障碍区域"
+                        print "退出while()"
+                        break
         print "################################\n"
         print "################################\n"
         print "################################\n"
