@@ -7,15 +7,14 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 import TourConstructionProblem as T
 import A_Star_Algorithm as A
-'''
 my_color =['b', 'g', 'r', 'c', 'm', 'y', 'k']
 my_style = ['-', '--', '-.', ':']
 my_logo = ['.', 'o', 'v', '^', '>', '<', '1', '2', '3', '4', 's', 'p', '*']
 # 数据初始化
-N = 10   # 假设我有N辆电单车
+N = 2   # 假设我有N辆电单车
 Max_Node = 1
 edge_n = 10 # 假设定义的二维空间范围是 edge_n * edge_n
-obstacles_Num = 4 # 障碍 数量
+obstacles_Num = 5 # 障碍 数量
 kedu = 1 # 坐标刻度
 p = 1   # 表示障碍的边长 为pm
 # 用来保存充电回来的子集
@@ -291,7 +290,7 @@ def ChildrenTourConstruction(x_new, y_new, obstacle_coordinate_new, R_new):
     return 
 
 # 随机生成障碍区域
-
+'''
 for i in range(0, obstacles_Num):
     x_down[0][i] = (random.randint(1, edge_n))
     y_down[0][i] = (random.randint(1, edge_n))
@@ -312,11 +311,11 @@ for i in range(0, obstacles_Num):
         y_temp = y_down[0][i]
         y_up[0][i] = y_temp
         y_down[0][i] = y_temp - p
-
-# x_down[0] = [1,1,1,4,9]
-# x_up[0] = [2,2,2,5,10]
-# y_down[0] = [3,6,7,8,9]
-# y_up[0] = [4,7,8,9,10]
+'''
+x_down[0] = [1,1,1,4,9]
+x_up[0] = [2,2,2,5,10]
+y_down[0] = [3,6,7,8,9]
+y_up[0] = [4,7,8,9,10]
 print "x_down =", x_down
 print "x_up =", x_up
 print "y_down =", y_down
@@ -330,6 +329,12 @@ print "obstacle_coordinate =", obstacle_coordinate
 N_i = []
 v = 5   # 初始化电单车的运行速度为 5m/s
 N_i.append(0)
+N_x[0] = [0, 2.72,2.87]
+N_y[0] = [0, 9.03, 1.25]
+alpha[0]= [0, 107.0,146.0]
+Es_i[0]=[0, 840000,840000]
+N_i = [0,1,2]
+'''
 for i in range(1, N+1):
     print "i =", i
     N_x[0][i] = round(random.uniform(1, edge_n), 2)
@@ -340,7 +345,7 @@ for i in range(1, N+1):
     # 电车运行方向的初始化
     alpha[0][i] = random.randint(0, 360)
     N_i.append(i)
-    
+'''   
 # 程序开始运行，计时开始
 start_time = time.time()
 
@@ -350,11 +355,14 @@ print "N_i =", N_i
 N_x_new = N_x
 N_y_new = N_y
 # 随机生成每辆电单车的功率
+'''
 for i in range(1, N + 1):
         # 单位为 W
         P_i[0][i] = round(random.uniform(95, 115), 2)
         # P_i[0][i] = round(random.uniform(150, 180), 2)
         # P_i_temp[0][i] = P_i[0][i]
+'''
+P_i[0] = [0, 1, 5]
 for i in range(1, N + 1):
     print "P_i[0][", i, "]=", P_i[0][i]
 
@@ -406,11 +414,12 @@ print "******************"
 print "$$$$$$$$$$$$$$$$$$$\n"
 # distance = T.CreateDistanceMatrix(N, N_x_new, N_y_new, len(x), N_i, obstacle_coordinate, obstacles_Num)
 # T.PrintNewMatrix(distance, len(x))
+'''
 R_list0 = []
 R_list1 = []
 R_list0.append(0)
 R_list1.append(0)
-for i in range(1, 3):
+for i in range(1, N):
     R_list0.append(N_i[i])
     R_list1.append(N_i[i+N/2])
 
@@ -422,47 +431,22 @@ R[0][0] = R_list0
 R[1][0] = R_list1
 print "R =", R
 ChildrenTourConstruction(N_x_new, N_y_new, obstacle_coordinate, R)
-
-first_coordinate = []
-second_coordinate = []
-
-first_coordinate.append(N_x_new[0][0])
-first_coordinate.append(N_y_new[0][0])
-
-second_coordinate.append(N_x_new[0][2])
-second_coordinate.append(N_y_new[0][2])
-
-print "first_coordinate =", first_coordinate
-print "second_coordinate =", second_coordinate
-print "测试A*算法用时："
-a_star_time_start = time.time()
-result = A.a_star_algorithm(N, first_coordinate, second_coordinate, obstacle_coordinate, obstacles_Num, False)
-a_star_time_end = time.time()
-
-print "A*算法用时：", (a_star_time_end - a_star_time_start), 's'
-print "result =", result
-
-first_coordinate = []
-second_coordinate = []
-
-first_coordinate.append(N_x_new[0][0])
-first_coordinate.append(N_y_new[0][0])
-
-second_coordinate.append(N_x_new[0][2])
-second_coordinate.append(N_y_new[0][2])
-
-print "first_coordinate =", first_coordinate
-print "second_coordinate =", second_coordinate
-print "测试A*算法用时："
-a_star_time_start = time.time()
-result = A.a_star_algorithm(N, first_coordinate, second_coordinate, obstacle_coordinate, obstacles_Num, False)
-a_star_time_end = time.time()
-
-print "A*算法用时：", (a_star_time_end - a_star_time_start), 's'
-print "result =", result
 '''
-alpha = [0, 60, 280, 359, 360]
-for i in range(0, len(alpha)):
-    print "alpha[", i, "]=", alpha[i]
-    alpha[i] = int(alpha[i] + 5)%360
-    print "alpha[", i, "]=", alpha[i]
+first_coordinate = []
+second_coordinate = []
+
+first_coordinate.append(2)
+first_coordinate.append(9)
+
+second_coordinate.append(1)
+second_coordinate.append(2)
+
+print "first_coordinate =", first_coordinate
+print "second_coordinate =", second_coordinate
+print "测试A*算法用时："
+a_star_time_start = time.time()
+result = A.a_star_algorithm(edge_n, first_coordinate, second_coordinate, obstacle_coordinate, obstacles_Num, True)
+a_star_time_end = time.time()
+
+print "A*算法用时：", (a_star_time_end - a_star_time_start), 's'
+print "result =", result

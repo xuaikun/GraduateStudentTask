@@ -125,7 +125,7 @@ def set_obstacle(obstacle_coordinate, obstacle_num, create_2D_space):
     return
 
 
-def possibilities_position(n, parent_position, goal_position, space_list):
+def possibilities_position(n, parent_position, goal_position, space_list, four_flag):
     create_2D_space =space_list[0]
     open_list_S = space_list[1]
     close_list_C = space_list[2]
@@ -134,7 +134,7 @@ def possibilities_position(n, parent_position, goal_position, space_list):
     # print "creat_2D_space =\n", create_2D_space
     # print "open_list_S =\n", open_list_S
     # print "close_list_C =\n", close_list_C
-    
+    # print "parent_position =", parent_position 
     # 将当前操作的点置为临时障碍
     temp_obstacle_x.append(parent_position[0])
     temp_obstacle_y.append(parent_position[1])
@@ -169,9 +169,14 @@ def possibilities_position(n, parent_position, goal_position, space_list):
         around_obstacle_num = around_obstacle_num + 1
     # 如果当前节点周围周围，存在至少3面有障碍，则当前点置为障碍
     # 针对数值小的平面进行操作
-    if around_obstacle_num > 3:
+    #  假设目前没有四周被障碍围堵
+   
+    # print "进来时four_flag =", four_flag 
+    if around_obstacle_num == 4:
         print "当前节点周围存在四面障碍，将其置为永久障碍"
         print "临时障碍释放为可以遍历的空间"
+        # 表示四周被障碍围堵
+        four_flag = True
         # exit
         for i in range(0, len(temp_obstacle_x)):
             # 将除了当前的节点外，暂时的障碍全部释放为可以遍历的空间
@@ -185,7 +190,30 @@ def possibilities_position(n, parent_position, goal_position, space_list):
         perpetual_obstacle_y.append(parent_position[1])
         # 将当前四面环绕障碍的点设置为永久障碍
         create_2D_space[parent_position[0]][parent_position[1]] = 2
-        
+    else: # around_obstacle_num  != 4
+        if around_obstacle_num == 3 and four_flag is True:
+            # print "上一次的点被四个障碍围堵，当前又被三个障碍围堵，当前的位置依旧设置为障碍"
+            # 因为紧紧挨着上一次的结果，所以临时障碍只有它一个，将它从临时障碍中取消
+            # 并添加进入永久障碍中
+            temp_obstacle_x.remove(temp_obstacle_x[0])
+            temp_obstacle_y.remove(temp_obstacle_y[0])
+            # 把这个点置为永久障碍点，本次运行中以后都不会在进来这个区域
+            perpetual_obstacle_x.append(parent_position[0])
+            perpetual_obstacle_y.append(parent_position[1])
+            
+            create_2D_space[parent_position[0]][parent_position[1]] = 2
+        else:
+            # print "上次没有被四个障碍围堵，当前的位置不需要设置为障碍"
+            four_flag = False
+            
+    # print "离开时four_flag =", four_flag 
+    # print "temp_obstacle_x =", temp_obstacle_x
+    # print "temp_obstacle_y =", temp_obstacle_y
+    # print "perpetual_obstacle_x =", perpetual_obstacle_x
+    # print "perpetual_obstacle_y =", perpetual_obstacle_y
+    # print "程序延时10s，观察相关结果"
+    # time.sleep(2)
+    
     end_position = goal_position
     result_list = []
     # 首先判断要到达的终点是不是在障碍区域内
@@ -613,10 +641,13 @@ def possibilities_position(n, parent_position, goal_position, space_list):
         result_list.append(goal_x)
         result_list.append(goal_y)
         result_list.append(f_star)
+    result_list.append(four_flag)
     return result_list
 
 
 def a_star_algorithm(n, first_coordinate, second_coordinate, obstacle_coordinate, obstacle_num, obstacle_flag):
+    # 表明开始时，每个节点四周不一定都有障碍
+    four_flag = False
     # while_start = time.time()
     # print "while_start =", while_start, 's'
     # print "program begin……"
@@ -722,14 +753,17 @@ def a_star_algorithm(n, first_coordinate, second_coordinate, obstacle_coordinate
                     temp_obstacle_x.remove(temp_obstacle_x[0])
                     temp_obstacle_y.remove(temp_obstacle_y[0])
         
-            result = possibilities_position(n, parent, end_position, space_list)
+            result = possibilities_position(n, parent, end_position, space_list, four_flag)
             # result 中包含4个内容，找到目标的标志Flag，目标横坐标x，目标纵坐标y，距离的值distance
             # 找到目标点后，终止程序
             if end_position[0] == parent[0] and end_position[1] == parent[1]:
                 break
             # 从当前找出的最短距离的点进行操作
+            # print "result =", result
             parent[0] = result[1]
             parent[1] = result[2]
+            four_flag = result[4]
+            # print "while() 中 four_flag = ", four_flag
         # while_end = time.time()
         # print "while_end =", while_end, 's'
         # print "A*算法中while循环用时",(while_end - while_start), "s"
