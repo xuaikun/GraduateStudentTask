@@ -8,30 +8,15 @@
 
 import numpy as np
 import math
+import time
 # debug_flag 为调试标志，为True是开启调试模式， 为False时关闭调试模式
 debug_flag = False
 # 本程序未考虑负的坐标系
 # create_2D_space[][] = 2 时为障碍
 # create_2D_space[][] = 0 时为空地
 # create_2D_space[][] = 1 时为起点和中点
-n = 2000          # 定义二维平面大小
-# 定义 每个位置的g值
-g = np.empty([n + 1, n + 1], float)
-# 定义 每个位置的h值
-h = np.empty([n + 1, n + 1], float)
-for i in range(0, n + 1):
-    for j in range(0, n + 1):
-        g[i][j] = 0.0
-        h[i][j] = 0 
-# 构造二维平面
-create_2D_space = np.empty([n + 2, n + 2], int)
-# 开放列表open_list_S,用于存放当前操作点周围的点，或之前操作的点周围的点，不能是障碍点，它的值为0或1
-open_list_S = np.empty([n + 1, n + 1], int)
-# 封闭列表close_list_C，用于存放已被操作过的点，不能再被操作，该点的值应该为1
-# 并且create_2D_space[][] = 2赋值，表示该点成为障碍
-close_list_C = np.empty([n + 1, n + 1], int)
+# n = 2000          # 定义二维平面大小
 
-# 用全局列表保存的话，更方便操作
 # 保存临时障碍坐标
 temp_obstacle_x = []
 temp_obstacle_y = []
@@ -40,46 +25,83 @@ temp_obstacle_y = []
 perpetual_obstacle_x = []
 perpetual_obstacle_y = []
 
-def init(start_position, end_position):
+def init(n, start_position, end_position):
     # 初始化二维平面
     # 当二维平面中位置的值不为0，1时，说明这里是障碍，就不能越过，得绕过
     # 其中为0的点为空旷区域，可以随意通过
     # 其中为1的点为起始点或者目标点
     # 已经走过的地方，可以用2表示，不能再被再一次访问，也表示障碍
-    for i in range(1, n + 1):
-        for j in range(i, n + 1):
-            create_2D_space[i][j] = 0
-            create_2D_space[j][i] = create_2D_space[i][j]
+    # for_start_time = time.time()
+    # 构造二维平面
+    # create_2D_space = np.empty([n + 2, n + 2], int)
+    create_2D_space = np.zeros((n + 2, n + 2), dtype = np.int)
+    # 开放列表open_list_S,用于存放当前操作点周围的点，或之前操作的点周围的点，不能是障碍点，它的值为0或1
+    # open_list_S = np.empty([n + 1, n + 1], int)
+    open_list_S = np.zeros((n + 1, n + 1), dtype = np.int)
+    # 封闭列表close_list_C，用于存放已被操作过的点，不能再被操作，该点的值应该为1
+    # 并且create_2D_space[][] = 2赋值，表示该点成为障碍
+    # close_list_C = np.empty([n + 1, n + 1], int)
+    close_list_C = np.ones((n + 1, n + 1), dtype = np.int)
+    # 用全局列表保存的话，更方便操作
+    # for i in range(1, n + 1):
+        # for j in range(i, n + 1):
+            # create_2D_space[i][j] = 0
+            # create_2D_space[j][i] = create_2D_space[i][j]
+            # open_list_S[i][j] = 0
+            # open_list_S[j][i]  = open_list_S[i][j] 
+            # close_list_C[i][j] = 1
+            # close_list_C[j][i] = close_list_C[i][j]
+    # 定义 每个位置的g值
+    g = np.zeros((n + 1, n + 1), dtype = np.float)
+    # 定义 每个位置的h值
+    h = np.zeros((n + 1, n + 1), dtype = np.float)
+    
+    # for_end_time = time.time()
+    
+    # print "创建平面所花时间 =", (for_end_time - for_start_time), "s"
+    
+    # print "create_2D_space =\n", create_2D_space
+    # print "open_list_S =\n", open_list_S
+    # print "close_list_C =\n", close_list_C
+    
     # 外围一层变成障碍
     for i in range(0, n + 2):
         create_2D_space[0][i] = 2
         create_2D_space[i][0] = create_2D_space[0][i]
         create_2D_space[n + 1][i] = 2
-        create_2D_space[i][n + 1] = create_2D_space[n + 1][i]
-
+        create_2D_space[i][n + 1] = create_2D_space[n + 1][i]   
     # 将起始坐标和目的坐标加入二维平面中
     create_2D_space[start_position[0]][start_position[1]] = 1
     create_2D_space[end_position[0]][end_position[1]] = 1
 
     # 若open_list_S[i][j] = 0，表示没有保存数据，表示点(i,j)不能被操作
     # 若open_list_S[1][1] = 1，表示坐标为（1,1）的点在open_list_S中可以被操作
-    for i in range(1, n + 1):
-        for j in range(1, n + 1):
-            open_list_S[i][j] = 0
+    # for i in range(1, n + 1):
+    #     for j in range(1, n + 1):
+    #         open_list_S[i][j] = 0
 
     # 若close_list_C[i][j] = 0，表示没有点（i,j）未保存保存到close_list_C中，任然可以被考察
     # 若close_list_C[1][1] = 1，表示坐标为（1,1）的点在close_list_C中，暂时不能被考察，
     # 若同时满足create_2D_space[i][j] = 2（已被操作过的点，将其视为障碍）, 则表示点（i,j）不再被考察
-    for i in range(1, n + 1):
-        for j in range(1, n + 1):
-            close_list_C[i][j] = 1
+    # for i in range(1, n + 1):
+    #     for j in range(1, n + 1):
+    #         close_list_C[i][j] = 1
 
     # 将起始点加入开放列表中
     open_list_S[start_position[0]][start_position[1]] = 1
     close_list_C[start_position[0]][start_position[1]] = 0
+    
+    space_list = []
+    space_list.append(create_2D_space)
+    space_list.append(open_list_S)
+    space_list.append(close_list_C)
+    space_list.append(g)
+    space_list.append(h)
+    # print "space_list =\n", space_list
+    return space_list
 
 
-def set_obstacle(obstacle_coordinate, obstacle_num):
+def set_obstacle(obstacle_coordinate, obstacle_num, create_2D_space):
     # 此函数用于设置障碍的
     # 当前点(8,7)为障碍
     # create_2D_space[8][7] = 2
@@ -103,7 +125,15 @@ def set_obstacle(obstacle_coordinate, obstacle_num):
     return
 
 
-def possibilities_position(parent_position, goal_position):
+def possibilities_position(n, parent_position, goal_position, space_list):
+    create_2D_space =space_list[0]
+    open_list_S = space_list[1]
+    close_list_C = space_list[2]
+    g = space_list[3]
+    h = space_list[4]
+    # print "creat_2D_space =\n", create_2D_space
+    # print "open_list_S =\n", open_list_S
+    # print "close_list_C =\n", close_list_C
     
     # 将当前操作的点置为临时障碍
     temp_obstacle_x.append(parent_position[0])
@@ -142,6 +172,7 @@ def possibilities_position(parent_position, goal_position):
     if around_obstacle_num > 3:
         print "当前节点周围存在四面障碍，将其置为永久障碍"
         print "临时障碍释放为可以遍历的空间"
+        # exit
         for i in range(0, len(temp_obstacle_x)):
             # 将除了当前的节点外，暂时的障碍全部释放为可以遍历的空间
             # print "清空temp_obstacle"
@@ -575,7 +606,9 @@ def possibilities_position(parent_position, goal_position):
         f_star = g[goal_x][goal_y] + h[goal_x][goal_y]
         f_star = round(f_star, 2) 
         # 用列表保存4个数据,运行结束的标志，当前操作点的两个坐标，到目前位置的最有距离
-        
+        if goal_x == 0 or goal_y == 0:
+            print " parent_position",  parent_position
+            exit
         result_list.append(success_flag)
         result_list.append(goal_x)
         result_list.append(goal_y)
@@ -583,11 +616,14 @@ def possibilities_position(parent_position, goal_position):
     return result_list
 
 
-def a_star_algorithm(first_coordinate, second_coordinate, obstacle_coordinate, obstacle_num, obstacle_flag):
+def a_star_algorithm(n, first_coordinate, second_coordinate, obstacle_coordinate, obstacle_num, obstacle_flag):
+    # while_start = time.time()
+    # print "while_start =", while_start, 's'
     # print "program begin……"
     # 坐标自己定
     # start_position = [1, 1]  # 起始坐标
     # end_position = [1000, 1000]  # 目标坐标
+    
     if obstacle_flag is True:
         # print "每次操作暂时障碍时，先初始化"
         for i in range(0, len(temp_obstacle_x)):
@@ -599,6 +635,7 @@ def a_star_algorithm(first_coordinate, second_coordinate, obstacle_coordinate, o
             if len(perpetual_obstacle_x) != 0:
                 perpetual_obstacle_x.remove(perpetual_obstacle_x[0])
                 perpetual_obstacle_y.remove(perpetual_obstacle_y[0])
+    
     start_position = first_coordinate
     end_position = second_coordinate
     
@@ -615,7 +652,22 @@ def a_star_algorithm(first_coordinate, second_coordinate, obstacle_coordinate, o
     end_position_new[0] = int(end_position_new[0])
     end_position_new[1] = int(end_position_new[1])
     
-    init(start_position_new, end_position_new)
+    
+    # init_start_time = time.time()
+    # 这个初始化非常耗时，好好想想如何处理
+    space_list = init(n, start_position_new, end_position_new)
+    create_2D_space = space_list[0]
+    # open_list_S = space_list[1]
+    # close_lsit_C = space_list[2]
+    g = space_list[3]
+    h = space_list[4]
+    # print "creat_2D_space =\n", create_2D_space
+    # print "open_list_S =\n", open_list_S
+    # print "close_lsit_C =\ n", close_lsit_C
+    
+    # init_end_time = time.time()
+    
+    # print "初始化障碍数组所需时间=", (init_end_time - init_start_time), "s"
     # 设置障碍
     # print "开始设置障碍"
     # 为了在运动时避开障碍，设置两种状态
@@ -626,7 +678,7 @@ def a_star_algorithm(first_coordinate, second_coordinate, obstacle_coordinate, o
     # obstacle_flag = True 表明空间存在障碍
     if obstacle_flag is True:
         print "设置障碍"
-        set_obstacle(obstacle_coordinate, obstacle_num)
+        set_obstacle(obstacle_coordinate, obstacle_num, create_2D_space)
     # print "结束设置障碍"
     
     if abs(start_position_new[0] - end_position_new[0]) < 1 and abs(start_position_new[1] - end_position_new[1]) < 1:
@@ -659,6 +711,7 @@ def a_star_algorithm(first_coordinate, second_coordinate, obstacle_coordinate, o
         # 保留这个初始点的值，用于后期检验结果用
         new_x = start_position[0]
         new_y = start_position[1]
+        
         while end_position[0] != parent[0] or end_position[1] != parent[1]:
             # 从二维平面里面操作
             # 因为g+h= f f的值一直没变，可能会回到原来的地方，需要将临时障碍释放为可以遍历的空间
@@ -668,7 +721,8 @@ def a_star_algorithm(first_coordinate, second_coordinate, obstacle_coordinate, o
                     create_2D_space[temp_obstacle_x[0]][temp_obstacle_y[0]] = 0
                     temp_obstacle_x.remove(temp_obstacle_x[0])
                     temp_obstacle_y.remove(temp_obstacle_y[0])
-            result = possibilities_position(parent, end_position)
+        
+            result = possibilities_position(n, parent, end_position, space_list)
             # result 中包含4个内容，找到目标的标志Flag，目标横坐标x，目标纵坐标y，距离的值distance
             # 找到目标点后，终止程序
             if end_position[0] == parent[0] and end_position[1] == parent[1]:
@@ -676,5 +730,8 @@ def a_star_algorithm(first_coordinate, second_coordinate, obstacle_coordinate, o
             # 从当前找出的最短距离的点进行操作
             parent[0] = result[1]
             parent[1] = result[2]
+        # while_end = time.time()
+        # print "while_end =", while_end, 's'
+        # print "A*算法中while循环用时",(while_end - while_start), "s"
         return result
 
