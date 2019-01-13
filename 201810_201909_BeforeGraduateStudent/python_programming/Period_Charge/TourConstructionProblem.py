@@ -19,7 +19,7 @@ my_color =['b', 'g', 'r', 'c', 'm', 'y', 'k']
 my_style = ['-', '--', '-.', ':']
 my_logo = ['.', 'o', 'v', '^', '>', '<', '1', '2', '3', '4', 's', 'p', '*']
 # 数据初始化
-N = 100   # 假设我有N辆电单车
+N = 150   # 假设我有N辆电单车
 edge_n = 1000 # 假设定义的二维空间范围是 edge_n * edge_n
 obstacles_Num =20  # 障碍个数
 kedu = 40  # 表示坐标间隔
@@ -869,10 +869,10 @@ if __name__ == "__main__":
     R = result[0]
     z = result[1]
     
-    print "result = ", result
+    # print "result = ", result
     
-    print "R =", R
-    print "z =", z
+    # print "R =", R
+    # print "z =", z
     
     print "\n"
     # 打印检查产生的充电子回路有多少条，每条子回路由那些节点组成
