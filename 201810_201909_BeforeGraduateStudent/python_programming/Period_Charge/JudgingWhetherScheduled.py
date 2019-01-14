@@ -5,7 +5,7 @@
 # 充电效率，哈密顿回路，移动速度，节点之间的邻接矩阵，总周期
 # 算法输出：调度标志
 # 算法功能：判定一个充电回路P是否可调度
-def judging_whether_scheduled(N, P, Em, qc, qm, nl, R, vm, N_distance, T):
+def judging_whether_scheduled(P, Em, qc, qm, nl, R, vm, N_distance, T):
 
     # 统计R中节点个数
     R_len = len(R)

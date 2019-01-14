@@ -13,16 +13,20 @@ import matplotlib.pyplot as plt
 import time
 import math
 from matplotlib.ticker import MultipleLocator
+import os
+# 图片保存路径
+png_path = "E:\\00000000000graduate-study\\GraduateStudentTask\\201810_201909_BeforeGraduateStudent\\png"
+
 
 # 自己的调色板
 my_color =['b', 'g', 'r', 'c', 'm', 'y', 'k']
 my_style = ['-', '--', '-.', ':']
 my_logo = ['.', 'o', 'v', '^', '>', '<', '1', '2', '3', '4', 's', 'p', '*']
 # 数据初始化
-N = 150   # 假设我有N辆电单车
-edge_n = 1000 # 假设定义的二维空间范围是 edge_n * edge_n
+N = 10   # 假设我有N辆电单车  会影响程序运行的时间
+edge_n = 500 # 假设定义的二维空间范围是 edge_n * edge_n 影响构造充电子回路
 obstacles_Num =20  # 障碍个数
-kedu = 40  # 表示坐标间隔
+kedu = 20  # 表示坐标间隔
 p = 10   # 表示障碍的边长 为10m
 alpha_value = 30 # 转向的度数
 # 初始化电单车在二维空间中的坐标
@@ -122,6 +126,12 @@ def AllNodeLink(x, y, obstacle_coordinate_new):
         ax.text(x_list[i], y_list[i], i, fontsize = 10)
     # 图例位置
     ax.legend(loc='best', edgecolor='black')
+    # 保存生成的图片
+    partPath = [str(int(time.time()))]
+    origin_path = partPath[0] + 'origin.png'  
+    All_path = os.path.join(png_path, origin_path)
+    plt.savefig(All_path)
+    
     plt.xlim([0 - 1,edge_n + 1]) #设置绘图X边界                                                                                                   
     plt.ylim([0 - 1,edge_n + 1]) #设置绘图Y边界
     plt.show()
@@ -191,6 +201,11 @@ def NodeToOtherNodeLink(x, y, obstacle_coordinate_new):
             plt.plot(x_temp, y_temp, CSL_string,linewidth=1)
     # 图例定位
     ax.legend(loc='best', edgecolor='black')
+    # 保存生成的图片
+    partPath = [str(int(time.time()))]
+    origin_path = partPath[0] + 'Alllink.png'  
+    All_path = os.path.join(png_path, origin_path)
+    plt.savefig(All_path)
     plt.xlim([0 - 1,edge_n + 1]) #设置绘图X边界                                                                                                   
     plt.ylim([0 - 1,edge_n + 1]) #设置绘图Y边界
     plt.show()
@@ -280,6 +295,11 @@ def ChildrenTourConstruction(x_new, y_new, obstacle_coordinate_new, R_new):
     plt.grid()
     plt.legend(loc='best', edgecolor='black')
     ax.legend(loc='best', edgecolor='black')
+    # 保存生成的图片
+    partPath = [str(int(time.time()))]
+    origin_path = partPath[0] + 'OneToOtherlink.png'  
+    All_path = os.path.join(png_path, origin_path)
+    plt.savefig(All_path)
     plt.xlim([0 - 1,edge_n + 1]) #设置绘图X边界                                                                                                   
     plt.ylim([0 - 1,edge_n + 1]) #设置绘图Y边界
     plt.show()
@@ -314,10 +334,10 @@ def CreateDistanceMatrix(n_1, N_x_x, N_y_y, n, N_i_new, obstacle_coordinate_new,
                 second_coordinate = []
                 second_coordinate.append(x2)
                 second_coordinate.append(y2)
-                print "第一个坐标：", first_coordinate
-                print "第二个坐标：", second_coordinate
+                # print "第一个坐标：", first_coordinate
+                # print "第二个坐标：", second_coordinate
                 result = A.a_star_algorithm(n_1, first_coordinate, second_coordinate, obstacle_coordinate_new, obstacle_num_new, True)
-                print "构造回路的result = ", result
+                # print "构造回路的result = ", result
                 # 电单车i到电单车j（或电单车j到电单车i）的实际距离
                 # 距离取两位小数，就好
                 N_distance_temp[i][j] = round(result[3],2)
@@ -352,10 +372,10 @@ def CreateDistanceNewMatrix(n_1, N_x_x, N_y_y, n, N_i_new, obstacle_coordinate_n
                 second_coordinate = []
                 second_coordinate.append(x2)
                 second_coordinate.append(y2)
-                print "第一个坐标：", first_coordinate
-                print "第二个坐标：", second_coordinate
+                # print "第一个坐标：", first_coordinate
+                # print "第二个坐标：", second_coordinate
                 result = A.a_star_algorithm(n_1, first_coordinate, second_coordinate, obstacle_coordinate_new, obstacle_num_new, True)
-                print "构造回路的result = ", result
+                # print "构造回路的result = ", result
                 # 电单车i到电单车j（或电单车j到电单车i）的实际距离
                 # 距离取两位小数，就好
                 N_distance_temp[i][j] = round(result[3],2)
@@ -407,11 +427,11 @@ def ChangeChildrenTour(P_temp, N_distance_temp):
             nl = 0.5  # 类似于效率一样，占比多少 n = 0.5
             T = 7200  # 充电周期需要知道10s
             vm = 20  # MC的移动速度0.3m/s
-            print "加入了Nk节点的R_list =", R_list
+            # print "加入了Nk节点的R_list =", R_list
             # 返回可调度性
             # result = True 可调度
             # result = False 不可调度
-            result = B.judging_whether_scheduled(N, P_temp, Em, qc, qm, nl, R_list, vm, N_distance_temp, T)
+            result = B.judging_whether_scheduled(P_temp, Em, qc, qm, nl, R_list, vm, N_distance_temp, T)
             # 最后一组值的操作
             if success_flag is False and result is True and k == N:
                 # print "最后一组结果可以在这保存"
@@ -424,11 +444,11 @@ def ChangeChildrenTour(P_temp, N_distance_temp):
                 # 说明只有S在里面
                 # 下一次从k + 1遍历
                 # print "不可以被调度时，i应该被修改了i = ", i, "并且k =", k
-                print "删除了Nk节点的R_list = ", R_list
+                # print "删除了Nk节点的R_list = ", R_list
                 # print "z =", z
                 # print "count =", count
                 # print "R[", z, "][0]=", R[z][count]
-                print "对于不可调度有其他情况，每次先判断当前R_list的长度 len(R_list)=", len(R_list)
+                # print "对于不可调度有其他情况，每次先判断当前R_list的长度 len(R_list)=", len(R_list)
                 if len(R_list) == 1:
                     i = k + 1
                     z = z
@@ -449,8 +469,8 @@ def ChangeChildrenTour(P_temp, N_distance_temp):
         # 表示所有的节点都可以放入同一个充电回路
         if success_flag is True:
             R_temp[z][count] = R_list
-            print "表示所有的节点都可以加入，R里面"
-            print "R[", z, "][", count, "]=", R_temp[z][count]
+            # print "表示所有的节点都可以加入，R里面"
+            # print "R[", z, "][", count, "]=", R_temp[z][count]
             i = N + 1
             break
     result = []
@@ -598,8 +618,6 @@ if __name__ == "__main__":
     print "y =", y
     # 将电单车之间两两连接起来画图
     AllNodeLink(x, y,obstacle_coordinate)
-    print "延时10s, 为了保存图片"
-    time.sleep(10)
     # 打印 初始化的节点啊的总能量
     Es_temp = []
     for i in range(1 , N + 1):
@@ -858,8 +876,6 @@ if __name__ == "__main__":
     
     # 加入S点后，将电单车前后连接起来
     NodeToOtherNodeLink(x, y, obstacle_coordinate)
-    print "这是第二个图，延时10s，自己保存一下"
-    time.sleep(10)
    
     print "开始构造子回路"
     

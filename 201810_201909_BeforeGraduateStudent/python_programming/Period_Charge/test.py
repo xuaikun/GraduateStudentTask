@@ -7,9 +7,12 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 import TourConstructionProblem as T
 import A_Star_Algorithm as A
+import os
+import shutil
 my_color =['b', 'g', 'r', 'c', 'm', 'y', 'k']
 my_style = ['-', '--', '-.', ':']
 my_logo = ['.', 'o', 'v', '^', '>', '<', '1', '2', '3', '4', 's', 'p', '*']
+png_path = "E:\\00000000000graduate-study\\GraduateStudentTask\\201810_201909_BeforeGraduateStudent\\png"
 # 数据初始化
 N = 2   # 假设我有N辆电单车
 Max_Node = 1
@@ -101,6 +104,11 @@ def AllNodeLink(x, y, obstacle_coordinate_new):
     # plt.legend(loc='best',frameon=False) #去掉图例边框
     # plt.legend(loc='best',edgecolor='blue') #设置图例边框颜色
     # plt.legend(loc='best',facecolor='blue') #设置图例背景颜色,若无边框,参数无效
+    # 设置生成图片保存路径
+    partPath = [str(int(time.time()))]
+    origin_path = partPath[0] + 'origin.png'  
+    All_path = os.path.join(png_path, origin_path)
+    plt.savefig(All_path)
     plt.xlim([0 - 1,edge_n + 1]) #设置绘图X边界                                                                                                   
     plt.ylim([0 - 1,edge_n + 1]) #设置绘图Y边界
     plt.show()
@@ -414,7 +422,7 @@ print "******************"
 print "$$$$$$$$$$$$$$$$$$$\n"
 # distance = T.CreateDistanceMatrix(N, N_x_new, N_y_new, len(x), N_i, obstacle_coordinate, obstacles_Num)
 # T.PrintNewMatrix(distance, len(x))
-'''
+
 R_list0 = []
 R_list1 = []
 R_list0.append(0)
@@ -431,7 +439,7 @@ R[0][0] = R_list0
 R[1][0] = R_list1
 print "R =", R
 ChildrenTourConstruction(N_x_new, N_y_new, obstacle_coordinate, R)
-'''
+
 first_coordinate = []
 second_coordinate = []
 

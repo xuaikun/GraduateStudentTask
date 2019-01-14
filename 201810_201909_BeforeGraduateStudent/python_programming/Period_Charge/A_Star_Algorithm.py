@@ -173,8 +173,8 @@ def possibilities_position(n, parent_position, goal_position, space_list, four_f
    
     # print "进来时four_flag =", four_flag 
     if around_obstacle_num == 4:
-        print "当前节点周围存在四面障碍，将其置为永久障碍"
-        print "临时障碍释放为可以遍历的空间"
+        # print "当前节点周围存在四面障碍，将其置为永久障碍"
+        # print "临时障碍释放为可以遍历的空间"
         # 表示四周被障碍围堵
         four_flag = True
         # exit
@@ -708,7 +708,7 @@ def a_star_algorithm(n, first_coordinate, second_coordinate, obstacle_coordinate
     # 反之，不相等，则中途出现障碍，不能直接到达目的地，需要改变运动方向
     # obstacle_flag = True 表明空间存在障碍
     if obstacle_flag is True:
-        print "设置障碍"
+        # print "设置障碍"
         set_obstacle(obstacle_coordinate, obstacle_num, create_2D_space)
     # print "结束设置障碍"
     
