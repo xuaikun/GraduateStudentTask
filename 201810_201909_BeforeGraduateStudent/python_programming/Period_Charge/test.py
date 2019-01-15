@@ -8,7 +8,6 @@ from matplotlib.ticker import MultipleLocator
 import TourConstructionProblem as T
 import A_Star_Algorithm as A
 import os
-import shutil
 my_color =['b', 'g', 'r', 'c', 'm', 'y', 'k']
 my_style = ['-', '--', '-.', ':']
 my_logo = ['.', 'o', 'v', '^', '>', '<', '1', '2', '3', '4', 's', 'p', '*']
@@ -16,9 +15,9 @@ png_path = "E:\\00000000000graduate-study\\GraduateStudentTask\\201810_201909_Be
 # 数据初始化
 N = 2   # 假设我有N辆电单车
 Max_Node = 1
-edge_n = 10 # 假设定义的二维空间范围是 edge_n * edge_n
+edge_n = 10000 # 假设定义的二维空间范围是 edge_n * edge_n
 obstacles_Num = 5 # 障碍 数量
-kedu = 1 # 坐标刻度
+kedu = 40 # 坐标刻度
 p = 1   # 表示障碍的边长 为pm
 # 用来保存充电回来的子集
 R = np.empty([N + 1, 1], list)
@@ -443,11 +442,11 @@ ChildrenTourConstruction(N_x_new, N_y_new, obstacle_coordinate, R)
 first_coordinate = []
 second_coordinate = []
 
-first_coordinate.append(2)
-first_coordinate.append(9)
+first_coordinate.append(1)
+first_coordinate.append(10000)
 
+second_coordinate.append(10000)
 second_coordinate.append(1)
-second_coordinate.append(2)
 
 print "first_coordinate =", first_coordinate
 print "second_coordinate =", second_coordinate

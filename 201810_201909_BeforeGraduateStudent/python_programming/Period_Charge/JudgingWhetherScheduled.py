@@ -9,6 +9,7 @@ def judging_whether_scheduled(P, Em, qc, qm, nl, R, vm, N_distance, T):
 
     # 统计R中节点个数
     R_len = len(R)
+    print "R", R
     # 求当前回路的总距离
     D = 0
     # 一定要想清楚这里，只用R_len - 1
