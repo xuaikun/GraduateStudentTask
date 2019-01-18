@@ -16,9 +16,9 @@ png_path = "E:\\00000000000graduate-study\\GraduateStudentTask\\201810_201909_Be
 # 数据初始化
 N = 2   # 假设我有N辆电单车
 Max_Node = 1
-edge_n = 10000 # 假设定义的二维空间范围是 edge_n * edge_n
+edge_n = 100 # 假设定义的二维空间范围是 edge_n * edge_n
 obstacles_Num = 5 # 障碍 数量
-kedu = 40 # 坐标刻度
+kedu = 5 # 坐标刻度
 p = 1   # 表示障碍的边长 为pm
 # 用来保存充电回来的子集
 R = np.empty([N + 1, 1], list)
@@ -116,6 +116,7 @@ def AllNodeLink(x, y, obstacle_coordinate_new):
 
 # 将节点前后连接起来
 def NodeToOtherNodeLink(x, y, obstacle_coordinate_new):
+    
     print "x =", x
     print "y =", y
     #分别存放所有点的横坐标和纵坐标，一一对应
@@ -183,6 +184,37 @@ def NodeToOtherNodeLink(x, y, obstacle_coordinate_new):
             x_temp = [x_list[i + 1], x_list[0]]
             y_temp = [y_list[i + 1], y_list[0]]
             plt.plot(x_temp, y_temp, CSL_string,linewidth=1)
+    
+    parent = []
+    parent.append([2, 9])
+    parent.append([1, 9])
+    parent.append([1, 10])
+    parent.append([2, 10])
+    parent.append([3, 10])
+    parent.append([3, 9])
+    parent.append([3, 8])
+    parent.append([3, 7])
+    parent.append([3, 6])
+    parent.append([3, 5])
+    parent.append([3, 4])
+    parent.append([3, 3])
+    parent.append([3, 2])
+    parent.append([2, 2])
+    print "parent =", parent
+    ax.xaxis.set_major_locator(MultipleLocator(kedu))
+    ax.yaxis.set_major_locator(MultipleLocator(kedu))
+    for i in range(0, len(parent) - 1):
+        # 前后连接
+        x_temp = [parent[i][0], parent[i + 1][0]]
+        y_temp = [parent[i][1], parent[i + 1][1]]
+        plt.plot(x_temp, y_temp,linewidth=2)
+        # plt.plot(x_temp, y_temp,linewidth=1)
+        # if i == len(parent) - 2:
+            # print 'i =', i
+            # x_temp = [parent[i + 1][0], parent[0][0]]
+            # y_temp = [parent[i + 1][1], parent[0][1]]
+            # plt.plot(x_temp, y_temp,linewidth=1)
+    
     ax.legend(loc='best', edgecolor='black')
     plt.xlim([0 - 1,edge_n + 1]) #设置绘图X边界                                                                                                   
     plt.ylim([0 - 1,edge_n + 1]) #设置绘图Y边界
@@ -422,7 +454,7 @@ print "******************"
 print "$$$$$$$$$$$$$$$$$$$\n"
 # distance = T.CreateDistanceMatrix(N, N_x_new, N_y_new, len(x), N_i, obstacle_coordinate, obstacles_Num)
 # T.PrintNewMatrix(distance, len(x))
-
+'''
 R_list0 = []
 R_list1 = []
 R_list0.append(0)
@@ -438,16 +470,16 @@ for i in range(0, N + 1):
 R[0][0] = R_list0
 R[1][0] = R_list1
 print "R =", R
-ChildrenTourConstruction(N_x_new, N_y_new, obstacle_coordinate, R)
-
+# ChildrenTourConstruction(N_x_new, N_y_new, obstacle_coordinate, R)
+'''
 first_coordinate = []
 second_coordinate = []
 
-first_coordinate.append(1)
-first_coordinate.append(10000)
+first_coordinate.append(11)
+first_coordinate.append(11)
 
-second_coordinate.append(10000)
-second_coordinate.append(1)
+second_coordinate.append(2)
+second_coordinate.append(2)
 
 print "first_coordinate =", first_coordinate
 print "second_coordinate =", second_coordinate
@@ -458,3 +490,6 @@ a_star_time_end = time.time()
 
 print "A*算法用时：", (a_star_time_end - a_star_time_start), 's'
 print "result =", result
+
+# NodeToOtherNodeLink(x, y, obstacle_coordinate)
+plt.show()

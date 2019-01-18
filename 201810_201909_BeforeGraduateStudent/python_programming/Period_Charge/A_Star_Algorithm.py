@@ -648,6 +648,10 @@ def possibilities_position(n, parent_position, goal_position, space_list, four_f
 def a_star_algorithm(n, first_coordinate, second_coordinate, obstacle_coordinate, obstacle_num, obstacle_flag):
     # 表明开始时，每个节点四周不一定都有障碍
     four_flag = False
+    # 保证处理的是不再同一单位区域内的两个点
+    different_Space_flag = False
+    # 保存走过的路径
+    Road_information = []
     # while_start = time.time()
     # print "while_start =", while_start, 's'
     # print "program begin……"
@@ -711,9 +715,14 @@ def a_star_algorithm(n, first_coordinate, second_coordinate, obstacle_coordinate
         # print "设置障碍"
         set_obstacle(obstacle_coordinate, obstacle_num, create_2D_space)
     # print "结束设置障碍"
-    
+    detect_position = []
     if abs(start_position_new[0] - end_position_new[0]) < 1 and abs(start_position_new[1] - end_position_new[1]) < 1:
         # print "两个点都在同一个单位区域内"
+        parent_temp = []
+        parent_temp.append(0)
+        parent_temp.append(0)
+        # 将走过的路径进行保存
+        Road_information.append(parent_temp)
         result_new = []
         result_new.append(True)
         result_new.append(end_position[0])
@@ -724,9 +733,12 @@ def a_star_algorithm(n, first_coordinate, second_coordinate, obstacle_coordinate
         Distance = round(Distance, 2)
         # print "同一个区域的距离为Distance =", Distance 
         result_new.append(Distance)
+        result_new.append(False)
+        result_new.append(parent_temp)
         result = result_new
         return result
     else:
+        different_Space_flag = True
         # print "两个点不在同一个单位区域内"
         start_position[0] = int(start_position[0])
         start_position[1] = int(start_position[1])
@@ -734,6 +746,10 @@ def a_star_algorithm(n, first_coordinate, second_coordinate, obstacle_coordinate
         end_position[1] = int(end_position[1])
         
         parent = start_position
+        
+        detect_position.append(start_position[0])
+        detect_position.append(start_position[1])
+        # print "start_position =", start_position
        
         g[parent[0]][parent[1]] = 0  # 目标的横坐标的g值
         h[parent[0]][parent[1]] = 0  # 目标的纵坐标的h值
@@ -746,26 +762,130 @@ def a_star_algorithm(n, first_coordinate, second_coordinate, obstacle_coordinate
         while end_position[0] != parent[0] or end_position[1] != parent[1]:
             # 从二维平面里面操作
             # 因为g+h= f f的值一直没变，可能会回到原来的地方，需要将临时障碍释放为可以遍历的空间
+            # print "parent =", parent
+            parent_temp = []
+            parent_temp.append(parent[0])
+            parent_temp.append(parent[1])
+            # 将走过的路径进行保存
+            Road_information.append(parent_temp)
+            # print "检查Road_information =", Road_information
+            
+            # 至少走了3步
+            if len(Road_information) >= 3:
+                if (Road_information[len(Road_information) - 1] == Road_information[len(Road_information) - 3]):
+                    # print "说明转回来了"
+                    # 比如：（2，5）->（1，5）->（2，5）
+                    # 列表删除会删除所有相同的值，所以不需要操作的地方先用其他值替代
+                    Road_information_temp_value = Road_information[len(Road_information) - 3]
+                    
+                    Road_information[len(Road_information) - 3] = [0, 0]
+                    
+                    Road_information.remove(Road_information[len(Road_information) - 1])
+                    
+                    # 执行完后，剩下：（2，5）->（1，5）
+                    # 恢复这个地方的值
+                    Road_information[len(Road_information) - 2] = Road_information_temp_value
+                    # print "删除相关值后，检查Road_information =", Road_information
+
+                    Road_information.remove(Road_information[len(Road_information) - 1])
+                    
+                    # print "删除相关值后，检查Road_information =", Road_information
+                    # 执行完后，剩下：（2，5）
+            if len(Road_information) >=2:
+                if (Road_information[len(Road_information) - 1] == Road_information[len(Road_information) - 2]):
+                    # print "说明走了重复的路"
+                    # 比如：（2，5）->(2，5)
+                    # print "删除相关值之前，检查Road_information =", Road_information
+                    Road_information_temp_value = Road_information[len(Road_information) - 2]
+                    Road_information[len(Road_information) - 2] = [0, 0]
+                    Road_information.remove(Road_information[len(Road_information) - 1])
+                    Road_information[len(Road_information) - 1] = Road_information_temp_value 
+                    # print "删除相关值后，检查Road_information =", Road_information
+                    
             if new_x == parent[0] and new_y == parent[1]:
                 # print "说明又重新回到起点了"
                 for i in range(0, len(temp_obstacle_x)):
                     create_2D_space[temp_obstacle_x[0]][temp_obstacle_y[0]] = 0
                     temp_obstacle_x.remove(temp_obstacle_x[0])
                     temp_obstacle_y.remove(temp_obstacle_y[0])
-        
+                Road_information_temp_value = Road_information[0]
+                Road_information[0] = [0, 0]
+                # print "回到起点后未更新Road_information =", Road_information
+                for i in range(1, len(Road_information)):
+                    Road_information.remove(Road_information[1])
+                Road_information[0] = Road_information_temp_value
+                # print "回到起点后更新Road_information =", Road_information
+            
             result = possibilities_position(n, parent, end_position, space_list, four_flag)
-            # result 中包含4个内容，找到目标的标志Flag，目标横坐标x，目标纵坐标y，距离的值distance
-            # 找到目标点后，终止程序
-            if end_position[0] == parent[0] and end_position[1] == parent[1]:
-                break
-            # 从当前找出的最短距离的点进行操作
-            # print "result =", result
+           
             parent[0] = result[1]
             parent[1] = result[2]
             four_flag = result[4]
+            # result 中包含4个内容，找到目标的标志Flag，目标横坐标x，目标纵坐标y，距离的值distance
+            # 找到目标点后，终止程序
+            if end_position[0] == parent[0] and end_position[1] == parent[1]:
+                # print "添加终点坐标路径"
+                parent_temp = []
+                parent_temp.append(parent[0])
+                parent_temp.append(parent[1])
+                # 将走过的路径进行保存
+                Road_information.append(parent_temp)
+                break
+            # 从当前找出的最短距离的点进行操作
+            # print "result =", result
+            
+            # print "parent =", parent
             # print "while() 中 four_flag = ", four_flag
         # while_end = time.time()
         # print "while_end =", while_end, 's'
         # print "A*算法中while循环用时",(while_end - while_start), "s"
+        # print "detect_position =", detect_position
+        # 检查起点四周情况，只保留最后一个周围的坐标
+        if different_Space_flag is True:
+            # print "处理的两个节点不再统一单位区域内"
+            # 统计经过了起点周围的几个点，只保留最后一个起点周围的点
+            Round_Num = 0
+            for i in range(1, len(Road_information)):
+                if i > 8:
+                    # 起点周围最多8个点
+                    break
+                # 判断左上角的点
+                if Road_information[i][0] + 1 == detect_position[0] and Road_information[i][1] - 1 == detect_position[1]:
+                    Round_Num = Round_Num + 1
+                    # print "左上角"
+                # 判读上方的点
+                elif Road_information[i][0] == detect_position[0] and Road_information[i][1] - 1 == detect_position[1]:
+                    Round_Num = Round_Num + 1
+                    # print "上方"
+                # 判读右上角
+                elif Road_information[i][0] - 1 == detect_position[0] and Road_information[i][1] - 1 == detect_position[1]:
+                    Round_Num = Round_Num + 1
+                    # print "右上角"
+                # 判读右方
+                elif Road_information[i][0] - 1 == detect_position[0] and Road_information[i][1] == detect_position[1]:
+                    Round_Num = Round_Num + 1
+                    # print "右方"
+                # 判读右下角
+                elif Road_information[i][0] - 1 == detect_position[0] and Road_information[i][1] + 1 == detect_position[1]:
+                    Round_Num = Round_Num + 1
+                    # print "右下角"
+                # 判读下方的点
+                elif Road_information[i][0] == detect_position[0] and Road_information[i][1] + 1 == detect_position[1]:
+                    Round_Num = Round_Num + 1
+                    #print "下方"
+                # 判读左下角
+                elif Road_information[i][0] + 1 == detect_position[0] and Road_information[i][1] + 1 == detect_position[1]:
+                    Round_Num = Round_Num + 1
+                    # print "左下方"
+                # 判读左方的点
+                elif Road_information[i][0] + 1 == detect_position[0] and Road_information[i][1] == detect_position[1]:
+                    Round_Num = Round_Num + 1
+                    # print "左方"
+            # print "Round_Num =", Round_Num
+            # 删除一下不必要绕的路
+            for i in range(0, Round_Num - 1):
+                Road_information.remove(Road_information[1])
+            
+        result.append(Road_information)
         return result
 
