@@ -112,10 +112,10 @@ def set_obstacle(obstacle_coordinate, obstacle_num, create_2D_space):
     y_down_list = obstacle_coordinate[2]
     y_up_list = obstacle_coordinate[3]
     for i in range(0, obstacle_num):
-        x_down_value= x_down_list[0][i]
-        x_up_value= x_up_list[0][i]
-        y_down_value= y_down_list[0][i]
-        y_up_value= y_up_list[0][i]
+        x_down_value= x_down_list[i]
+        x_up_value= x_up_list[i]
+        y_down_value= y_down_list[i]
+        y_up_value= y_up_list[i]
         # 遍历横坐标
         for j in range(x_down_value,x_up_value + 1):
             # 遍历纵坐标

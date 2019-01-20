@@ -14,33 +14,55 @@ import time
 import math
 from matplotlib.ticker import MultipleLocator
 import os
+
+# 需要获取MCV真实运动路径时，将Real_Graph_flag置为True
+Real_Graph_flag = False
+
+# 如果使用备份数据，则将 Backup_flag = True
+Backup_flag = True
+
 # 图片保存路径
 png_path = "E:\\00000000000graduate-study\\GraduateStudentTask\\201810_201909_BeforeGraduateStudent\\png"
 
 
 # 自己的调色板
 my_color =['b', 'g', 'r', 'c', 'm', 'y', 'k']
+
 my_style = ['-', '--', '-.', ':']
+
 # my_logo = ['.', 'o', 'v', '^', '>', '<', '1', '2', '3', '4', 's', 'p', '*']
 # 数据初始化
-N = 5   # 假设我有N辆电单车  会影响程序运行的时间
-edge_n = 500 # 假设定义的二维空间范围是 edge_n * edge_n 影响构造充电子回路
-obstacles_Num =20  # 障碍个数
+N = 100   # 假设我有N辆电单车  会影响程序运行的时间
+edge_n = 1000 # 假设定义的二维空间范围是 edge_n * edge_n 影响构造充电子回路
+obstacles_Num = 20  # 障碍个数
 kedu = 50  # 表示坐标间隔
 p = 10   # 表示障碍的边长 为10m
+# 实际轨迹线路大小
+linewidthvalue = 2
+
+# 系统运行时间结束的标志
+Time_Over_Flag = True
+
+# 死亡节点个数
+N_i_dead_num = 0
+
 S_Flag = 'S'
 alpha_value = 30 # 转向的度数
 # Em = 72000  # MC的总能量为72000 kj
 # 1J=1s*1W
 # 1KJ=1000J
-# Em = 150000.0
-Em = 70000
+Em = 150000.0
+# Em = 70000
 qm = 55.0  # Mc移动功耗为qm = 10 J/m
 qc = 40.0  # qc*n 为能量传输率，qc= 4.45 W
 nl = 0.5  # 类似于效率一样，占比多少 n = 0.5
 T = 7200.0  # 充电周期需要知道10s
-vm = 5.0  # MC的移动速度0.3m/s
+# T = 1000.0
+vm = 10.0  # MC的移动速度0.3m/s
 v = 3.0   # 初始化电单车的运行速度为 5m/s
+# 每个节点的能量
+Es_i_value = 5600
+# Es_i_value  = 560
 # 随机生成每辆电单车的功率
     # 定义 每个节点消耗的功率
 P_i = np.empty([1, N + 1], float)
@@ -53,22 +75,15 @@ Es_i = np.empty([1, N + 1], float)
 # 重新编号后电单车的能量
 Es_i_new = np.empty([1, N + 1], float)
 
+# 每辆车充电所耗时长
+Change_Time = np.zeros((1, N + 1), dtype = np.float)
+
 # 每辆电单车的Pab值的计算
 Pab_i = np.empty([1, N + 1], float)
 
 # 每辆电单车的所要走的方向
 alpha = np.empty([1, N + 1], float)
-# 每个节点的能量
-Es_i_value = 5600
-for i in range(1, N + 1):
-    # 单位为 W
-    P_i[0][i] = round(random.uniform(0.25, 0.8), 2)
-    # P_i[0][i] = round(random.uniform(150, 180), 2)
-    # 每辆点电单车的电量，初始化为840Kj
-    # Es_i[0][i] = 840000
-    Es_i[0][i] = Es_i_value
-    # 电车运行方向的初始化
-    alpha[0][i] = random.randint(0, 360)
+
 # 初始化电单车在二维空间中的坐标
 N_x = np.empty([1, N + 1], float)
 N_y = np.empty([1, N + 1], float)
@@ -174,15 +189,15 @@ def AllNodeLink(x, y, obstacle_coordinate_new):
     y_down_list = obstacle_coordinate_new[2]
     y_up_list = obstacle_coordinate_new[3]
     for j in range(0, obstacles_Num):
-        x_down_value= x_down_list[0][j]
-        x_up_value= x_up_list[0][j]
-        y_down_value= y_down_list[0][j]
-        y_up_value= y_up_list[0][j]
+        x_down_value= x_down_list[j]
+        x_up_value= x_up_list[j]
+        y_down_value= y_down_list[j]
+        y_up_value= y_up_list[j]
         # 障碍填充绿色
         plt.fill_between(range(x_down_value, x_up_value+1), y_down_value , y_up_value, facecolor='green')
     # 障碍图例显示
-    ax.scatter((x_down_list[0][1]+x_up_list[0][1])/2, (
-             y_down_list[0][1]+y_up_list[0][1])/2, color = 'green',label = 'Obstacle', marker = 's')
+    ax.scatter((x_down_list[1]+x_up_list[1])/2, (
+             y_down_list[1]+y_up_list[1])/2, color = 'green',label = 'Obstacle', marker = 's')
     # 图片坐标刻度设置 
     ax.xaxis.set_major_locator(MultipleLocator(kedu))
     ax.yaxis.set_major_locator(MultipleLocator(kedu))
@@ -236,15 +251,15 @@ def NodeToOtherNodeLink(R_list_temp, x, y, x_new,y_new, obstacle_coordinate_new,
     y_down_list = obstacle_coordinate_new[2]
     y_up_list = obstacle_coordinate_new[3]
     for j in range(0, obstacles_Num):
-        x_down_value= x_down_list[0][j]
-        x_up_value= x_up_list[0][j]
-        y_down_value= y_down_list[0][j]
-        y_up_value= y_up_list[0][j]
+        x_down_value= x_down_list[j]
+        x_up_value= x_up_list[j]
+        y_down_value= y_down_list[j]
+        y_up_value= y_up_list[j]
         # 障碍填充绿色
         plt.fill_between(range(x_down_value, x_up_value+1), y_down_value , y_up_value, facecolor='green')
     # 障碍图例显示
-    ax.scatter((x_down_list[0][1]+x_up_list[0][1])/2, (
-             y_down_list[0][1]+y_up_list[0][1])/2, color = 'green',label = 'Obstacle', marker = 's')
+    ax.scatter((x_down_list[1]+x_up_list[1])/2, (
+             y_down_list[1]+y_up_list[1])/2, color = 'green',label = 'Obstacle', marker = 's')
     # 图片坐标刻度设置
     ax.xaxis.set_major_locator(MultipleLocator(kedu))
     ax.yaxis.set_major_locator(MultipleLocator(kedu))
@@ -289,119 +304,121 @@ def NodeToOtherNodeLink(R_list_temp, x, y, x_new,y_new, obstacle_coordinate_new,
     plt.xlim([0 - 1, edge_n + 1]) #设置绘图X边界                                                                                                   
     plt.ylim([0 - 1, edge_n + 1]) #设置绘图Y边界
     plt.show()
-    
-    print "实际轨迹图@@@@@@@@\n"
-    
-    print "x =", x
-    print "y =", y
-    #分别存放所有点的横坐标和纵坐标，一一对应
-    print "R_list_temp =", R_list_temp
-    x_list = x
-    y_list = y
-    
-    #创建图并命名
-    plt.figure('Scatter fig')
-    plt.title('S & Node')
-    ax = plt.gca()
-    plt.grid()
-     # 障碍坐标区域使用绿色表示
-    # 障碍横坐标x的范围
-    x_down_list = obstacle_coordinate_new[0]
-    x_up_list  = obstacle_coordinate_new[1]
-
-    # 障碍纵坐标y的范围
-    y_down_list = obstacle_coordinate_new[2]
-    y_up_list = obstacle_coordinate_new[3]
-    for j in range(0, obstacles_Num):
-        x_down_value= x_down_list[0][j]
-        x_up_value= x_up_list[0][j]
-        y_down_value= y_down_list[0][j]
-        y_up_value= y_up_list[0][j]
-        # 障碍填充绿色
-        plt.fill_between(range(x_down_value, x_up_value+1), y_down_value , y_up_value, facecolor='green')
-    # 障碍图例显示
-    ax.scatter((x_down_list[0][1]+x_up_list[0][1])/2, (
-             y_down_list[0][1]+y_up_list[0][1])/2, color = 'green',label = 'Obstacle', marker = 's')
-    # 图片坐标刻度设置
-    ax.xaxis.set_major_locator(MultipleLocator(kedu))
-    ax.yaxis.set_major_locator(MultipleLocator(kedu))
-    #设置x轴、y轴名称
-    ax.set_xlabel('X(m)')
-    ax.set_ylabel('Y(m)')
-    # 每个节点用红圈圈表示出来
-    ax.scatter(x_new, y_new,color = 'r',label = 'Node', marker = 'o')
-    # ax.scatter(x_obstacle_list, y_obstacle_list,color = 'g', marker = '8')
-    # S点为红色正方形，并且大一点
-    
-    ax.scatter(x_new[0], y_new[0], s = 100, color = 'k',label = 'S', marker = 's')
-    # S点图例
-    S_Flag = 'S' + '&' + str(label_flag)
-    ax.text(x_new[0], y_new[0], S_Flag, fontsize=20)
-    
-    for i in range(1, len(y_new)):
-        ax.text(x_new[i], y_new[i], i, fontsize = 20)
-    # 将节点连接构成回路
-    q = len(x_list) - 1
-    CSL_string = my_color[2]
-    # plt.plot()
-    for i in range(0, q):
-        # 前后连接
+    if Real_Graph_flag is True:
+        print "实际轨迹图@@@@@@@@\n"
         
-        # R_list_temp[i] 第i个节点
-        # R_list_temp[i+1]第i+个节点
-        # Road_information[R_list_temp[i]][R_list_temp[i+1]] 表示第i个节点 到 第i+1个节点的所有路径
-        # len(Road_information[R_list_temp[i]][R_list_temp[i+1]]) 表示两点之间的路径的长度即为数量
-        print "Road_information[", R_list_temp[i], "][", R_list_temp[i+1], "] =", Road_information[R_list_temp[i]][R_list_temp[i+1]]
-        print "len(Road_information[R_list_temp[i]][R_list_temp[i+1]] ) =", len(Road_information[R_list_temp[i]][R_list_temp[i+1]])
-        if len(Road_information[R_list_temp[i]][R_list_temp[i+1]]) == 1:
-            Road_information[R_list_temp[i]][R_list_temp[i+1]] = [[R_list_temp[i], R_list_temp[i]], [R_list_temp[i+1], R_list_temp[i+1]]]
+        print "x =", x
+        print "y =", y
+        #分别存放所有点的横坐标和纵坐标，一一对应
+        print "R_list_temp =", R_list_temp
+        x_list = x
+        y_list = y
         
-        Road_Node_i_To_Node_j_list = Road_information[R_list_temp[i]][R_list_temp[i+1]] 
-        print "Road_Node_i_To_Node_j_list =", Road_Node_i_To_Node_j_list 
-        print "len(Road_Node_i_To_Node_j_list ) =", len(Road_Node_i_To_Node_j_list)
+        #创建图并命名
+        plt.figure('Scatter fig')
+        plt.title('S & Node')
+        ax = plt.gca()
+        plt.grid()
+         # 障碍坐标区域使用绿色表示
+        # 障碍横坐标x的范围
+        x_down_list = obstacle_coordinate_new[0]
+        x_up_list  = obstacle_coordinate_new[1]
+    
+        # 障碍纵坐标y的范围
+        y_down_list = obstacle_coordinate_new[2]
+        y_up_list = obstacle_coordinate_new[3]
+        for j in range(0, obstacles_Num):
+            x_down_value= x_down_list[0][j]
+            x_up_value= x_up_list[0][j]
+            y_down_value= y_down_list[0][j]
+            y_up_value= y_up_list[0][j]
+            # 障碍填充绿色
+            plt.fill_between(range(x_down_value, x_up_value+1), y_down_value , y_up_value, facecolor='green')
+        # 障碍图例显示
+        ax.scatter((x_down_list[0][1]+x_up_list[0][1])/2, (
+                 y_down_list[0][1]+y_up_list[0][1])/2, color = 'green',label = 'Obstacle', marker = 's')
+        # 图片坐标刻度设置
+        ax.xaxis.set_major_locator(MultipleLocator(kedu))
+        ax.yaxis.set_major_locator(MultipleLocator(kedu))
+        #设置x轴、y轴名称
+        ax.set_xlabel('X(m)')
+        ax.set_ylabel('Y(m)')
+        # 每个节点用红圈圈表示出来
+        ax.scatter(x_new, y_new,color = 'r',label = 'Node', marker = 'o')
+        # ax.scatter(x_obstacle_list, y_obstacle_list,color = 'g', marker = '8')
+        # S点为红色正方形，并且大一点
         
+        ax.scatter(x_new[0], y_new[0], s = 100, color = 'k',label = 'S', marker = 's')
+        # S点图例
+        S_Flag = 'S' + '&' + str(label_flag)
+        ax.text(x_new[0], y_new[0], S_Flag, fontsize=20)
+        
+        for i in range(1, len(y_new)):
+            ax.text(x_new[i], y_new[i], i, fontsize = 20)
+        # 将节点连接构成回路
+        q = len(x_list) - 1
+        CSL_string = my_color[2]
+        # plt.plot()
+        for i in range(0, q):
+            # 前后连接
             
-        for m in range(0, len(Road_Node_i_To_Node_j_list) - 1):
-            x_temp = [Road_Node_i_To_Node_j_list[m][0], Road_Node_i_To_Node_j_list[m + 1][0]]
-            y_temp = [Road_Node_i_To_Node_j_list[m][1], Road_Node_i_To_Node_j_list[m + 1][1]]
-        
-            plt.plot(x_temp, y_temp, CSL_string,linewidth=5)
-            # plt.plot(x_temp, y_temp,linewidth=1)
-        if i == q - 1:
-            print "Road_information[", R_list_temp[i + 1], "][", R_list_temp[0], "] =", Road_information[R_list_temp[i + 1]][R_list_temp[0]]
-            print "len(Road_information[R_list_temp[i + 1]][R_list_temp[0]] ) =", len(Road_information[R_list_temp[i + 1]][R_list_temp[0]])
-            if len(Road_information[R_list_temp[i + 1]][R_list_temp[0]]) == 1:
-                Road_information[R_list_temp[i + 1]][R_list_temp[0]] = [[R_list_temp[i + 1], R_list_temp[i + 1]], [R_list_temp[0], R_list_temp[0]]]
+            # R_list_temp[i] 第i个节点
+            # R_list_temp[i+1]第i+个节点
+            # Road_information[R_list_temp[i]][R_list_temp[i+1]] 表示第i个节点 到 第i+1个节点的所有路径
+            # len(Road_information[R_list_temp[i]][R_list_temp[i+1]]) 表示两点之间的路径的长度即为数量
+            # print "Road_information[", R_list_temp[i], "][", R_list_temp[i+1], "] =", Road_information[R_list_temp[i]][R_list_temp[i+1]]
+            # print "len(Road_information[R_list_temp[i]][R_list_temp[i+1]] ) =", len(Road_information[R_list_temp[i]][R_list_temp[i+1]])
+            if len(Road_information[R_list_temp[i]][R_list_temp[i+1]]) == 1:
+                Road_information[R_list_temp[i]][R_list_temp[i+1]] = [[R_list_temp[i], R_list_temp[i]], [R_list_temp[i+1], R_list_temp[i+1]]]
             
-            Road_Node_i_To_Node_j_list = Road_information[R_list_temp[i + 1]][R_list_temp[0]] 
-            print "Road_Node_i_To_Node_j_list =", Road_Node_i_To_Node_j_list 
-            print "len(Road_Node_i_To_Node_j_list ) =", len(Road_Node_i_To_Node_j_list)
+            Road_Node_i_To_Node_j_list = Road_information[R_list_temp[i]][R_list_temp[i+1]] 
+            # print "Road_Node_i_To_Node_j_list =", Road_Node_i_To_Node_j_list 
+            # print "len(Road_Node_i_To_Node_j_list ) =", len(Road_Node_i_To_Node_j_list)
+            
+                
             for m in range(0, len(Road_Node_i_To_Node_j_list) - 1):
-                # print 'i =', i
-                # x_temp = [x_list[i + 1], x_list[0]]
-                # y_temp = [y_list[i + 1], y_list[0]]
                 x_temp = [Road_Node_i_To_Node_j_list[m][0], Road_Node_i_To_Node_j_list[m + 1][0]]
                 y_temp = [Road_Node_i_To_Node_j_list[m][1], Road_Node_i_To_Node_j_list[m + 1][1]]
-                plt.plot(x_temp, y_temp, CSL_string,linewidth=5)
+            
+                plt.plot(x_temp, y_temp, CSL_string,linewidth= linewidthvalue)
                 # plt.plot(x_temp, y_temp,linewidth=1)
-    # 每个节点用红圈圈表示出来
-    # ax.scatter(x_list, y_list,color = 'r',label = 'Node', marker = 'o')
-    # 图例定位
-    ax.legend(loc='upper right', edgecolor='black')
-    # 保存生成的图片
-    partPath = [str(int(time.time()))]
-    origin_path = partPath[0] + 'Alllink.png'  
-    All_path = os.path.join(png_path, origin_path)
-    plt.savefig(All_path)
-    plt.xlim([0 - 1, edge_n + 1]) #设置绘图X边界                                                                                                   
-    plt.ylim([0 - 1, edge_n + 1]) #设置绘图Y边界
-    plt.show()
-    # plt.plot()
+            if i == q - 1:
+                # print "Road_information[", R_list_temp[i + 1], "][", R_list_temp[0], "] =", Road_information[R_list_temp[i + 1]][R_list_temp[0]]
+                # print "len(Road_information[R_list_temp[i + 1]][R_list_temp[0]] ) =", len(Road_information[R_list_temp[i + 1]][R_list_temp[0]])
+                if len(Road_information[R_list_temp[i + 1]][R_list_temp[0]]) == 1:
+                    Road_information[R_list_temp[i + 1]][R_list_temp[0]] = [[R_list_temp[i + 1], R_list_temp[i + 1]], [R_list_temp[0], R_list_temp[0]]]
+                
+                Road_Node_i_To_Node_j_list = Road_information[R_list_temp[i + 1]][R_list_temp[0]] 
+                # print "Road_Node_i_To_Node_j_list =", Road_Node_i_To_Node_j_list 
+                # print "len(Road_Node_i_To_Node_j_list ) =", len(Road_Node_i_To_Node_j_list)
+                for m in range(0, len(Road_Node_i_To_Node_j_list) - 1):
+                    # print 'i =', i
+                    # x_temp = [x_list[i + 1], x_list[0]]
+                    # y_temp = [y_list[i + 1], y_list[0]]
+                    x_temp = [Road_Node_i_To_Node_j_list[m][0], Road_Node_i_To_Node_j_list[m + 1][0]]
+                    y_temp = [Road_Node_i_To_Node_j_list[m][1], Road_Node_i_To_Node_j_list[m + 1][1]]
+                    plt.plot(x_temp, y_temp, CSL_string,linewidth= linewidthvalue)
+                    # plt.plot(x_temp, y_temp,linewidth=1)
+        # 每个节点用红圈圈表示出来
+        # ax.scatter(x_list, y_list,color = 'r',label = 'Node', marker = 'o')
+        # 图例定位
+        ax.legend(loc='upper right', edgecolor='black')
+        # 保存生成的图片
+        partPath = [str(int(time.time()))]
+        origin_path = partPath[0] + 'Alllink.png'  
+        All_path = os.path.join(png_path, origin_path)
+        plt.savefig(All_path)
+        plt.xlim([0 - 1, edge_n + 1]) #设置绘图X边界                                                                                                   
+        plt.ylim([0 - 1, edge_n + 1]) #设置绘图Y边界
+        plt.show()
+        # plt.plot()
     return 
 
 # 将子回路首尾连接起来
 def ChildrenTourConstruction(x_new, y_new, obstacle_coordinate_new, R_result, S_Flag_new):
     print "模拟轨迹##########\n"
+    Style_num = 0
+    Color_num = 0
     result = R_result
     print "result = ", result
     print "len(result) = ", len(result)
@@ -416,6 +433,8 @@ def ChildrenTourConstruction(x_new, y_new, obstacle_coordinate_new, R_result, S_
     for k in range(1, N + 1):
         ax.text(x_new[0][k], y_new[0][k], k, fontsize = 10)
     legend_flag = True
+    ChildernTour_list_sum = []
+    ChildernTour_list_tour = []
     for k in range(0, len(result)):
         R_list = result[k]
         print "R_list =", R_list
@@ -456,6 +475,47 @@ def ChildrenTourConstruction(x_new, y_new, obstacle_coordinate_new, R_result, S_
             # 表示存在回路才需要连线
             if  len(R_value) != 1:
                 list_new = R_value
+                Es_ChildernTour = 0.0
+                Time_ChildernTour = 0.0
+                ChildernTour_Name = MC_Num
+                ChildernTour_list = []
+                
+                ChildernTour_list.append(ChildernTour_Name)
+                
+                for i in range(1, len(list_new)):
+                    print "节点", list_new[i], "剩余能量 Es =", Es_i[0][list_new[i]]
+                    Es_ChildernTour = Es_ChildernTour + (Es_i_value - Es_i[0][list_new[i]])
+                    Time_ChildernTour = round((Time_ChildernTour + Change_Time[0][list_new[i]]),2)
+                # 求距离D
+                D = 0.0
+                # 计算一个充电回路的距离
+                for i in range(0, (len(list_new) - 1)):
+                    D = D + N_distance[list_new[i]][list_new[i + 1]]
+                # 将最后一个节点连接会对应的服务站S 
+                D = D + N_distance[list_new[len(list_new) - 1]][list_new[0]]
+                # 求MCV走完整个回路需要多少时间
+                changetour_time = D/vm
+                # 走完整个回路所需能量（移动耗能）
+                changetour_Es = changetour_time*qm
+                
+                ChildernTour_list.append(round(Es_ChildernTour, 2))
+                ChildernTour_list.append(round(changetour_Es, 2))
+                ChildernTour_list.append(Em)
+                ChildernTour_list.append(Time_ChildernTour)
+                ChildernTour_list.append(changetour_time)
+                ChildernTour_list.append(T)
+                ChildernTour_list.append(len(list_new) - 1)
+                ChildernTour_list.append(round(D, 2))
+                # for i in range(0, len(list_new)):
+               
+                # 把回路集合保存下来
+                # pathname = 'MCV' + str(MC_Num) +'.txt'
+                # print "pathname =", pathname
+                # np.savetxt(pathname, ChildernTour_list_tour, fmt='%d')
+                
+                # print "ChildernTour_list =", ChildernTour_list
+                ChildernTour_list_tour.append(list_new)
+                ChildernTour_list_sum.append(ChildernTour_list)
                 x = []
                 y = []
                 for j in range(0, len(list_new)):
@@ -477,15 +537,15 @@ def ChildrenTourConstruction(x_new, y_new, obstacle_coordinate_new, R_result, S_
                     y_down_list = obstacle_coordinate_new[2]
                     y_up_list = obstacle_coordinate_new[3]
                     for j in range(0, obstacles_Num):
-                        x_down_value= x_down_list[0][j]
-                        x_up_value= x_up_list[0][j]
-                        y_down_value= y_down_list[0][j]
-                        y_up_value= y_up_list[0][j]
+                        x_down_value= x_down_list[j]
+                        x_up_value= x_up_list[j]
+                        y_down_value= y_down_list[j]
+                        y_up_value= y_up_list[j]
                         # 给障碍填充绿色
                         plt.fill_between(range(x_down_value, x_up_value+1), y_down_value , y_up_value, facecolor='green')
                     # 障碍图例显示
-                    ax.scatter((x_down_list[0][1]+x_up_list[0][1])/2, (
-                             y_down_list[0][1]+y_up_list[0][1])/2, color = 'green',label = 'Obstacle', marker = 's')
+                    ax.scatter((x_down_list[1]+x_up_list[1])/2, (
+                             y_down_list[1]+y_up_list[1])/2, color = 'green',label = 'Obstacle', marker = 's')
                     # 图片坐标刻度设置
                     ax.xaxis.set_major_locator(MultipleLocator(kedu))
                     ax.yaxis.set_major_locator(MultipleLocator(kedu))
@@ -497,8 +557,19 @@ def ChildrenTourConstruction(x_new, y_new, obstacle_coordinate_new, R_result, S_
                 # 获取当前回路节点个数
                 q = len(x_list) - 1
                 # 设置回路线条、格式、颜色等等
-                CSL_string = my_color[random.randint(0, len(my_color)-1)]
-                CSL_string = CSL_string + my_style[random.randint(0, len(my_style)-1)]
+                
+                CSL_string = my_color[Color_num]
+                CSL_string = CSL_string + my_style[Style_num]
+                if Color_num < (len(my_color) - 1):
+                    Color_num = Color_num + 1 
+                if Color_num == (len(my_color) - 1):
+                    if Style_num < (len(my_style) - 1):
+                        Style_num = Style_num + 1
+                        Color_num = 0
+                    else:
+                        CSL_string = my_color[random.randint(0, len(my_color)-1)]
+                        CSL_string = CSL_string + my_style[random.randint(0, len(my_style)-1)]
+                
                 # CSL_string = CSL_string + my_logo[random.randint(0, len(my_logo)-1)]
                 # 计算当前是第几个回路
                 MC_Num_temp = MC_Num 
@@ -526,166 +597,170 @@ def ChildrenTourConstruction(x_new, y_new, obstacle_coordinate_new, R_result, S_
     plt.ylim([0 - 1,edge_n + 1]) #设置绘图Y边界
     plt.show()
     
-    print "实际轨迹@@@@@@@@@@@@\n"
-    
-    result = R_result
-    print "result = ", result
-    print "len(result) = ", len(result)
-    MC_Num = 0
-    # 图例显示的标志
-    plt.figure('Scatter fig')
-    plt.title('S & Node')
-    ax = plt.gca()
-    # 每个节点用红圈圈表示出来
-    ax.scatter(x_new, y_new,color = 'r',label = 'Node', marker = 'o')
-    # 给每个节点标号MC_Num,N表示所有的节点都要标号
-    for k in range(1, N + 1):
-        ax.text(x_new[0][k], y_new[0][k], k, fontsize = 10)
-    legend_flag = True
-    for k in range(0, len(result)):
-        R_list = result[k]
-        print "R_list =", R_list
-        print "len(R_list) = ", len(R_list)
-        if R_list[len(R_list) - 1] == 0:
-            z = len(R_list) - 1
-        else:
-            z = len(R_list)
-        print "z =", z
-        # print "R_list =", R_list
-        # print "z =", z
-        # 打印检查产生的充电子回路有多少条，每条子回路由那些节点组成
-        for p in range(0, z):
-            # print "R_list[0][p] =", R_list[0][p]
-            # print "R_list[0][p] =", len(R_list[0][p])
-            R_value = R_list[p]
-            # print "x =", R_value[0] 
-            # print "len(R_value[0]) =", len(R_value[0])
-            goal = R_value
-            # print "x_new = ", x_new
-            # print "y_new = ", y_new
-            # S点为红色正方形，并且大一点
-            # print "p =", p
-            if p == 0:
-                if k == 0:
-                    S_Flag = S_Flag_new
-                else:
-                    print "goal[0] =", goal[0]
-                    S_Flag = 'S' + '&' + str(goal[0])
-                ax.scatter(x_new[0][goal[0]], y_new[0][goal[0]], s = 100, color = 'k',label = S_Flag, marker = 's')
-                ax.text(x_new[0][goal[0]], y_new[0][goal[0]], S_Flag, fontsize=20)
-            # print "R_new =", R_new
-            # print "x_new =", x_new
-            # print "y_new =", y_new
-            # 用于图例显示MC（）
-            
-            # for i in range(0, len(R_list[0][p])):
-            # 表示存在回路才需要连线
-            if  len(R_value) != 1:
-                list_new = R_value
-                x = []
-                y = []
-                for j in range(0, len(list_new)):
-                    x.append(x_new[0][list_new[j]])
-                    y.append(y_new[0][list_new[j]])
-                #分别存放所有点的横坐标和纵坐标，一一对应
-                x_list = x
-                y_list = y
-                print "x_list =", x_list
-                print "y_list =", y_list
+    if Real_Graph_flag is True:
+        print "实际轨迹@@@@@@@@@@@@\n"
+        
+        result = R_result
+        print "result = ", result
+        print "len(result) = ", len(result)
+        MC_Num = 0
+        # 图例显示的标志
+        plt.figure('Scatter fig')
+        plt.title('S & Node')
+        ax = plt.gca()
+        # 每个节点用红圈圈表示出来
+        ax.scatter(x_new, y_new,color = 'r',label = 'Node', marker = 'o')
+        # 给每个节点标号MC_Num,N表示所有的节点都要标号
+        for k in range(1, N + 1):
+            ax.text(x_new[0][k], y_new[0][k], k, fontsize = 10)
+        legend_flag = True
+        for k in range(0, len(result)):
+            R_list = result[k]
+            print "R_list =", R_list
+            print "len(R_list) = ", len(R_list)
+            if R_list[len(R_list) - 1] == 0:
+                z = len(R_list) - 1
+            else:
+                z = len(R_list)
+            print "z =", z
+            # print "R_list =", R_list
+            # print "z =", z
+            # 打印检查产生的充电子回路有多少条，每条子回路由那些节点组成
+            for p in range(0, z):
+                # print "R_list[0][p] =", R_list[0][p]
+                # print "R_list[0][p] =", len(R_list[0][p])
+                R_value = R_list[p]
+                # print "x =", R_value[0] 
+                # print "len(R_value[0]) =", len(R_value[0])
+                goal = R_value
+                # print "x_new = ", x_new
+                # print "y_new = ", y_new
+                # S点为红色正方形，并且大一点
+                # print "p =", p
+                if p == 0:
+                    if k == 0:
+                        S_Flag = S_Flag_new
+                    else:
+                        print "goal[0] =", goal[0]
+                        S_Flag = 'S' + '&' + str(goal[0])
+                    ax.scatter(x_new[0][goal[0]], y_new[0][goal[0]], s = 100, color = 'k',label = S_Flag, marker = 's')
+                    ax.text(x_new[0][goal[0]], y_new[0][goal[0]], S_Flag, fontsize=20)
+                # print "R_new =", R_new
+                # print "x_new =", x_new
+                # print "y_new =", y_new
+                # 用于图例显示MC（）
                 
-                 # 障碍坐标区域使用绿色表示
-                # 障碍横坐标x的范围
-                if legend_flag is True:
-                    x_down_list = obstacle_coordinate_new[0]
-                    x_up_list  = obstacle_coordinate_new[1]
-                
-                    # 障碍纵坐标y的范围
-                    y_down_list = obstacle_coordinate_new[2]
-                    y_up_list = obstacle_coordinate_new[3]
-                    for j in range(0, obstacles_Num):
-                        x_down_value= x_down_list[0][j]
-                        x_up_value= x_up_list[0][j]
-                        y_down_value= y_down_list[0][j]
-                        y_up_value= y_up_list[0][j]
-                        # 给障碍填充绿色
-                        plt.fill_between(range(x_down_value, x_up_value+1), y_down_value , y_up_value, facecolor='green')
-                    # 障碍图例显示
-                    ax.scatter((x_down_list[0][1]+x_up_list[0][1])/2, (
-                             y_down_list[0][1]+y_up_list[0][1])/2, color = 'green',label = 'Obstacle', marker = 's')
-                    # 图片坐标刻度设置
-                    ax.xaxis.set_major_locator(MultipleLocator(kedu))
-                    ax.yaxis.set_major_locator(MultipleLocator(kedu))
-                    #设置x轴、y轴名称
-                    ax.set_xlabel('X(m)')
-                    ax.set_ylabel('Y(m)')
-                    legend_flag = False
-                # 将节点连接构成回路
-                # 获取当前回路节点个数
-                q = len(x_list) - 1
-                # 设置回路线条、格式、颜色等等
-                CSL_string = my_color[random.randint(0, len(my_color)-1)]
-                CSL_string = CSL_string + my_style[random.randint(0, len(my_style)-1)]
-                # CSL_string = CSL_string + my_logo[random.randint(0, len(my_logo)-1)]
-                # 计算当前是第几个回路
-                MC_Num_temp = MC_Num 
-                label_value = 'MCV' + str(MC_Num_temp)
-               
-                R_list_temp = list_new
-                for i in range(0, q):
-                    # 前后连接
+                # for i in range(0, len(R_list[0][p])):
+                # 表示存在回路才需要连线
+                if  len(R_value) != 1:
+                    list_new = R_value
+                    x = []
+                    y = []
+                    for j in range(0, len(list_new)):
+                        x.append(x_new[0][list_new[j]])
+                        y.append(y_new[0][list_new[j]])
+                    #分别存放所有点的横坐标和纵坐标，一一对应
+                    x_list = x
+                    y_list = y
+                    print "x_list =", x_list
+                    print "y_list =", y_list
                     
-                    # R_list_temp[i] 第i个节点
-                    # R_list_temp[i+1]第i+个节点
-                    # Road_information[R_list_temp[i]][R_list_temp[i+1]] 表示第i个节点 到 第i+1个节点的所有路径
-                    # len(Road_information[R_list_temp[i]][R_list_temp[i+1]]) 表示两点之间的路径的长度即为数量
-                    print "Road_information[", R_list_temp[i], "][", R_list_temp[i+1], "] =", Road_information[R_list_temp[i]][R_list_temp[i+1]]
-                    print "len(Road_information[R_list_temp[i]][R_list_temp[i+1]] ) =", len(Road_information[R_list_temp[i]][R_list_temp[i+1]])
-                    if len(Road_information[R_list_temp[i]][R_list_temp[i+1]]) == 1:
-                        Road_information[R_list_temp[i]][R_list_temp[i+1]] = [[R_list_temp[i], R_list_temp[i]], [R_list_temp[i+1], R_list_temp[i+1]]]
+                     # 障碍坐标区域使用绿色表示
+                    # 障碍横坐标x的范围
+                    if legend_flag is True:
+                        x_down_list = obstacle_coordinate_new[0]
+                        x_up_list  = obstacle_coordinate_new[1]
                     
-                    Road_Node_i_To_Node_j_list = Road_information[R_list_temp[i]][R_list_temp[i+1]] 
-                    print "Road_Node_i_To_Node_j_list =", Road_Node_i_To_Node_j_list 
-                    print "len(Road_Node_i_To_Node_j_list ) =", len(Road_Node_i_To_Node_j_list)
-                    
+                        # 障碍纵坐标y的范围
+                        y_down_list = obstacle_coordinate_new[2]
+                        y_up_list = obstacle_coordinate_new[3]
+                        for j in range(0, obstacles_Num):
+                            x_down_value= x_down_list[0][j]
+                            x_up_value= x_up_list[0][j]
+                            y_down_value= y_down_list[0][j]
+                            y_up_value= y_up_list[0][j]
+                            # 给障碍填充绿色
+                            plt.fill_between(range(x_down_value, x_up_value+1), y_down_value , y_up_value, facecolor='green')
+                        # 障碍图例显示
+                        ax.scatter((x_down_list[0][1]+x_up_list[0][1])/2, (
+                                 y_down_list[0][1]+y_up_list[0][1])/2, color = 'green',label = 'Obstacle', marker = 's')
+                        # 图片坐标刻度设置
+                        ax.xaxis.set_major_locator(MultipleLocator(kedu))
+                        ax.yaxis.set_major_locator(MultipleLocator(kedu))
+                        #设置x轴、y轴名称
+                        ax.set_xlabel('X(m)')
+                        ax.set_ylabel('Y(m)')
+                        legend_flag = False
+                    # 将节点连接构成回路
+                    # 获取当前回路节点个数
+                    q = len(x_list) - 1
+                    # 设置回路线条、格式、颜色等等
+                    CSL_string = my_color[random.randint(0, len(my_color)-1)]
+                    CSL_string = CSL_string + my_style[random.randint(0, len(my_style)-1)]
+                    # CSL_string = CSL_string + my_logo[random.randint(0, len(my_logo)-1)]
+                    # 计算当前是第几个回路
+                    MC_Num_temp = MC_Num 
+                    label_value = 'MCV' + str(MC_Num_temp)
+                   
+                    R_list_temp = list_new
+                    for i in range(0, q):
+                        # 前后连接
                         
-                    for m in range(0, len(Road_Node_i_To_Node_j_list) - 1):
-                        x_temp = [Road_Node_i_To_Node_j_list[m][0], Road_Node_i_To_Node_j_list[m + 1][0]]
-                        y_temp = [Road_Node_i_To_Node_j_list[m][1], Road_Node_i_To_Node_j_list[m + 1][1]]
-                    
-                        plt.plot(x_temp, y_temp, CSL_string,linewidth=5)
+                        # R_list_temp[i] 第i个节点
+                        # R_list_temp[i+1]第i+个节点
+                        # Road_information[R_list_temp[i]][R_list_temp[i+1]] 表示第i个节点 到 第i+1个节点的所有路径
+                        # len(Road_information[R_list_temp[i]][R_list_temp[i+1]]) 表示两点之间的路径的长度即为数量
+                        # print "Road_information[", R_list_temp[i], "][", R_list_temp[i+1], "] =", Road_information[R_list_temp[i]][R_list_temp[i+1]]
+                        # print "len(Road_information[R_list_temp[i]][R_list_temp[i+1]] ) =", len(Road_information[R_list_temp[i]][R_list_temp[i+1]])
+                        if len(Road_information[R_list_temp[i]][R_list_temp[i+1]]) == 1:
+                            Road_information[R_list_temp[i]][R_list_temp[i+1]] = [[R_list_temp[i], R_list_temp[i]], [R_list_temp[i+1], R_list_temp[i+1]]]
                         
-                        # plt.plot(x_temp, y_temp,linewidth=1)
-                    if i == q - 1:
-                        print "Road_information[", R_list_temp[i + 1], "][", R_list_temp[0], "] =", Road_information[R_list_temp[i + 1]][R_list_temp[0]]
-                        print "len(Road_information[R_list_temp[i + 1]][R_list_temp[0]] ) =", len(Road_information[R_list_temp[i + 1]][R_list_temp[0]])
-                        if len(Road_information[R_list_temp[i + 1]][R_list_temp[0]]) == 1:
-                            Road_information[R_list_temp[i + 1]][R_list_temp[0]] = [[R_list_temp[i + 1], R_list_temp[i + 1]], [R_list_temp[0], R_list_temp[0]]]
+                        Road_Node_i_To_Node_j_list = Road_information[R_list_temp[i]][R_list_temp[i+1]] 
+                        # print "Road_Node_i_To_Node_j_list =", Road_Node_i_To_Node_j_list 
+                        # print "len(Road_Node_i_To_Node_j_list ) =", len(Road_Node_i_To_Node_j_list)
                         
-                        Road_Node_i_To_Node_j_list = Road_information[R_list_temp[i + 1]][R_list_temp[0]] 
-                        print "Road_Node_i_To_Node_j_list =", Road_Node_i_To_Node_j_list 
-                        print "len(Road_Node_i_To_Node_j_list ) =", len(Road_Node_i_To_Node_j_list)
+                            
                         for m in range(0, len(Road_Node_i_To_Node_j_list) - 1):
-                            # print 'i =', i
-                            # x_temp = [x_list[i + 1], x_list[0]]
-                            # y_temp = [y_list[i + 1], y_list[0]]
                             x_temp = [Road_Node_i_To_Node_j_list[m][0], Road_Node_i_To_Node_j_list[m + 1][0]]
                             y_temp = [Road_Node_i_To_Node_j_list[m][1], Road_Node_i_To_Node_j_list[m + 1][1]]
-                            # plt.plot(x_temp, y_temp, CSL_string,linewidth=5)
-                            plt.plot(x_temp, y_temp, CSL_string, linewidth=5)
-                        plt.plot(x_temp, y_temp, CSL_string, label = label_value, linewidth=5)
-                MC_Num = MC_Num + 1
-    plt.grid()
-    plt.legend(loc='upper right', edgecolor='black')
-    ax.legend(loc='upper right', edgecolor='black')
-    # 保存生成的图片
-    partPath = [str(int(time.time()))]
-    origin_path = partPath[0] + 'OneToOtherlink.png'  
-    All_path = os.path.join(png_path, origin_path)
-    plt.savefig(All_path)
-    plt.xlim([0 - 1,edge_n + 1]) #设置绘图X边界                                                                                                   
-    plt.ylim([0 - 1,edge_n + 1]) #设置绘图Y边界
-    plt.show()
-    return 
+                        
+                            plt.plot(x_temp, y_temp, CSL_string,linewidth= linewidthvalue)
+                            
+                            # plt.plot(x_temp, y_temp,linewidth=1)
+                        if i == q - 1:
+                            # print "Road_information[", R_list_temp[i + 1], "][", R_list_temp[0], "] =", Road_information[R_list_temp[i + 1]][R_list_temp[0]]
+                            # print "len(Road_information[R_list_temp[i + 1]][R_list_temp[0]] ) =", len(Road_information[R_list_temp[i + 1]][R_list_temp[0]])
+                            if len(Road_information[R_list_temp[i + 1]][R_list_temp[0]]) == 1:
+                                Road_information[R_list_temp[i + 1]][R_list_temp[0]] = [[R_list_temp[i + 1], R_list_temp[i + 1]], [R_list_temp[0], R_list_temp[0]]]
+                            
+                            Road_Node_i_To_Node_j_list = Road_information[R_list_temp[i + 1]][R_list_temp[0]] 
+                            # print "Road_Node_i_To_Node_j_list =", Road_Node_i_To_Node_j_list 
+                            # print "len(Road_Node_i_To_Node_j_list ) =", len(Road_Node_i_To_Node_j_list)
+                            for m in range(0, len(Road_Node_i_To_Node_j_list) - 1):
+                                # print 'i =', i
+                                # x_temp = [x_list[i + 1], x_list[0]]
+                                # y_temp = [y_list[i + 1], y_list[0]]
+                                x_temp = [Road_Node_i_To_Node_j_list[m][0], Road_Node_i_To_Node_j_list[m + 1][0]]
+                                y_temp = [Road_Node_i_To_Node_j_list[m][1], Road_Node_i_To_Node_j_list[m + 1][1]]
+                                # plt.plot(x_temp, y_temp, CSL_string,linewidth=5)
+                                plt.plot(x_temp, y_temp, CSL_string, linewidth= linewidthvalue)
+                            plt.plot(x_temp, y_temp, CSL_string, label = label_value, linewidth= linewidthvalue)
+                    MC_Num = MC_Num + 1
+        plt.grid()
+        plt.legend(loc='upper right', edgecolor='black')
+        ax.legend(loc='upper right', edgecolor='black')
+        # 保存生成的图片
+        partPath = [str(int(time.time()))]
+        origin_path = partPath[0] + 'OneToOtherlink.png'  
+        All_path = os.path.join(png_path, origin_path)
+        plt.savefig(All_path)
+        plt.xlim([0 - 1,edge_n + 1]) #设置绘图X边界                                                                                                   
+        plt.ylim([0 - 1,edge_n + 1]) #设置绘图Y边界
+        plt.show()
+    result = []
+    result.append(ChildernTour_list_tour)
+    result.append(ChildernTour_list_sum)
+    return result
 
 # 创建新邻接矩阵，对于过程中创建的邻接矩阵
 def CreateDistanceNewMatrix(Road_information_temp, N_distance_temp, n_1, N_x_x, N_y_y, n, N_i_new, m, N_i_change, obstacle_coordinate_new, obstacle_num_new):
@@ -762,70 +837,139 @@ def Set_obstacles():
     print "x_up =", x_up
     print "y_down =", y_down
     print "y_up =", y_up
-    obstacle_coordinate.append(x_down)
-    obstacle_coordinate.append(x_up)
-    obstacle_coordinate.append(y_down)
-    obstacle_coordinate.append(y_up)
+    obstacle_coordinate.append(x_down[0])
+    obstacle_coordinate.append(x_up[0])
+    obstacle_coordinate.append(y_down[0])
+    obstacle_coordinate.append(y_up[0])
     return obstacle_coordinate
 
 # 程序从这里开始执行
 if __name__ == "__main__":
+    
     programing_start_time = time.time()
-    print "设置障碍"
-    obstacle_coordinate = Set_obstacles()
-    # 随机在1000*1000的空间内生成N辆电单车的坐标
-    # 将生成的电单车坐标分别保存到x,y列表中
+    
+    if Backup_flag is False:
+        print "设置障碍"
+        obstacle_coordinate = Set_obstacles()
+        
+        # 为了让服务站S处于中心，设置节点1的功耗最大
+        for i in range(1, N + 1):
+            # 单位为 W
+            if i == 1:
+                P_i[0][1] =0.80
+            else:
+                P_i[0][i] = round(random.uniform(0.25, 0.8), 2)
+            # P_i[0][i] = round(random.uniform(150, 180), 2)
+            # 每辆点电单车的电量，初始化为840Kj
+            # Es_i[0][i] = 840000
+            Es_i[0][i] = Es_i_value
+            # 电车运行方向的初始化
+            alpha[0][i] = random.randint(0, 360)
+        # 随机在1000*1000的空间内生成N辆电单车的坐标
+        # 将生成的电单车坐标分别保存到x,y列表中
+    
+        # 保证电单车不在障碍区域内
+        
+        for i in range(1, N+1):
+            print "准备生成第", i, "个节点坐标~~~~"
+            # 第一个节点放中间，第一个服务站S就在中间
+            if i == 1:
+                N_x[0][i] = round(random.uniform(edge_n/2 - 50, edge_n/2 + 50), 2)
+                N_y[0][i] = round(random.uniform(edge_n/2 - 50, edge_n/2 + 50), 2)
+            else:
+                N_x[0][i] = round(random.uniform(1, edge_n), 2)
+                N_y[0][i] = round(random.uniform(1, edge_n), 2)
+            # print "第一层for循环"
+            # print "N_x[0][", i, "] =", N_x[0][i]
+            # print "N_y[0][", i, "] =", N_y[0][i] 
+            # j为终止条件
+            j = 0
+            # 要判断当前生成节点是否存在某一个障碍里面，所以要与每一个障碍区域进行比较
+            while(j != obstacles_Num):
+                # print "初始化j =", j
+                j_temp = j
+                equal_flag = True
+                # 电单车坐标的设置，扩大到障碍外围至少+1m处
+                if((N_x[0][i] > (x_down[0][j_temp]-1)) and (N_x[0][i] < (x_up[0][j_temp]+1))) and(
+                    (N_y[0][i] > (y_down[0][j_temp]-1)) and (N_y[0][i] < (y_up[0][j_temp]+1))):
+                    # print "初始j_temp =", j_temp
+                    j_temp = j_temp + 1
+                    if equal_flag is True:
+                        # print "表示有电单车在障碍区域里面了，不符合,更新当前电单车坐标"
+                        if i == 1:
+                            N_x[0][i] = round(random.uniform(edge_n/2 - 50, edge_n/2 + 50), 2)
+                            N_y[0][i] = round(random.uniform(edge_n/2 - 50, edge_n/2 + 50), 2)
+                        else:
+                            N_x[0][i] = round(random.uniform(1, edge_n), 2)
+                            N_y[0][i] = round(random.uniform(1, edge_n), 2)
+                        j_temp = 0
+                        j = 0
+                    equal_flag = False
+                    if j_temp >= obstacles_Num:
+                        j = j_temp 
+                        # print "退出while（）"
+                        break
+                else:
+                    j = j + 1
+                    if j >= obstacles_Num:
+                        # print "退出while（）"
+                        break
+                        
+        # 添加障碍
+        print "obstacle_coordinate =", obstacle_coordinate
+        # 以整形保存
+        np.savetxt("obstacle_data.txt",obstacle_coordinate, fmt='%d')
+        
+        # 添加节点相关信息
+        data = []
+        # 添加节点功率
+        data.append(P_i[0])
+        print "P_i[0] =", P_i[0] 
+        # 添加节点能量
+        data.append(Es_i[0])
+        print "Es_i[0] =", Es_i[0]
+        # 添加初始运动方向
+        data.append(alpha[0])
+        print "alpha[0] =", alpha[0]
+        # 添加节点坐标
+        data.append(N_x[0])
+        print "N_x[0] =", N_x[0]
+        data.append(N_y[0])
+        print "N_y[0] =", N_y[0]
+        # 保存节点相关数据
+        np.savetxt("data.txt",data)
+   
+    if Backup_flag is True:
+        obstacle_coordinate = np.loadtxt('obstacle_data.txt', dtype = np.int)
+        print "obstacle_coordinate =", obstacle_coordinate
+        print "len(obstacle_coordinate) =", len(obstacle_coordinate )
+        
+        # 导入节点相关数据
+        data = np.loadtxt('data.txt')
+        print "data =", data
+        print "len(data) =", len(data)
+        P_i[0] = data[0]
+        print "P_i[0] =", P_i[0] 
+        Es_i[0] = data[1]
+        print "Es_i[0] =", Es_i[0]
+        alpha[0] = data[2]
+        print "alpha[0] =", alpha[0]
+        N_x[0] = data[3]
+        print "N_x[0] =", N_x[0]
+        N_y[0] = data[4]
+        print "N_y[0] =", N_y[0]
+    
     # 保存节点序号的
     N_i = []
-    N_i.append(0)
+    for l in range(0, N + 1):     
+        N_i.append(l)
     
-    # 保证电单车不在障碍区域内
-    
-    for i in range(1, N+1):
-        print "准备生成第", i, "个节点坐标~~~~"
-        N_x[0][i] = round(random.uniform(1, edge_n), 2)
-        N_y[0][i] = round(random.uniform(1, edge_n), 2)
-        # print "第一层for循环"
-        # print "N_x[0][", i, "] =", N_x[0][i]
-        # print "N_y[0][", i, "] =", N_y[0][i] 
-        # j为终止条件
-        j = 0
-        # 要判断当前生成节点是否存在某一个障碍里面，所以要与每一个障碍区域进行比较
-        while(j != obstacles_Num):
-            # print "初始化j =", j
-            j_temp = j
-            equal_flag = True
-            # 电单车坐标的设置，扩大到障碍外围至少+1m处
-            if((N_x[0][i] > (x_down[0][j_temp]-1)) and (N_x[0][i] < (x_up[0][j_temp]+1))) and(
-                (N_y[0][i] > (y_down[0][j_temp]-1)) and (N_y[0][i] < (y_up[0][j_temp]+1))):
-                # print "初始j_temp =", j_temp
-                j_temp = j_temp + 1
-                if equal_flag is True:
-                    # print "表示有电单车在障碍区域里面了，不符合,更新当前电单车坐标"
-                    N_x[0][i] = round(random.uniform(1, edge_n), 2)
-                    N_y[0][i] = round(random.uniform(1, edge_n), 2)
-                    j_temp = 0
-                    j = 0
-                equal_flag = False
-                if j_temp >= obstacles_Num:
-                    j = j_temp 
-                    # print "退出while（）"
-                    break
-            else:
-                j = j + 1
-                if j >= obstacles_Num:
-                    # print "退出while（）"
-                    break
-       
-        N_i.append(i)
     print "N_i =", N_i
-    
-     # 将节点坐标复制
+    # 将节点坐标复制
     N_x_new = N_x
     N_y_new = N_y
     
-    for i in range(1, N + 1):
-        print "P_i[0][", i, "]=", P_i[0][i]
+    print "P_i[0]=", P_i[0]
     
     # 我们要看看那个节点那个节点剩余的能量最少 反过来说就是功耗最大的
     P_i_Max = 0  # 初始化功率最大为P_i_Max = 0
@@ -883,8 +1027,8 @@ if __name__ == "__main__":
     # 就退出while
     
     # 打印生成的N辆电单车的坐标
-    for i in range(0, N + 1):
-        print "坐标为：", (N_x_new[0][i], N_y_new[0][i])
+    # for i in range(0, N + 1):
+    #     print "坐标为：", (N_x_new[0][i], N_y_new[0][i])
     alpha_temp = []
     for i in range(1 , len(N_i)):
         alpha_temp.append(alpha[0][i])
@@ -903,7 +1047,10 @@ if __name__ == "__main__":
     S_new_flag = False
     # 备份N_distance_flag的标志
     backup_N_distance_flag = True
-    while 1 != len(N_i):
+    # 计算系统运行所需时间
+    Time_Sum = 0.0
+
+    while 1 != len(N_i) and Time_Over_Flag is True:
         R_list = []
         R_list.append(N_i[0])
         x = []
@@ -915,7 +1062,7 @@ if __name__ == "__main__":
         first_while_num = 1
         Node_num = len(N_i)
         
-        while first_while_num != Node_num:
+        while first_while_num != Node_num and Time_Over_Flag is True:
             print "已经操作到N_i中第", first_while_num, "个数"
             print "N_i中之前共有", Node_num,"个数"
             t = t_sum
@@ -926,111 +1073,52 @@ if __name__ == "__main__":
             # 后期优化的时候我们应该考虑边界问题，如果当前的位置已经超过边界，则应该改变运动方向
             # 不仅仅是考虑边界，还得考虑运动过程中，遇到障碍应该避开
             for i in range(1, len(N_i)):
+                # print "原始Es_i =", Es_i
                 Es_i[0][N_i[i]] = round((Es_i[0][N_i[i]] - P_i[0][N_i[i]]*t), 2)
-                # 考虑到边界问题，先将改变之前的坐标记录下来
-                N_x_new_temp = N_x_new[0][N_i[i]]
-                N_y_new_temp = N_y_new[0][N_i[i]] 
-                N_x_new_temp_new = N_x_new[0][N_i[i]]
-                N_y_new_temp_new = N_y_new[0][N_i[i]]
-                # print "备份的坐标为：", (N_x_new_temp, N_y_new_temp)
-                N_x_new[0][N_i[i]] = round((N_x_new[0][N_i[i]] + v*t*math.cos(alpha[0][N_i[i]]/180.0*math.pi)), 2)
-                N_y_new[0][N_i[i]] = round((N_y_new[0][N_i[i]] + v*t*math.sin(alpha[0][N_i[i]]/180.0*math.pi)), 2)
-                # print "更新坐标为：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
-               
-                # 检查坐标有没有超过边界, 表示超界了，表示当前需要改变运行方向
-                # 为什么用while（）一定保证，坐标合理才能进行下一步操作
-                # 为了在运动时避开障碍，设置两种状态
-                # （1）在无障碍情况下计算距离
-                # （2）在有障碍的情况下再计算一次距离
-                # 如果两次距离相等，则中途没有障碍，可以直接到达目的位置
-                # 反之，不相等，则中途出现障碍，不能直接到达目的地，需要改变运动方向
-                # obstacle_flag = True 表明空间存在障碍
-                while True:
-                    # 判断坐标是否越界
-                    while((N_x_new[0][N_i[i]] < 1 or N_x_new[0][N_i[i]] > edge_n) or (
-                            N_y_new[0][N_i[i]] < 1 or N_y_new[0][N_i[i]] > edge_n )): 
-                        # 更新电单车运行方向
-                        # print "当前更新的坐标越界了：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
-                        # print "之前备份的坐标为：", (N_x_new_temp, N_y_new_temp)
-                        # print "更新电单车运动方向"
-                        # 改变方向幅度不能太大
-                        # alpha[0][N_i[i]] = random.randint(0, 360)
-                        # print "alpha[0][", N_i[i], "]=", alpha[0][N_i[i]]
-                        alpha[0][N_i[i]] = (alpha[0][N_i[i]] + alpha_value)%360
-                        # print "alpha[0][", N_i[i], "]=", alpha[0][N_i[i]]
-                        
-                        # 用上面备份的当前的坐标，重新往重新生成的方向前进
-                        N_x_new[0][N_i[i]] = round((N_x_new_temp + v*t*math.cos(alpha[0][N_i[i]]/180.0*math.pi)), 2)
-                        N_y_new[0][N_i[i]] = round((N_y_new_temp + v*t*math.sin(alpha[0][N_i[i]]/180.0*math.pi)), 2)
-                        # N_x_new[0][N_i[i]] = 1.0
-                        #N_y_new[0][N_i[i]] = 2.0
-                        # print "越界重新更新坐标为：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
-                    # 越界处理完成的标志，表示已经不越界
-                    crossing_flag = True
-                    # 还得保证当前终点不属于任何一个障碍区域内
-                    first_coordinate = []
-                    second_coordinate = []
-                    first_coordinate.append(N_x_new_temp)
-                    first_coordinate.append(N_y_new_temp)
-                    second_coordinate.append(N_x_new[0][N_i[i]])
-                    second_coordinate.append(N_y_new[0][N_i[i]])
-                    # print "备份的坐标（起始）first_coordinate =", first_coordinate
-                    # print "更新的坐标（终点）second_coordinate =", second_coordinate
-                    # print "有障碍"
-                    distance_obstacle =A.a_star_algorithm(edge_n, first_coordinate, second_coordinate, obstacle_coordinate, obstacles_Num, True)
+                # print "原始修改Es_i =", Es_i
+                # 如果当前 节点剩余能量低于540j，则将该节点视为死亡节点，不再操作
+                if Es_i[0][N_i[i]] < 540.0:
+                    N_i_valuse = N_i[0]
+                    N_i[0] = 0
+                    # print "原序列N_i =", N_i
+                    # print N_i[i],"点已经不能运作，需要从节点序列中删除"
+                    N_i.remove(N_i[i])
+                    N_i_dead_num = N_i_dead_num + 1
+                    N_i[0] = N_i_valuse
+                    # print "更新节点序列 N_i", N_i
+                    # print "N_i长度len(N_i) =", len(N_i)
+                    # print "此时 i =", i
+                    for j in range(1, i):
+                        # print "恢复前几个被修改的节点的剩余能量"
+                        Es_i[0][N_i[i]] = round((Es_i[0][N_i[i]] + P_i[0][N_i[i]]*t), 2)
+                    # print "恢复Es_i =", Es_i
+                    break
+                # 保证当前节点剩余能量大于540j
+                else:
+                    # 考虑到边界问题，先将改变之前的坐标记录下来
+                    N_x_new_temp = N_x_new[0][N_i[i]]
+                    N_y_new_temp = N_y_new[0][N_i[i]] 
+                    N_x_new_temp_new = N_x_new[0][N_i[i]]
+                    N_y_new_temp_new = N_y_new[0][N_i[i]]
+                    # print "备份的坐标为：", (N_x_new_temp, N_y_new_temp)
+                    N_x_new[0][N_i[i]] = round((N_x_new[0][N_i[i]] + v*t*math.cos(alpha[0][N_i[i]]/180.0*math.pi)), 2)
+                    N_y_new[0][N_i[i]] = round((N_y_new[0][N_i[i]] + v*t*math.sin(alpha[0][N_i[i]]/180.0*math.pi)), 2)
+                    # print "更新坐标为：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
                    
-                    # 判断是否需要变向
-                    change_direction_flag = True
-                    # 如果终点坐标在障碍区域内，也需要改变运动方向
-                    if distance_obstacle[0] is False:
-                        change_direction_flag = False
-                        # print "这个坐标时在障碍区域内：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
-                        # print "之前备份的坐标为：", (N_x_new_temp, N_y_new_temp)
-                        # print "更新电单车运动方向"
-                        # 改变方向幅度不能太大
-                        # alpha[0][N_i[i]] = random.randint(0, 360)
-                        # print "alpha[0][", N_i[i], "]=", alpha[0][N_i[i]]
-                        alpha[0][N_i[i]] = (alpha[0][N_i[i]] + alpha_value)%360
-                        # print "alpha[0][", N_i[i], "]=", alpha[0][N_i[i]]
-                        # 用上面备份的当前的坐标，重新往重新生成的方向前进
-                        N_x_new[0][N_i[i]] = round((N_x_new_temp + v*t*math.cos(alpha[0][N_i[i]]/180.0*math.pi)), 2)
-                        N_y_new[0][N_i[i]] = round((N_y_new_temp + v*t*math.sin(alpha[0][N_i[i]]/180.0*math.pi)), 2)
-                        # print "障碍区域内的坐标更新为：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
-                    
-                    else:
-                        first_coordinate = []
-                        second_coordinate = []
-                        first_coordinate.append(N_x_new_temp_new)
-                        first_coordinate.append(N_y_new_temp_new)
-                        second_coordinate.append(N_x_new[0][N_i[i]])
-                        second_coordinate.append(N_y_new[0][N_i[i]])
-                        # print "备份的坐标（起始）first_coordinate =", first_coordinate
-                        # print "更新的坐标（终点）second_coordinate =", second_coordinate
-                        
-                        # print "无障碍"
-                        distance_no_obstacle =A.a_star_algorithm(edge_n, first_coordinate, second_coordinate, obstacle_coordinate, obstacles_Num, False)
-                        # N_x_new[0][N_i[i]] = 1.0
-                        # N_y_new[0][N_i[i]] = 2.0
-                        distance_obstacle_result = []
-                        distance_obstacle_result.append(distance_obstacle[0])
-                        distance_obstacle_result.append(distance_obstacle[1])
-                        distance_obstacle_result.append(distance_obstacle[2])
-                        distance_obstacle_result.append(distance_obstacle[3])
-                        distance_obstacle_result.append(distance_obstacle[4])
-
-                        distance_no_obstacle_result = []
-                        distance_no_obstacle_result.append(distance_no_obstacle[0])
-                        distance_no_obstacle_result.append(distance_no_obstacle[1])
-                        distance_no_obstacle_result.append(distance_no_obstacle[2])
-                        distance_no_obstacle_result.append(distance_no_obstacle[3])
-                        distance_no_obstacle_result.append(distance_no_obstacle[4])
-                        print "distance_obstacle_result =", distance_obstacle_result
-                        print "distance_no_obstacle_result =", distance_no_obstacle_result
-                        # 表明两次同一点同一终点，所得距离不相等，说明行驶过程中遇到障碍，需要变向
-                        # 终点在障碍区域内或者运动过程中遇到障碍都将改变即将到达的位置的坐标
-                        if distance_no_obstacle[3] != distance_obstacle[3]:
-                            change_direction_flag = False
-                            # print "运行到这个坐标时遇到障碍：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
+                    # 检查坐标有没有超过边界, 表示超界了，表示当前需要改变运行方向
+                    # 为什么用while（）一定保证，坐标合理才能进行下一步操作
+                    # 为了在运动时避开障碍，设置两种状态
+                    # （1）在无障碍情况下计算距离
+                    # （2）在有障碍的情况下再计算一次距离
+                    # 如果两次距离相等，则中途没有障碍，可以直接到达目的位置
+                    # 反之，不相等，则中途出现障碍，不能直接到达目的地，需要改变运动方向
+                    # obstacle_flag = True 表明空间存在障碍
+                    while True:
+                        # 判断坐标是否越界
+                        while((N_x_new[0][N_i[i]] < 1 or N_x_new[0][N_i[i]] > edge_n) or (
+                                N_y_new[0][N_i[i]] < 1 or N_y_new[0][N_i[i]] > edge_n )): 
+                            # 更新电单车运行方向
+                            # print "当前更新的坐标越界了：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
                             # print "之前备份的坐标为：", (N_x_new_temp, N_y_new_temp)
                             # print "更新电单车运动方向"
                             # 改变方向幅度不能太大
@@ -1042,13 +1130,96 @@ if __name__ == "__main__":
                             # 用上面备份的当前的坐标，重新往重新生成的方向前进
                             N_x_new[0][N_i[i]] = round((N_x_new_temp + v*t*math.cos(alpha[0][N_i[i]]/180.0*math.pi)), 2)
                             N_y_new[0][N_i[i]] = round((N_y_new_temp + v*t*math.sin(alpha[0][N_i[i]]/180.0*math.pi)), 2)
-                            # print "遇到障碍重新更新坐标为：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
-                        if crossing_flag is True and change_direction_flag is True:
-                            # print "起点到终点途中不存在障碍或终点不存在与障碍区域"
-                            # print "退出while()"
-                            break
-            for i in range(0, len(N_i)):
-                print "更新坐标为：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
+                            # N_x_new[0][N_i[i]] = 1.0
+                            #N_y_new[0][N_i[i]] = 2.0
+                            # print "越界重新更新坐标为：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
+                        # 越界处理完成的标志，表示已经不越界
+                        crossing_flag = True
+                        # 还得保证当前终点不属于任何一个障碍区域内
+                        first_coordinate = []
+                        second_coordinate = []
+                        first_coordinate.append(N_x_new_temp)
+                        first_coordinate.append(N_y_new_temp)
+                        second_coordinate.append(N_x_new[0][N_i[i]])
+                        second_coordinate.append(N_y_new[0][N_i[i]])
+                        # print "备份的坐标（起始）first_coordinate =", first_coordinate
+                        # print "更新的坐标（终点）second_coordinate =", second_coordinate
+                        # print "有障碍"
+                        distance_obstacle =A.a_star_algorithm(edge_n, first_coordinate, second_coordinate, obstacle_coordinate, obstacles_Num, True)
+                       
+                        # 判断是否需要变向
+                        change_direction_flag = True
+                        # 如果终点坐标在障碍区域内，也需要改变运动方向
+                        if distance_obstacle[0] is False:
+                            change_direction_flag = False
+                            # print "这个坐标时在障碍区域内：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
+                            # print "之前备份的坐标为：", (N_x_new_temp, N_y_new_temp)
+                            # print "更新电单车运动方向"
+                            # 改变方向幅度不能太大
+                            # alpha[0][N_i[i]] = random.randint(0, 360)
+                            # print "alpha[0][", N_i[i], "]=", alpha[0][N_i[i]]
+                            alpha[0][N_i[i]] = (alpha[0][N_i[i]] + alpha_value)%360
+                            # print "alpha[0][", N_i[i], "]=", alpha[0][N_i[i]]
+                            # 用上面备份的当前的坐标，重新往重新生成的方向前进
+                            N_x_new[0][N_i[i]] = round((N_x_new_temp + v*t*math.cos(alpha[0][N_i[i]]/180.0*math.pi)), 2)
+                            N_y_new[0][N_i[i]] = round((N_y_new_temp + v*t*math.sin(alpha[0][N_i[i]]/180.0*math.pi)), 2)
+                            # print "障碍区域内的坐标更新为：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
+                        
+                        else:
+                            first_coordinate = []
+                            second_coordinate = []
+                            first_coordinate.append(N_x_new_temp_new)
+                            first_coordinate.append(N_y_new_temp_new)
+                            second_coordinate.append(N_x_new[0][N_i[i]])
+                            second_coordinate.append(N_y_new[0][N_i[i]])
+                            # print "备份的坐标（起始）first_coordinate =", first_coordinate
+                            # print "更新的坐标（终点）second_coordinate =", second_coordinate
+                            
+                            # print "无障碍"
+                            distance_no_obstacle =A.a_star_algorithm(edge_n, first_coordinate, second_coordinate, obstacle_coordinate, obstacles_Num, False)
+                            # N_x_new[0][N_i[i]] = 1.0
+                            # N_y_new[0][N_i[i]] = 2.0
+                            distance_obstacle_result = []
+                            distance_obstacle_result.append(distance_obstacle[0])
+                            distance_obstacle_result.append(distance_obstacle[1])
+                            distance_obstacle_result.append(distance_obstacle[2])
+                            distance_obstacle_result.append(distance_obstacle[3])
+                            distance_obstacle_result.append(distance_obstacle[4])
+    
+                            distance_no_obstacle_result = []
+                            distance_no_obstacle_result.append(distance_no_obstacle[0])
+                            distance_no_obstacle_result.append(distance_no_obstacle[1])
+                            distance_no_obstacle_result.append(distance_no_obstacle[2])
+                            distance_no_obstacle_result.append(distance_no_obstacle[3])
+                            distance_no_obstacle_result.append(distance_no_obstacle[4])
+                            # print "distance_obstacle_result =", distance_obstacle_result
+                            # print "distance_no_obstacle_result =", distance_no_obstacle_result
+                            # 表明两次同一点同一终点，所得距离不相等，说明行驶过程中遇到障碍，需要变向
+                            # 终点在障碍区域内或者运动过程中遇到障碍都将改变即将到达的位置的坐标
+                            if distance_no_obstacle[3] != distance_obstacle[3]:
+                                change_direction_flag = False
+                                # print "运行到这个坐标时遇到障碍：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
+                                # print "之前备份的坐标为：", (N_x_new_temp, N_y_new_temp)
+                                # print "更新电单车运动方向"
+                                # 改变方向幅度不能太大
+                                # alpha[0][N_i[i]] = random.randint(0, 360)
+                                # print "alpha[0][", N_i[i], "]=", alpha[0][N_i[i]]
+                                alpha[0][N_i[i]] = (alpha[0][N_i[i]] + alpha_value)%360
+                                # print "alpha[0][", N_i[i], "]=", alpha[0][N_i[i]]
+                                
+                                # 用上面备份的当前的坐标，重新往重新生成的方向前进
+                                N_x_new[0][N_i[i]] = round((N_x_new_temp + v*t*math.cos(alpha[0][N_i[i]]/180.0*math.pi)), 2)
+                                N_y_new[0][N_i[i]] = round((N_y_new_temp + v*t*math.sin(alpha[0][N_i[i]]/180.0*math.pi)), 2)
+                                # print "遇到障碍重新更新坐标为：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
+                            if crossing_flag is True and change_direction_flag is True:
+                                # print "起点到终点途中不存在障碍或终点不存在与障碍区域"
+                                # print "退出while()"
+                                break
+            # for i in range(0, len(N_i)):
+                # print "更新坐标为：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
+            if len(N_i) == 1:
+                print "表明有些节点剩余能量不足540j，已经死亡"
+                break
             print "################################\n"
             # print "延时10s，查看结果"
             # time.sleep(10)
@@ -1083,10 +1254,11 @@ if __name__ == "__main__":
             # 统计电单车剩余的能量
             N_distance_temp = []
             Es_temp = []
+            print "R_list =", R_list
             for i in range(1 , len(N_i)):
-                N_distance_temp.append(N_distance[0][N_i[i]])
+                N_distance_temp.append(N_distance[R_list[len(R_list) - 1]][N_i[i]])
                 Es_temp.append(Es_i[0][N_i[i]])  
-            print "S到每辆电单车的距离 =", N_distance_temp
+            print "MCV到每辆电单车的距离 =", N_distance_temp
             print "结束时Es_i =", Es_temp 
             
             # a 为剩余能量所占比重
@@ -1104,17 +1276,17 @@ if __name__ == "__main__":
            
                 Node_number_distance= []
                 Node_number_distance.append(N_i[i])
-                Node_number_distance.append(round(N_distance[0][N_i[i]], 2))
+                Node_number_distance.append(round(N_distance[R_list[len(R_list) - 1]][N_i[i]], 2))
                 N_distance_sort.append(Node_number_distance)
             
-            print "Es_i[0] =", Es_i[0]
-            print "N_distance =", N_distance[0]
-            print "Es_sort =", Es_sort
-            print "N_distance_sort =", N_distance_sort
+            # print "Es_i[0] =", Es_i[0]
+            # print "N_distance =", N_distance[0]
+            # print "Es_sort =", Es_sort
+            # print "N_distance_sort =", N_distance_sort
             select_sort_Numsort(Es_sort)
             select_sort_Numsort(N_distance_sort)
-            print "Es_sort =", Es_sort
-            print "N_distance_sort =", N_distance_sort
+            # print "Es_sort =", Es_sort
+            # print "N_distance_sort =", N_distance_sort
             
             a = 0.2
             b = 1.0 - a
@@ -1192,6 +1364,7 @@ if __name__ == "__main__":
                     print "当前节点即为可服务节点"
                     Node_Find_flag = True
                     optimal_N_i = P[k][0]
+                    print "节点", optimal_N_i, "剩余能量 Es=", Es_i[0][optimal_N_i]
                     break
                 if Pab_final_falg is True and result_falg is False:
                     print "最有Pab找到最后一个值，节点也查找到最后一个值，又不再可调度"
@@ -1229,7 +1402,8 @@ if __name__ == "__main__":
                     y.append(N_y_new[0][optimal_N_i])
                     x_new = N_x_new[0]
                     y_new = N_y_new[0]
-                    NodeToOtherNodeLink(R_list, x, y,x_new,y_new, obstacle_coordinate, R_list[0], Road_information)
+                    # 暂时不打印过程图
+                    # NodeToOtherNodeLink(R_list, x, y,x_new,y_new, obstacle_coordinate, R_list[0], Road_information)
                     #  选中的点和上一个点的距离，以及为当前点充电的额时间
                     # 最后进R_list的两个点的距离
                     print "R_list =", R_list
@@ -1243,11 +1417,37 @@ if __name__ == "__main__":
                     last_Es = Es_i_value - Es_i[0][optimal_N_i]
                     # 充电需要的时间
                     t2 = last_Es/qc
+                    Change_Time[0][optimal_N_i] = round(t2, 2)
+                    print "每辆车的充电市场Change_Time =", Change_Time[0]
                     print "MCV移动消耗时间 t1 =", t1, 's'
                     print "MCV充电消耗时间 t2 =", t2, 's'
+                    # 最后一个点到服务站的距离
+                    D1 = N_distance[R_list[0]][R_list[len(R_list) - 1]]
+                    # 最后一个点带服务站的时间
+                    t3 = D1/vm
+                    
                     t_sum = t1+t2
+                    
                     print "MCV 总共消耗时间 t_sum =", t_sum, 's'
                     first_while_num = first_while_num + 1 
+                    # Time_Sum = 0.0
+                    # 倒数第二个会重复加了时间，得减掉
+                    t4 = 0.0
+                    # 回路节点冲过3个时会多计算了一段距离的时间，得减去
+                    if len(R_list) >= 3:
+                        D2 = N_distance[R_list[0]][R_list[len(R_list) - 2]]
+                        t4 = D2/vm
+                        
+                    Time_Sum = round((Time_Sum + t1 + t3 - t4 + t2), 2)
+                    print "系统运行时间为：Time_Sum =", Time_Sum, "s"
+                    # 系统时间结束
+                    if Time_Sum > T:
+                        print "系统停止运行\n"
+                        print "Time_Sum =", Time_Sum, 's'
+                        # for k in range(1, len(N_i)):
+                            # 如果整个周期内，小车得不到电量补充，也会死亡
+                            # N_i_dead_num = N_i_dead_num + 1
+                        Time_Over_Flag = False
                     
                 else:
                     D = N_distance[R_list[0]][R_list[len(R_list) - 1]]
@@ -1315,7 +1515,14 @@ if __name__ == "__main__":
     print "N_x_final =", N_x_final
     print "N_y_final =", N_y_final
     
-    ChildrenTourConstruction(N_x_final, N_y_final, obstacle_coordinate, R_list_result, S_Flag)
+    result = ChildrenTourConstruction(N_x_final, N_y_final, obstacle_coordinate, R_list_result, S_Flag)
+    np.savetxt("result.txt",result[1], fmt='%d')
+    f1 = open('MCV_Tour.txt','w')
+    f1.write(str(result[0]))
+    f1.close()
+    print "回路能量消耗的相关结果 result =\n", result
+    print "\n系统运行时间 Time_Sum =", Time_Sum, 's'
+    print "\n死亡节点的个数为 N_i_dead_num =", N_i_dead_num
     programing_end_time = time.time()
     print "程序运行总共耗时：", (programing_end_time - programing_start_time), "s"
     
