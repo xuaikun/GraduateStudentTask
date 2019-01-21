@@ -15,15 +15,69 @@ import math
 from matplotlib.ticker import MultipleLocator
 import os
 
-# 需要获取MCV真实运动路径时，将Real_Graph_flag置为True
-Real_Graph_flag = False
-
 # 如果使用备份数据，则将 Backup_flag = True
+# 第一次运行，需要设置Backup_flag = False, 若之后想利用上一次数据，则设置Backup_flag = True
 Backup_flag = True
 
-# 图片保存路径
-png_path = "E:\\00000000000graduate-study\\GraduateStudentTask\\201810_201909_BeforeGraduateStudent\\png"
+# 数据结果保存路径 (需要使用自己电脑的路径),自己建立一个result文件
+result_path = "E:\\00000000000graduate-study\\GraduateStudentTask\\201810_201909_BeforeGraduateStudent\\python_programming\\Period_Charge\\result"
 
+# 需要修改的变量
+
+# 节点数目 从 50 到 200 变化，将100节点的实验先 做全
+N = 3   # 假设我有N辆电单车  会影响程序运行的时间
+
+# 修改MCV的变量 每次 只修改一个
+# Em  数值从150kj 到400kj变化，间隔50kj变化
+Em = 150000.0  # MC的总能量 j 
+# 测试过程中从4m/s 到10m/s 变化
+vm = 5.0  # MC的移动速度 m/s
+# 师姐看看从多少变到多少吧，哈哈哈
+qm = 55.0  # Mc移动功耗为 J/m
+qc = 40.0  # MCV充电传输速率 W
+
+
+# 确保数据结果保存路径一定存在
+isExist = os.path.exists(result_path)
+if not isExist:
+    print "不存在该路径，创建对应路径"
+    os.makedirs(result_path)
+
+
+# 自主修改数据结果子的根目录
+result_name = 'Node_' + str(int(N))
+# print "result_name =", result_name
+
+result_name = os.path.join(result_path, result_name)
+isExist = os.path.exists(result_name)
+if not isExist:
+    print "不存在该路径，创建对应路径"
+    os.makedirs(result_name)
+
+# 自主修改数据结果子的子目录
+childern_result_name = 'Em_' + str(int(Em)) + '_vm_' +str(int(vm)) + '_qm_' + str(int(qm)) + '_qc_' + str(int(qc))
+# print "childern_result_name =", childern_result_name
+
+childern_result_name = os.path.join(result_name, childern_result_name)
+isExist = os.path.exists(childern_result_name)
+if not isExist:
+    print "不存在该路径，创建对应路径"
+    os.makedirs(childern_result_name)
+
+MCV_Tour_txt = os.path.join(childern_result_name, 'MCV_Tour_Set.txt')
+result_txt = os.path.join(childern_result_name, 'MCV_Tour_Information.txt')
+
+# print "MCV_Tour_txt =", MCV_Tour_txt
+# print "result_txt =", result_txt
+
+Obstacle_information_data_txt = os.path.join(result_name, 'Obstacle_information_data.txt')
+Node_information_data_txt = os.path.join(result_name, 'Node_information_data.txt')
+        
+# 如果想获取过程图解，则设置 Process_Graph_flag = True
+Process_Graph_flag = False
+
+# 需要获取MCV真实运动路径时，将Real_Graph_flag置为True
+Real_Graph_flag = False
 
 # 自己的调色板
 my_color =['b', 'g', 'r', 'c', 'm', 'y', 'k']
@@ -32,33 +86,24 @@ my_style = ['-', '--', '-.', ':']
 
 # my_logo = ['.', 'o', 'v', '^', '>', '<', '1', '2', '3', '4', 's', 'p', '*']
 # 数据初始化
-N = 100   # 假设我有N辆电单车  会影响程序运行的时间
+
 edge_n = 1000 # 假设定义的二维空间范围是 edge_n * edge_n 影响构造充电子回路
 obstacles_Num = 20  # 障碍个数
 kedu = 50  # 表示坐标间隔
 p = 10   # 表示障碍的边长 为10m
 # 实际轨迹线路大小
 linewidthvalue = 2
-
 # 系统运行时间结束的标志
 Time_Over_Flag = True
-
 # 死亡节点个数
 N_i_dead_num = 0
-
 S_Flag = 'S'
 alpha_value = 30 # 转向的度数
-# Em = 72000  # MC的总能量为72000 kj
+
 # 1J=1s*1W
 # 1KJ=1000J
-Em = 150000.0
-# Em = 70000
-qm = 55.0  # Mc移动功耗为qm = 10 J/m
-qc = 40.0  # qc*n 为能量传输率，qc= 4.45 W
 nl = 0.5  # 类似于效率一样，占比多少 n = 0.5
 T = 7200.0  # 充电周期需要知道10s
-# T = 1000.0
-vm = 10.0  # MC的移动速度0.3m/s
 v = 3.0   # 初始化电单车的运行速度为 5m/s
 # 每个节点的能量
 Es_i_value = 5600
@@ -219,7 +264,8 @@ def AllNodeLink(x, y, obstacle_coordinate_new):
     # 保存生成的图片
     partPath = [str(int(time.time()))]
     origin_path = partPath[0] + 'origin.png'  
-    All_path = os.path.join(png_path, origin_path)
+    
+    All_path = os.path.join(childern_result_name, origin_path)
     plt.savefig(All_path)
     
     plt.xlim([0 - 1,edge_n + 1]) #设置绘图X边界                                                                                                   
@@ -299,7 +345,7 @@ def NodeToOtherNodeLink(R_list_temp, x, y, x_new,y_new, obstacle_coordinate_new,
     # 保存生成的图片
     partPath = [str(int(time.time()))]
     origin_path = partPath[0] + 'Alllink.png'  
-    All_path = os.path.join(png_path, origin_path)
+    All_path = os.path.join(childern_result_name, origin_path)
     plt.savefig(All_path)
     plt.xlim([0 - 1, edge_n + 1]) #设置绘图X边界                                                                                                   
     plt.ylim([0 - 1, edge_n + 1]) #设置绘图Y边界
@@ -406,7 +452,7 @@ def NodeToOtherNodeLink(R_list_temp, x, y, x_new,y_new, obstacle_coordinate_new,
         # 保存生成的图片
         partPath = [str(int(time.time()))]
         origin_path = partPath[0] + 'Alllink.png'  
-        All_path = os.path.join(png_path, origin_path)
+        All_path = os.path.join(childern_result_name, origin_path)
         plt.savefig(All_path)
         plt.xlim([0 - 1, edge_n + 1]) #设置绘图X边界                                                                                                   
         plt.ylim([0 - 1, edge_n + 1]) #设置绘图Y边界
@@ -483,7 +529,7 @@ def ChildrenTourConstruction(x_new, y_new, obstacle_coordinate_new, R_result, S_
                 ChildernTour_list.append(ChildernTour_Name)
                 
                 for i in range(1, len(list_new)):
-                    print "节点", list_new[i], "剩余能量 Es =", Es_i[0][list_new[i]]
+                    # print "节点", list_new[i], "剩余能量 Es =", Es_i[0][list_new[i]]
                     Es_ChildernTour = Es_ChildernTour + (Es_i_value - Es_i[0][list_new[i]])
                     Time_ChildernTour = round((Time_ChildernTour + Change_Time[0][list_new[i]]),2)
                 # 求距离D
@@ -591,7 +637,7 @@ def ChildrenTourConstruction(x_new, y_new, obstacle_coordinate_new, R_result, S_
     # 保存生成的图片
     partPath = [str(int(time.time()))]
     origin_path = partPath[0] + 'OneToOtherlink.png'  
-    All_path = os.path.join(png_path, origin_path)
+    All_path = os.path.join(childern_result_name, origin_path)
     plt.savefig(All_path)
     plt.xlim([0 - 1,edge_n + 1]) #设置绘图X边界                                                                                                   
     plt.ylim([0 - 1,edge_n + 1]) #设置绘图Y边界
@@ -752,7 +798,7 @@ def ChildrenTourConstruction(x_new, y_new, obstacle_coordinate_new, R_result, S_
         # 保存生成的图片
         partPath = [str(int(time.time()))]
         origin_path = partPath[0] + 'OneToOtherlink.png'  
-        All_path = os.path.join(png_path, origin_path)
+        All_path = os.path.join(childern_result_name, origin_path)
         plt.savefig(All_path)
         plt.xlim([0 - 1,edge_n + 1]) #设置绘图X边界                                                                                                   
         plt.ylim([0 - 1,edge_n + 1]) #设置绘图Y边界
@@ -833,10 +879,10 @@ def Set_obstacles():
             y_up[0][i] = y_temp
             y_down[0][i] = y_temp - p
     
-    print "x_down =", x_down
-    print "x_up =", x_up
-    print "y_down =", y_down
-    print "y_up =", y_up
+    # print "x_down =", x_down
+    # print "x_up =", x_up
+    # print "y_down =", y_down
+    # print "y_up =", y_up
     obstacle_coordinate.append(x_down[0])
     obstacle_coordinate.append(x_up[0])
     obstacle_coordinate.append(y_down[0])
@@ -871,7 +917,7 @@ if __name__ == "__main__":
         # 保证电单车不在障碍区域内
         
         for i in range(1, N+1):
-            print "准备生成第", i, "个节点坐标~~~~"
+            # print "准备生成第", i, "个节点坐标~~~~"
             # 第一个节点放中间，第一个服务站S就在中间
             if i == 1:
                 N_x[0][i] = round(random.uniform(edge_n/2 - 50, edge_n/2 + 50), 2)
@@ -916,48 +962,50 @@ if __name__ == "__main__":
                         break
                         
         # 添加障碍
-        print "obstacle_coordinate =", obstacle_coordinate
+        # print "obstacle_coordinate =", obstacle_coordinate
         # 以整形保存
-        np.savetxt("obstacle_data.txt",obstacle_coordinate, fmt='%d')
-        
+        # np.savetxt("Obstacle_information_data.txt",obstacle_coordinate, fmt='%d')
+        np.savetxt(Obstacle_information_data_txt, obstacle_coordinate, fmt='%d')
         # 添加节点相关信息
         data = []
         # 添加节点功率
         data.append(P_i[0])
-        print "P_i[0] =", P_i[0] 
+        # print "P_i[0] =", P_i[0] 
         # 添加节点能量
         data.append(Es_i[0])
-        print "Es_i[0] =", Es_i[0]
+        # print "Es_i[0] =", Es_i[0]
         # 添加初始运动方向
         data.append(alpha[0])
-        print "alpha[0] =", alpha[0]
+        # print "alpha[0] =", alpha[0]
         # 添加节点坐标
         data.append(N_x[0])
-        print "N_x[0] =", N_x[0]
+        # print "N_x[0] =", N_x[0]
         data.append(N_y[0])
-        print "N_y[0] =", N_y[0]
+        # print "N_y[0] =", N_y[0]
         # 保存节点相关数据
-        np.savetxt("data.txt",data)
+        # np.savetxt("Node_information_data.txt", data)
+        np.savetxt(Node_information_data_txt, data)
+
    
     if Backup_flag is True:
-        obstacle_coordinate = np.loadtxt('obstacle_data.txt', dtype = np.int)
-        print "obstacle_coordinate =", obstacle_coordinate
-        print "len(obstacle_coordinate) =", len(obstacle_coordinate )
+        obstacle_coordinate = np.loadtxt(Obstacle_information_data_txt, dtype = np.int)
+        # print "obstacle_coordinate =", obstacle_coordinate
+        # print "len(obstacle_coordinate) =", len(obstacle_coordinate )
         
         # 导入节点相关数据
-        data = np.loadtxt('data.txt')
-        print "data =", data
-        print "len(data) =", len(data)
+        data = np.loadtxt(Node_information_data_txt)
+        # print "data =", data
+        # print "len(data) =", len(data)
         P_i[0] = data[0]
-        print "P_i[0] =", P_i[0] 
+        # print "P_i[0] =", P_i[0] 
         Es_i[0] = data[1]
-        print "Es_i[0] =", Es_i[0]
+        # print "Es_i[0] =", Es_i[0]
         alpha[0] = data[2]
-        print "alpha[0] =", alpha[0]
+        # print "alpha[0] =", alpha[0]
         N_x[0] = data[3]
-        print "N_x[0] =", N_x[0]
+        # print "N_x[0] =", N_x[0]
         N_y[0] = data[4]
-        print "N_y[0] =", N_y[0]
+        # print "N_y[0] =", N_y[0]
     
     # 保存节点序号的
     N_i = []
@@ -1000,15 +1048,15 @@ if __name__ == "__main__":
     for i in range(0, N + 1):
         x.append(N_x[0][i])
         y.append(N_y[0][i])
-    print "x =", x
-    print "y =", y
+    # print "x =", x
+    # print "y =", y
     # 将电单车和服务站的分布呈现出来
     AllNodeLink(x, y,obstacle_coordinate)
     # 打印 初始化的节点啊的总能量
     Es_temp = []
     for i in range(1 , N + 1):
         Es_temp.append(Es_i[0][i])    
-    print "开始时Es_i =", Es_temp 
+    # print "开始时Es_i =", Es_temp 
      # 程序开始运行，计时开始
     start_time = time.time()
     time.sleep(1.5)
@@ -1016,8 +1064,8 @@ if __name__ == "__main__":
     N_i_temp = []
     for i in range(0, len(N_i)):
         N_i_temp.append(N_i[i])
-    print "N_i =", N_i
-    print "N_i_temp =", N_i_temp
+    # print "N_i =", N_i
+    # print "N_i_temp =", N_i_temp
     # 最优的操作节点排序
     Node_optimal_sort = []
     # 先把S点放进去
@@ -1218,7 +1266,7 @@ if __name__ == "__main__":
             # for i in range(0, len(N_i)):
                 # print "更新坐标为：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
             if len(N_i) == 1:
-                print "表明有些节点剩余能量不足540j，已经死亡"
+                # print "表明有些节点剩余能量不足540j，已经死亡"
                 break
             print "################################\n"
             # print "延时10s，查看结果"
@@ -1258,8 +1306,8 @@ if __name__ == "__main__":
             for i in range(1 , len(N_i)):
                 N_distance_temp.append(N_distance[R_list[len(R_list) - 1]][N_i[i]])
                 Es_temp.append(Es_i[0][N_i[i]])  
-            print "MCV到每辆电单车的距离 =", N_distance_temp
-            print "结束时Es_i =", Es_temp 
+            # print "MCV到每辆电单车的距离 =", N_distance_temp
+            # print "结束时Es_i =", Es_temp 
             
             # a 为剩余能量所占比重
             # b 为S到各电单车距离所占比重
@@ -1317,9 +1365,9 @@ if __name__ == "__main__":
                 P_Node_number.append(round(P_value, 2))
                 P.append(P_Node_number)
     
-            print "获得的P =", P
+            # print "获得的P =", P
             select_sort_Numsort_P(P)
-            print "更新的P =", P
+            # print "更新的P =", P
             
             # 找到下一个服务点的标志
             Node_Find_flag = False
@@ -1335,12 +1383,12 @@ if __name__ == "__main__":
             for k in range(0, len(P)):
                 # 表明当前找到的点就是下一个需要服务的点
                 if Node_Find_flag is True:
-                    print "已经找到服务节点"
-                    print "寻找下一需要服务的节点"
+                    # print "已经找到服务节点"
+                    # print "寻找下一需要服务的节点"
                     break
                 # 如果当前在Pab排序数值中，选到最后一个数值了
                 if k == len(P) - 1:
-                    print "选中Pab最优值的最后一个元素"
+                    # print "选中Pab最优值的最后一个元素"
                     Pab_final_falg = True
                 # 判断是否选中N_i中最后一个元素
                 N_i_final_flag = False
@@ -1348,37 +1396,37 @@ if __name__ == "__main__":
                 # 此时选择的节点为 N_i[q]
                 # 已经解决选择节点问题
                 # P比较巧，里面的值为两个数值一组保存，一组数值包括：节点标号，和对应节点的P值
-                print "节点 P[k][0] =", P[k][0]
-                print "此时选择的N_i[q] =", P[k][0]
+                # print "节点 P[k][0] =", P[k][0]
+                # print "此时选择的N_i[q] =", P[k][0]
                 R_list.append(P[k][0])
-                print "R_list =", R_list 
+                # print "R_list =", R_list 
                 result = B.judging_whether_scheduled(P_i, Em, qc, qm, nl, R_list, vm, N_distance, T)
-                print "可调度性结果 result =", result
+                # print "可调度性结果 result =", result
                 result_falg = result
                 if result is False:
-                    print "添加这个节点不可调度"
+                    # print "添加这个节点不可调度"
                     R_list.remove(P[k][0])
-                    print "R_list =", R_list 
+                    # print "R_list =", R_list 
                 else:
-                    print "添加这个点后仍然可以调度"
-                    print "当前节点即为可服务节点"
+                    # print "添加这个点后仍然可以调度"
+                    # print "当前节点即为可服务节点"
                     Node_Find_flag = True
                     optimal_N_i = P[k][0]
-                    print "节点", optimal_N_i, "剩余能量 Es=", Es_i[0][optimal_N_i]
+                    # print "节点", optimal_N_i, "剩余能量 Es=", Es_i[0][optimal_N_i]
                     break
                 if Pab_final_falg is True and result_falg is False:
-                    print "最有Pab找到最后一个值，节点也查找到最后一个值，又不再可调度"
-                    print "则当前为一个回路，准备下一个充电子回路的创建"
+                    # print "最有Pab找到最后一个值，节点也查找到最后一个值，又不再可调度"
+                    # print "则当前为一个回路，准备下一个充电子回路的创建"
                     New_ChangeTour = True
-                    print "新建充电子回路的标志 New_ChangeToru =", New_ChangeTour
-            print "遍历所有节点之后，观察R_list = ", R_list
-            print "判断R_list的长度len(R_list) =", len(R_list)
+                    # print "新建充电子回路的标志 New_ChangeToru =", New_ChangeTour
+            # print "遍历所有节点之后，观察R_list = ", R_list
+            # print "判断R_list的长度len(R_list) =", len(R_list)
             # 如果len(R_list) == 1 说明当前的服务站S根本适合当前的剩余节点使用
             # 必须依附剩余能量最少的节点进行新疆服务站S
             # 如何len（R_ist）> 1 只要有2个值以上说明当前的服务站S可以为它提供服务
                             
-            print " 两层for循环已经操作完毕！！！！"
-            print "原来的N_i =", N_i
+            # print " 两层for循环已经操作完毕！！！！"
+            # print "原来的N_i =", N_i
             # 表示当前还不需要创建新的服务站S
             if len(R_list) > 1:
                 # 表示不需要新建充电子回路
@@ -1389,7 +1437,7 @@ if __name__ == "__main__":
                         R_list_result_temp[len(R_list_result_temp) - 1] = R_list 
                     else:# 说明里面还没有回路，直接添加回路
                         R_list_result_temp.append(R_list)
-                    print "说明还可以在当前充电子回路中添加符合可调度性决策的点"
+                    # print "说明还可以在当前充电子回路中添加符合可调度性决策的点"
                     # z这个位置容易出现问题，先置为0，之后再恢复
                     N_i_first_value = N_i[0]
                     if optimal_N_i != 0:
@@ -1397,20 +1445,21 @@ if __name__ == "__main__":
                     N_i.remove(optimal_N_i)     
                     
                     N_i[0] = N_i_first_value
-                    print "删除", optimal_N_i,  "点后的N_i =", N_i
+                    # print "删除", optimal_N_i,  "点后的N_i =", N_i
                     x.append(N_x_new[0][optimal_N_i])
                     y.append(N_y_new[0][optimal_N_i])
                     x_new = N_x_new[0]
                     y_new = N_y_new[0]
                     # 暂时不打印过程图
-                    # NodeToOtherNodeLink(R_list, x, y,x_new,y_new, obstacle_coordinate, R_list[0], Road_information)
+                    if Process_Graph_flag is True:
+                        NodeToOtherNodeLink(R_list, x, y,x_new,y_new, obstacle_coordinate, R_list[0], Road_information)
                     #  选中的点和上一个点的距离，以及为当前点充电的额时间
                     # 最后进R_list的两个点的距离
                     print "R_list =", R_list
                     print "len(R_list) =", len(R_list)
                     
                     D = N_distance[R_list[len(R_list) - 2]][R_list[len(R_list) - 1]]
-                    print "最后两个点的距离为 D =", D
+                    # print "最后两个点的距离为 D =", D
                     # MCV运动用的时间
                     t1 = D/vm
                     # 消耗的能量
@@ -1439,7 +1488,7 @@ if __name__ == "__main__":
                         t4 = D2/vm
                         
                     Time_Sum = round((Time_Sum + t1 + t3 - t4 + t2), 2)
-                    print "系统运行时间为：Time_Sum =", Time_Sum, "s"
+                    # print "系统运行时间为：Time_Sum =", Time_Sum, "s"
                     # 系统时间结束
                     if Time_Sum > T:
                         print "系统停止运行\n"
@@ -1451,11 +1500,11 @@ if __name__ == "__main__":
                     
                 else:
                     D = N_distance[R_list[0]][R_list[len(R_list) - 1]]
-                    print "从当前点回到S的距离 D =", D
+                    # print "从当前点回到S的距离 D =", D
                     t1 = D/vm
                     print "MCV移动消耗的时间为 t1 =", t1, 's'
                     t_sum = t1
-                    print "准备新建一个充电子回路"
+                    # print "准备新建一个充电子回路"
                     # 将同一个服务站的S的充电子回路添加到一个列表中
                     if len(R_list_result_temp) != 0:
                         R_list_result_temp[len(R_list_result_temp) - 1] = R_list
@@ -1467,19 +1516,19 @@ if __name__ == "__main__":
             # 要重新创建服务站S
             else:
                 # 添加上一个服务站S的回路总和
-                print "R_list_result_temp =", R_list_result_temp
+                # print "R_list_result_temp =", R_list_result_temp
                 R_list_result.append(R_list_result_temp)
-                print "之前那个回路的情况R_list_result=\n", R_list_result
+                # print "之前那个回路的情况R_list_result=\n", R_list_result
                 # 重新创建服务站S,服务站S的充电子回路重新创建
                 R_list_result_tour_list = []
                 R_list_result_temp = []
                 # 重新创建服务站S后，充电子回路计数重新开始
                 Tour_num = 1
-                print "表示当前服务站S不能为剩余的节点提供服务"
-                print "需要重新依附剩余能量最少的节点进行重新创建服务站S"
-                print "重新创建S，它会依附在最优的节点附近，运动几乎不花时间"
+                # print "表示当前服务站S不能为剩余的节点提供服务"
+                # print "需要重新依附剩余能量最少的节点进行重新创建服务站S"
+                # print "重新创建S，它会依附在最优的节点附近，运动几乎不花时间"
                 t_sum = 1.5
-                print "原来的N_i =", N_i
+                # print "原来的N_i =", N_i
                 # 这是剩下的界定，我们需要找到节点中剩余能量最少的，
                 # 创建服务站S时，将S依附在它附近
                 Min = 840000
@@ -1487,9 +1536,9 @@ if __name__ == "__main__":
                     if Min > Es_i[0][N_i[i]]:
                         Min = Es_i[0][N_i[i]]
                         S_position_Num = N_i[i]
-                print "当前选择节点S_position_Num =", S_position_Num, "为新建服务站依附的节点"
+                # print "当前选择节点S_position_Num =", S_position_Num, "为新建服务站依附的节点"
                 N_i[0] = S_position_Num
-                print "更新的N_i =", N_i
+                # print "更新的N_i =", N_i
                 # S 的坐标比较讲究，直接放在功耗最大的节点旁边
                 S = []
                 S_x = N_x_new[0][S_position_Num]
@@ -1506,23 +1555,38 @@ if __name__ == "__main__":
     print "\n"
     print "已经执行完后，补充添相关的数据"
     # 添加最后一个回路总和
-    print "R_list_result_temp", R_list_result_temp
+    # print "R_list_result_temp", R_list_result_temp
     R_list_result.append(R_list_result_temp)
-    print "所有回路的情况R_list_result=\n", R_list_result
+    # print "所有回路的情况R_list_result=\n", R_list_result
             
     N_x_final = N_x_new
     N_y_final = N_y_new
-    print "N_x_final =", N_x_final
-    print "N_y_final =", N_y_final
+    # print "N_x_final =", N_x_final
+    # print "N_y_final =", N_y_final
     
     result = ChildrenTourConstruction(N_x_final, N_y_final, obstacle_coordinate, R_list_result, S_Flag)
-    np.savetxt("result.txt",result[1], fmt='%d')
-    f1 = open('MCV_Tour.txt','w')
+    # 回路集合保存路径
+
+    f1 = open(MCV_Tour_txt, 'w')
     f1.write(str(result[0]))
     f1.close()
-    print "回路能量消耗的相关结果 result =\n", result
-    print "\n系统运行时间 Time_Sum =", Time_Sum, 's'
+    
+    # 回路消耗等相关数据的保存路径
+    np.savetxt(result_txt, result[1], fmt='%d')
+    
+    system_time = Time_Sum
+    print "回路集合结果 result[0] =\n", result[0]
+    print "回路消耗的相关结果 result[1] =\n", result[1]
+    print "\n系统运行时间 system_time =", system_time, 's'
     print "\n死亡节点的个数为 N_i_dead_num =", N_i_dead_num
     programing_end_time = time.time()
     print "程序运行总共耗时：", (programing_end_time - programing_start_time), "s"
+    ProgrammingTime = (programing_end_time - programing_start_time)
+    SystemTime_NodeDeadNum_ProgrammingTime_txt = os.path.join(childern_result_name, 'SystemTime_NodeDeadNum_ProgrammingTime.txt')
+    # 回路消耗等相关数据的保存路径
+    SystemTime_NodeDeadNum_ProgrammingTime_list = []
+    SystemTime_NodeDeadNum_ProgrammingTime_list.append(system_time)
+    SystemTime_NodeDeadNum_ProgrammingTime_list.append(N_i_dead_num)
+    SystemTime_NodeDeadNum_ProgrammingTime_list.append(ProgrammingTime)
     
+    np.savetxt(SystemTime_NodeDeadNum_ProgrammingTime_txt, SystemTime_NodeDeadNum_ProgrammingTime_list, fmt='%d')
