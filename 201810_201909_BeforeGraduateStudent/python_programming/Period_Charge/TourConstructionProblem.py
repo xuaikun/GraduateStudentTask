@@ -17,7 +17,7 @@ import os
 
 # 如果使用备份数据，则将 Backup_flag = True
 # 第一次运行，需要设置Backup_flag = False, 若之后想利用上一次数据，则设置Backup_flag = True
-Backup_flag = True
+Backup_flag = False
 
 # 数据结果保存路径 (需要使用自己电脑的路径),自己建立一个result文件
 result_path = "E:\\00000000000graduate-study\\GraduateStudentTask\\201810_201909_BeforeGraduateStudent\\python_programming\\Period_Charge\\result"
@@ -25,7 +25,7 @@ result_path = "E:\\00000000000graduate-study\\GraduateStudentTask\\201810_201909
 # 需要修改的变量
 
 # 节点数目 从 50 到 200 变化，将100节点的实验先 做全
-N = 3   # 假设我有N辆电单车  会影响程序运行的时间
+N = 5   # 假设我有N辆电单车  会影响程序运行的时间
 
 # 修改MCV的变量 每次 只修改一个
 # Em  数值从150kj 到400kj变化，间隔50kj变化
