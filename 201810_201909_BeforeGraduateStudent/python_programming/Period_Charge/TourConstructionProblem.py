@@ -17,7 +17,7 @@ import os
 
 # 如果使用备份数据，则将 Backup_flag = True
 # 第一次运行，需要设置Backup_flag = False, 若之后想利用上一次数据，则设置Backup_flag = True
-Backup_flag = False
+Backup_flag = True
 
 # 数据结果保存路径 (需要使用自己电脑的路径),自己建立一个result文件
 result_path = "E:\\00000000000graduate-study\\GraduateStudentTask\\201810_201909_BeforeGraduateStudent\\python_programming\\Period_Charge\\result"
@@ -25,13 +25,13 @@ result_path = "E:\\00000000000graduate-study\\GraduateStudentTask\\201810_201909
 # 需要修改的变量
 
 # 节点数目 从 50 到 200 变化，将100节点的实验先 做全
-N = 5   # 假设我有N辆电单车  会影响程序运行的时间
+N = 50   # 假设我有N辆电单车  会影响程序运行的时间
 
 # 修改MCV的变量 每次 只修改一个
 # Em  数值从150kj 到400kj变化，间隔50kj变化
 Em = 150000.0  # MC的总能量 j 
 # 测试过程中从4m/s 到10m/s 变化
-vm = 5.0  # MC的移动速度 m/s
+vm = 4.0  # MC的移动速度 m/s
 # 师姐看看从多少变到多少吧，哈哈哈
 qm = 55.0  # Mc移动功耗为 J/m
 qc = 40.0  # MCV充电传输速率 W
@@ -534,11 +534,18 @@ def ChildrenTourConstruction(x_new, y_new, obstacle_coordinate_new, R_result, S_
                     Time_ChildernTour = round((Time_ChildernTour + Change_Time[0][list_new[i]]),2)
                 # 求距离D
                 D = 0.0
+                Euclid_Distance = 0.0
                 # 计算一个充电回路的距离
                 for i in range(0, (len(list_new) - 1)):
+                    # 实际距离
                     D = D + N_distance[list_new[i]][list_new[i + 1]]
+                    # 欧几里得距离
+                    Euclid_Distance = Euclid_Distance + np.sqrt(np.power((x_new[0][list_new[i]] - x_new[0][list_new[i + 1]]), 2) +np.power((
+                            y_new[0][list_new[i]] - y_new[0][list_new[i + 1]]), 2))
                 # 将最后一个节点连接会对应的服务站S 
                 D = D + N_distance[list_new[len(list_new) - 1]][list_new[0]]
+                Euclid_Distance = Euclid_Distance + np.sqrt(np.power((x_new[0][list_new[len(list_new) - 1]] - x_new[0][list_new[0]]), 2) +np.power((
+                            y_new[0][list_new[len(list_new) - 1]] - y_new[0][list_new[0]]), 2))
                 # 求MCV走完整个回路需要多少时间
                 changetour_time = D/vm
                 # 走完整个回路所需能量（移动耗能）
@@ -552,6 +559,7 @@ def ChildrenTourConstruction(x_new, y_new, obstacle_coordinate_new, R_result, S_
                 ChildernTour_list.append(T)
                 ChildernTour_list.append(len(list_new) - 1)
                 ChildernTour_list.append(round(D, 2))
+                ChildernTour_list.append(round(Euclid_Distance, 2))   
                 # for i in range(0, len(list_new)):
                
                 # 把回路集合保存下来
