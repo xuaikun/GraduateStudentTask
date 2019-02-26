@@ -1088,7 +1088,7 @@ if __name__ == "__main__":
     alpha_temp = []
     for i in range(1 , len(N_i)):
         alpha_temp.append(alpha[0][i])
-  
+    time.sleep(1.5)
     end_time = time.time()
     t_sum = (end_time - start_time) 
     # 所有回路的结果

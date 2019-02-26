@@ -5,7 +5,7 @@
 # 充电效率，哈密顿回路，移动速度，节点之间的邻接矩阵，总周期
 # 算法输出：调度标志
 # 算法功能：判定一个充电回路P是否可调度
-def judging_whether_scheduled(P, Em, qc, qm, nl, R, vm, N_distance, T):
+def judging_whether_scheduled(P, Em, qc, qm, nl, R, vm, N_distance):
 
     # 统计R中节点个数
     R_len = len(R)
@@ -21,24 +21,31 @@ def judging_whether_scheduled(P, Em, qc, qm, nl, R, vm, N_distance, T):
 
     print "当前子回路的总距离D = ", D
     psum = 0
+    pmax = 0.0
     # 只计算当前加入子回路的电单车的功率
     for i in range(1, R_len):
         # S点的psum不计算
         psum = psum + P[0][R[i]]
+        # 获取当前回路中的功率最大点
+        if P[0][R[i]] > pmax:
+            pmax = P[0][R[i]] 
     # 保留两位小数
     psum = round(psum, 2)
     print "总能耗psum =", psum
-    # 两个决策条件
-    factor_1 = round((D*qc*nl)/(vm*(qc*nl-psum)), 2)
-    factor_2 = round(((psum*((D*qc)/(vm*(qc*nl-psum)))) + (D*qm)), 2)
+    # 三个决策条件
+    factor_1 = psum
+    factor_2 = round((D*qc*nl*pmax)/(qc*nl-psum), 2)
+    factor_3 = round(((psum*((D*qc)/(vm*(qc*nl-psum)))) + (D*qm)), 2)
     #  可调度的标志
     # success_flag = True 可调度
     # success_flag = False 不可调度
-    print "T =", T
+    print "qc*nl =", qc*nl
     print "factor_1 =", factor_1
-    print "Em =", Em
+    print "vm =", vm
     print "factor_2 =", factor_2
-    if T >= factor_1 and Em >= factor_2:
+    print "Em =", Em
+    print "factor_3 =", factor_3
+    if qc*nl > factor_1 and vm > factor_2 and Em >= factor_3:
         success_flag = True
     else:
         success_flag = False
