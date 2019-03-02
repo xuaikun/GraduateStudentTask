@@ -91,16 +91,17 @@ def AllNodeShow(x, y, obstacle_coordinate_new, obstacles_Num, kedu, S_Flag, edge
     ax.scatter(x_list, y_list,color = 'r',label = 'Node', marker = 'o')
     # ax.scatter(x_obstacle_list, y_obstacle_list,color = 'g', marker = '8')
     # S点为红色正方形，并且大一点
-    ax.scatter(x_list[0], y_list[0], s = 100, color = 'k',label = 'S', marker = 's')
+    # ax.scatter(x_list[0], y_list[0], s = 100, color = 'k',label = 'S', marker = 's')
     # 给S点标号
-    ax.text(x_list[0], y_list[0], S_Flag, fontsize=20)
+    # ax.text(x_list[0], y_list[0], S_Flag, fontsize=20)
     for i in range(1, len(y_list)):
         ax.text(x_list[i], y_list[i], i, fontsize = 10)
     # 图例位置
     ax.legend(loc='upper right', edgecolor='black')
     # 保存生成的图片
-    partPath = [str(int(time.time()))]
-    origin_path = partPath[0] + 'origin.png'  
+    # partPath = [str(int(time.time()))]
+    # origin_path = partPath[0] + 'origin.png'  
+    origin_path = 'origin.png'  
     
     All_path = os.path.join(childern_result_name, origin_path)
     plt.savefig(All_path)
@@ -159,3 +160,5 @@ def CreateDistanceNewMatrix(Road_information_temp, N_distance_temp, EdgeLength, 
     result_new.append(N_distance_temp)
     result_new.append(Road_information_temp)         
     return result_new
+
+

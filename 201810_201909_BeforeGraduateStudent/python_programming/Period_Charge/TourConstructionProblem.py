@@ -25,7 +25,7 @@ result_path = "E:\\00000000000graduate-study\\GraduateStudentTask\\201810_201909
 # 需要修改的变量
 
 # 节点数目 从 50 到 200 变化，将100节点的实验先 做全
-N = 50   # 假设我有N辆电单车  会影响程序运行的时间
+N = 5   # 假设我有N辆电单车  会影响程序运行的时间
 
 # 修改MCV的变量 每次 只修改一个
 # Em  数值从150kj 到400kj变化，间隔50kj变化
@@ -535,6 +535,7 @@ def ChildrenTourConstruction(x_new, y_new, obstacle_coordinate_new, R_result, S_
                 # 求距离D
                 D = 0.0
                 Euclid_Distance = 0.0
+                
                 # 计算一个充电回路的距离
                 for i in range(0, (len(list_new) - 1)):
                     # 实际距离
