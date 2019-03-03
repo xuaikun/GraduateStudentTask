@@ -17,17 +17,19 @@ from matplotlib.ticker import MultipleLocator
 # 调试程序的标志，DebugFlag = True 为调试
 # DebugFlag = False 不调试
 DebugFlag = False
+# 第一种出发机制对比实验中，固定缓冲池的大小
+RequestThreshold = 4
 
 # 使用备份数据时，UseBackupDataFlag = True
 # 不使用备份数据时，UseBackupDataFlag = False
 # 使用备份数据的条件，预先已经产生相关数据文件，否则不能使用备份数据
-UseBackupDataFlag = True
+UseBackupDataFlag = False
 # 数据结果保存路径 (需要使用自己电脑的路径),自己建立一个result文件
 result_path = "E:\\00000000000graduate-study\\GraduateStudentTask\\201810_201909_BeforeGraduateStudent\\python_programming\\Ondemand_Charge\\result"
 
 # 以下为数据初始化
 # 节点数目 从 50 到 200 变化，将100节点的实验先 做全# 假设我有N辆电单车  会影响程序运行的时间
-NodeNum = 10
+NodeNum = 40
 
 # 选择插入算法角度阈值设定
 # cos90 = 0
@@ -84,6 +86,9 @@ WAccuracy = 0.01
 
 # 坐标刻度
 kedu = 40
+
+# 电单车随机游走的时间为100s
+T_sum = 100
 
 # 定义并随机生成每个节点功率
 NodeP = np.empty([1, NodeNum + 1], float)
@@ -142,22 +147,171 @@ isExist = os.path.exists(childern_result_name)
 if not isExist:
     print "不存在该路径，创建对应路径"
     os.makedirs(childern_result_name)
+    
+First_path = os.path.join(childern_result_name, "First")
+isExist = os.path.exists(First_path)
+if not isExist:
+    print "不存在该路径，创建对应路径"
+    os.makedirs(First_path)
+    
+Second_path = os.path.join(childern_result_name, "Second")
+isExist = os.path.exists(Second_path)
+if not isExist:
+    print "不存在该路径，创建对应路径"
+    os.makedirs(Second_path)
 # 创建txt文件
-MCV_Tour_txt = os.path.join(childern_result_name, 'MCV_Tour_Set.txt')
-Compare_MCV_Tour_txt = os.path.join(childern_result_name, 'Compare_MCV_Tour_Set.txt')
-result_txt = os.path.join(childern_result_name, 'MCV_Tour_Information.txt')
-Compare_result_txt = os.path.join(childern_result_name, 'Compare_MCV_Tour_Information.txt')
 Obstacle_information_data_txt = os.path.join(result_name, 'Obstacle_information_data.txt')
 Node_information_data_txt = os.path.join(result_name, 'Node_information_data.txt')
 
-AECR_Txt = os.path.join(childern_result_name, 'AECRData.txt')
-AFP_Txt = os.path.join(childern_result_name, 'AFPData.txt')
+# 第一种出发机制的生成的一些txt文档   
+CompareFirst_MCV_Tour_Set_txt = os.path.join(First_path, 'CompareFirst_MCV_Tour_Set.txt')
+CompareFirst_MCV_Tour_Information_txt = os.path.join(First_path, 'CompareFirst_MCV_Tour_Information.txt')
+CompareFirstDeadNodeNum_data_txt  = os.path.join(First_path, 'CompareFirstDeadNodeNum_data.txt')
+ 
 
-El_wBest_Txt = os.path.join(childern_result_name, 'El_wBestData.txt')
+# 第二种出发机制的生成的一些txt文档   
+SecondMCV_Tour_Set_txt = os.path.join(Second_path, 'SecondMCV_Tour_Set.txt')
+CompareSecond_MCV_Tour_Set_txt = os.path.join(Second_path, 'CompareSecond_MCV_Tour_Set.txt')
 
+SecondMCV_Tour_Information_txt = os.path.join(Second_path, 'SecondMCV_Tour_Information.txt')
+CompareSecond_MCV_Tour_Information_txt = os.path.join(Second_path, 'CompareSecond_MCV_Tour_Information.txt')
+
+AECR_Txt = os.path.join(Second_path, 'SecondAECRData.txt')
+AFP_Txt = os.path.join(Second_path, 'SecondAFPData.txt')
+
+El_wBest_Txt = os.path.join(Second_path, 'SecondEl_wBestData.txt')
+
+SecondDeadNodeNum_txt = os.path.join(Second_path, 'SecondDeadNodeNum.txt')
+CompareSecondDeadNodeNum_txt = os.path.join(Second_path, 'CompareSecondDeadNodeNum.txt')
+
+#  使用备份数据
+def UseBackupData():
+    ObstacleCoordinate = np.loadtxt(Obstacle_information_data_txt, dtype = np.int)
+         
+    ObstacleXDown[0] = ObstacleCoordinate[0]
+    ObstacleXUp[0]   = ObstacleCoordinate[1]
+    ObstacleYDown[0] = ObstacleCoordinate[2]
+    ObstacleYUp[0]   = ObstacleCoordinate[3]
+    # print "obstacle_coordinate =", obstacle_coordinate
+    # print "len(obstacle_coordinate) =", len(obstacle_coordinate )
+    
+    # 导入节点相关数据
+    data = np.loadtxt(Node_information_data_txt)
+    # print "data =", data
+    # print "len(data) =", len(data)
+    NodeP[0] = data[0]
+    # print "P_i[0] =", P_i[0] 
+    NodeEs[0] = data[1]
+    # print "Es_i[0] =", Es_i[0]
+    Alpha[0] = data[2]
+    # print "alpha[0] =", alpha[0]
+    NodeXCoordinate[0] = data[3]
+    # print "N_x[0] =", N_x[0]
+    NodeYCoordinate[0] = data[4]
+    # print "N_y[0] =", N_y[0]
+    NodeChangeFrequency[0] = data[5]
+    return ObstacleCoordinate
+
+# 添加充电回路相关信息
+def TourConstructionInformation(R_Sum, NodeEs, DeadNodeNum_data_txt, N_distance, NodeXCoordinateNew, NodeYCoordinateNew, MCV_Tour_Set_txt, MCV_Tour_Information_txt, ObstacleCoordinate, FlagNum):
+    print "充电回路汇总"
+    print "R_Sum =", R_Sum
+    if DebugFlag is True:
+        print "len(R_Sum) =", len(R_Sum)
+        print "节点剩余能量 NodeEs[0] =", NodeEs[0]
+    # 总结死亡节点数量，通过剩余能量来判断
+    print "NodeEs[0] =", NodeEs[0]
+    
+    # 用输入的节点的数量进行统计
+    DeadNodeNum = 0
+    for i in range(1, NodeNum):
+        # 一个节点剩余能量低于0时，表明该节点已经死亡
+        if NodeEs[0][i] <= 0:
+            DeadNodeNum = DeadNodeNum + 1
+    print "死亡节点个数DeadNodeNum =", DeadNodeNum
+    f1 = open(DeadNodeNum_data_txt, 'w')
+    f1.write(str(DeadNodeNum))
+    f1.close()
+
+    # 充电回路标号
+    MCV_Num = 0
+    # 充电回路的详细信息集合
+    DataStore_list_sum = []
+    
+    for i in range(0, len(R_Sum)):
+        DataStore_list = []
+        print "R_Sum[i] =\n", R_Sum[i]
+        ChargingTour = R_Sum[i]
+        print "len(ChargingTour) =", len(ChargingTour)
+        # 单充电子回路充电能量总和初始化
+        ChargingTour_Es = 0.0
+        # 单充电子回路充电时间总和初始化
+        ChargingTour_Time = 0.0
+        for j in range(1, len(ChargingTour)):
+            Es = NodeEsValue - NodeEs[0][ChargingTour[j]]
+            # MCV在整个充电子回路中充电所需能量
+            ChargingTour_Es = ChargingTour_Es +  Es
+            # MCV在整个充电子回路中充电消耗的时间
+            ChargingTour_Time = ChargingTour_Time + Es/Qc 
+        # 实际距离初始化
+        D = 0.0
+        # 欧几里得距离初始化
+        Euclid_D = 0.0
+        # 计算一个充电回路的距离
+        for j in range(0, (len(ChargingTour) - 1)):
+            # 实际距离
+            D = D + N_distance[ChargingTour[j]][ChargingTour[j + 1]]
+            # print "N_distance[", ChargingTour[j], "][", ChargingTour[j + 1], "] =", N_distance[ChargingTour[j]][ChargingTour[j + 1]]
+            # 欧几里得距离
+            Euclid_D = Euclid_D + np.sqrt(np.power((NodeXCoordinateNew[0][ChargingTour[j]] - NodeXCoordinateNew[0][ChargingTour[j + 1]]), 2) +np.power((
+                    NodeYCoordinateNew[0][ChargingTour[j]] - NodeYCoordinateNew[0][ChargingTour[j + 1]]), 2))
+        # 将最后一个节点连接会对应的服务站S 
+        D = D + N_distance[ChargingTour[len(ChargingTour) - 1]][ChargingTour[0]]
+        # print "N_distance[", ChargingTour[len(ChargingTour) - 1], "][", ChargingTour[0], "] =", N_distance[len(ChargingTour) - 1][ChargingTour[0]]
+        Euclid_D = Euclid_D + np.sqrt(np.power((NodeXCoordinateNew[0][ChargingTour[len(ChargingTour) - 1]] - NodeXCoordinateNew[0][ChargingTour[0]]), 2) +np.power((
+                    NodeYCoordinateNew[0][ChargingTour[len(ChargingTour) - 1]] - NodeYCoordinateNew[0][ChargingTour[0]]), 2))
+        # 求MCV走完整个回路需要多少时间
+        Move_time = D/Vm
+        # 走完整个回路所需能量（移动耗能）
+        Move_Es = Move_time*Qm
+
+        # 添加充电回路的名字
+        DataStore_list.append(MCV_Num)
+        # 添加MCV给这个回路充电的电量
+        DataStore_list.append(round(ChargingTour_Es, 2))
+        # 添加MCV在这个回路中的移动能耗
+        DataStore_list.append(round(Move_Es, 2))
+        # 添加MCV的总能量
+        DataStore_list.append(Em)
+        # 添加MCV给这个回路充电的时间
+        DataStore_list.append(round(ChargingTour_Time, 2))
+        # 添加MCV在这个回路中移动所花时间
+        DataStore_list.append(round(Move_time, 2))
+        # 添加周期时间
+        DataStore_list.append(T)
+        # 添加充电回路的吞吐量
+        DataStore_list.append(len(ChargingTour) - 1)
+        # 添加回路的路径长度（实际）
+        DataStore_list.append(round(D, 2))
+        # 添加回路路径长度（欧几里得路径）
+        DataStore_list.append(round(Euclid_D, 2))
+        # 执行完一个充电回路，回路名字加1
+        MCV_Num = MCV_Num + 1
+        if DebugFlag is True:
+            print "DataStore_list =\n", DataStore_list
+        DataStore_list_sum.append(DataStore_list)
+    print "DataStore_list_sum =\n", DataStore_list_sum   
+    f1 = open(MCV_Tour_Set_txt, 'w')
+    f1.write(str(R_Sum))
+    f1.close()
+    # 回路消耗等相关数据的保存路径
+    np.savetxt(MCV_Tour_Information_txt, DataStore_list_sum, fmt='%0.2f')
+    ChildrenTourConstruction(NodeXCoordinateNew, NodeYCoordinateNew, ObstacleCoordinate, R_Sum, 'S', NodeNum, FlagNum)
+    return
+    
 
 # 将子回路首尾连接起来
-def ChildrenTourConstruction(x_new, y_new, obstacle_coordinate_new, R_result, S_Flag_new, N):
+def ChildrenTourConstruction(x_new, y_new, obstacle_coordinate_new, R_result, S_Flag_new, N, GraphName):
     print "模拟轨迹##########\n"
     Style_num = 0
     Color_num = 0
@@ -294,21 +448,220 @@ def ChildrenTourConstruction(x_new, y_new, obstacle_coordinate_new, R_result, S_
     plt.legend(loc='upper right', edgecolor='black')
     ax.legend(loc='upper right', edgecolor='black')
     # 保存生成的图片
-    partPath = [str(int(time.time()))]
-    origin_path = partPath[0] + 'OneToOtherlink.png'  
-    All_path = os.path.join(childern_result_name, origin_path)
+    if GraphName == 0:
+        
+        origin_path = 'SecondFinal.png'  
+        All_path = os.path.join(Second_path, origin_path)
+    if GraphName == 1:
+        
+        origin_path = 'CompareSecondFinal.png'  
+        All_path = os.path.join(Second_path, origin_path)
+    if GraphName == 2:
+        
+        origin_path = 'CompareFirstFinal.png'  
+        All_path = os.path.join(First_path, origin_path)
+    if GraphName == 3:
+        
+        origin_path = 'FirstFinal.png'  
+        All_path = os.path.join(First_path, origin_path)
     plt.savefig(All_path)
     plt.xlim([0 - 1, EdgeLength + 1]) #设置绘图X边界                                                                                                   
     plt.ylim([0 - 1, EdgeLength + 1]) #设置绘图Y边界
     plt.show()
-
     return 
 
+# 初始化函数
+def Init(NodeNum, NodeXCoordinate, NodeYCoordinate, NodeP, NodeEs, ObstacleCoordinate, ObstaclesNum, EdgeLength):
+    # 保存节点序号的
+    NodeList = []
+    # 备份节点标号
+    NodeListBackup = []
+    for i in range(0, NodeNum + 1):     
+        NodeList.append(i)
+        NodeListBackup.append(i)
+    # 打印节点生成的节点
+    print "节点序号 NodeList =", NodeList
+    # 将节点坐标进行备份
+    NodeXCoordinateNew = NodeXCoordinate
+    NodeYCoordinateNew = NodeYCoordinate
+    # 打印节点功率
+    print "节点功率 NodeP[0]=", NodeP[0]
+    print "节点能量 NodeEs[0]=", NodeEs[0]
+    # 将功率大的节点作为首先部署服务站S的位置，因为功率是已知的，故不适用剩余能量进行判断
+    # 初始化功率最大为 NodePMax = 0
+    NodePMax = 0  
+    for i in range(1, NodeNum + 1):
+        if NodePMax <  NodeP[0][NodeList[i]] :
+            # 更新当前最大的功率的点
+            NodePMax = NodeP[0][NodeList[i]]
+            # 保存功率最大的节点
+            NodePMaxNode = NodeList[i]
+    print "功率最大的节点是：", NodePMaxNode
+    # 把第一个服务站S依附的节点的序号放在NodeList序列中的第一个位置
+    NodeList[0] = NodePMaxNode
+    NodeListBackup[0] = NodePMaxNode 
+    # S&1表示服务站依附在节点1处,用SLabel表示
+    SLabel= 'S' + '&' + str(NodePMaxNode)
+    # S表示充电桩的位置，它的开始时坐标的确定，主要是，靠近功率最大的点
+    SCoordinate = []
+    # S 的坐标比较讲究，直接放在功耗最大的节点旁边
+    SNodeXCoordinate = NodeXCoordinateNew[0][NodePMaxNode]
+    SNodeYCoordinate = NodeYCoordinateNew[0][NodePMaxNode]
+    SCoordinate.append(SNodeXCoordinate)
+    SCoordinate.append(SNodeYCoordinate)
+    print "充电桩坐标为：", (SCoordinate[0], SCoordinate[1])
+    # 表示充电桩S的坐标，加入了N中
+    NodeXCoordinateNew[0][0] = SCoordinate[0]
+    NodeYCoordinateNew[0][0] = SCoordinate[1]
+    x = []
+    y = []
+    # 将每个节点添加如x和y列表中
+    for i in range(0, NodeNum + 1):
+        x.append(NodeXCoordinate[0][i])
+        y.append(NodeYCoordinate[0][i])
+    # 将电单车和服务站的分布用图呈现出来
+    F.AllNodeShow(x, y, ObstacleCoordinate, ObstaclesNum, CoordinateScale, SLabel, EdgeLength, childern_result_name)
+    result = []
+    result.append(NodeList)
+    result.append(NodeListBackup)
+    result.append(NodeXCoordinateNew)
+    result.append(NodeYCoordinateNew)
+    return result
+
+# 修改坐标信息
+def ChangeCoordinate(i, El, NodeList, NodeEs, NodeP, t_sum, NodeEsBackup, NodeMoveTime, NodeXCoordinateNew, NodeYCoordinateNew, V, Alpha, AlphaValue, EdgeLength, ObstacleCoordinate, ObstaclesNum):
+    # 修改节点能量
+    NodeEs[0][NodeList[i]] = round((NodeEs[0][NodeList[i]] - NodeP[0][NodeList[i]]*t_sum), 2)
+    if DebugFlag is True:
+        print "预计消耗的能量 NodeP[0][NodeList[i]]*t =", NodeP[0][NodeList[i]]*t_sum, 'j'
+        print "能量阈值下限 El =", El, 'j'
+    
+    # 能量将低于阈值下限
+    if NodeEs[0][NodeList[i]] <= El:
+        if NodeEsBackup[i] <= El:
+            if DebugFlag is True:
+                print "case 1"
+                print "之前该节点已经失效，不再参与计算"
+            # 剩余能量还是上次备份的能量
+            NodeEs[0][NodeList[i]] = NodeEsBackup[i]
+        else:
+            if DebugFlag is True:
+                print "case 2"
+                print "NodeEs[0][NodeList[i]]  =", NodeEs[0][NodeList[i]]
+                print "节点实际消耗的能量为", NodeEsBackup[i] - El, 'j'
+            # 修改节点剩余能量,该点变为静态点了
+            NodeEs[0][NodeList[i]] = El
+            if DebugFlag is True:
+                print "节点实际运动的时间为", (NodeEsBackup[i] - El)/NodeP[0][NodeList[i]], 's'
+            NodeMoveTime[0][NodeList[i]] = (NodeEsBackup[i] - El)/NodeP[0][NodeList[i]]
+    # 能量不会低于阈值下限
+    if NodeEs[0][NodeList[i]] > El:
+        if DebugFlag is True:
+            print "case 3"
+            print "NodeEs[0][NodeList[i]]  =", NodeEs[0][NodeList[i]]
+            print "节点实际消耗的能量为", NodeP[0][NodeList[i]]*t_sum, 'j'
+            print "节点实际运动的时间为", t_sum, 's'
+        NodeMoveTime[0][NodeList[i]] = t_sum
+    if DebugFlag is True:
+        print "NodeMoveTime[0] =", NodeMoveTime[0]
+           
+    # 修改节点的运动时间，因为当节点能量小于阈值El时，电单车节点变为静态节点，保留阈值El能量
+    t = NodeMoveTime[0][NodeList[i]]
+    # 考虑到边界问题，先将改变之前的坐标记录下来
+    N_x_new_temp = NodeXCoordinateNew[0][NodeList[i]]
+    N_y_new_temp = NodeYCoordinateNew[0][NodeList[i]] 
+    N_x_new_temp_new = NodeXCoordinateNew[0][NodeList[i]]
+    N_y_new_temp_new = NodeYCoordinateNew[0][NodeList[i]]
+    # 更新节点坐标
+    NodeXCoordinateNew[0][NodeList[i]] = round((NodeXCoordinateNew[0][NodeList[i]] + V*t*math.cos(Alpha[0][NodeList[i]]/180.0*math.pi)), 2)
+    NodeYCoordinateNew[0][NodeList[i]] = round((NodeYCoordinateNew[0][NodeList[i]] + V*t*math.sin(Alpha[0][NodeList[i]]/180.0*math.pi)), 2)
+    # 检查坐标有没有超过边界, 表示超界了，表示当前需要改变运行方向
+    # 为什么用while（）一定保证，坐标合理才能进行下一步操作
+    # 为了在运动时避开障碍，设置两种状态
+    # （1）在无障碍情况下计算距离
+    # （2）在有障碍的情况下再计算一次距离
+    # 如果两次距离相等，则中途没有障碍，可以直接到达目的位置
+    # 反之，不相等，则中途出现障碍，不能直接到达目的地，需要改变运动方向
+    # obstacle_flag = True 表明空间存在障碍
+    while True:
+        # 判断坐标是否越界
+        while((NodeXCoordinateNew[0][NodeList[i]] < 1 or NodeXCoordinateNew[0][NodeList[i]] > EdgeLength) or (
+                NodeYCoordinateNew[0][NodeList[i]] < 1 or NodeYCoordinateNew[0][NodeList[i]] > EdgeLength)): 
+            # 更新电单车运动方向 改变方向幅度不能太大                        
+            Alpha[0][NodeList[i]] = (Alpha[0][NodeList[i]] + AlphaValue)%360
+
+            # 用上面备份的当前的坐标，重新往重新生成的方向前进
+            NodeXCoordinateNew[0][NodeList[i]] = round((N_x_new_temp + V*t*math.cos(Alpha[0][NodeList[i]]/180.0*math.pi)), 2)
+            NodeYCoordinateNew[0][NodeList[i]] = round((N_y_new_temp + V*t*math.sin(Alpha[0][NodeList[i]]/180.0*math.pi)), 2)
+            
+        # 越界处理完成的标志，表示已经不越界
+        crossing_flag = True
+        # 还得保证当前终点不属于任何一个障碍区域内
+        first_coordinate = []
+        second_coordinate = []
+        first_coordinate.append(N_x_new_temp)
+        first_coordinate.append(N_y_new_temp)
+        second_coordinate.append(NodeXCoordinateNew[0][NodeList[i]])
+        second_coordinate.append(NodeYCoordinateNew[0][NodeList[i]])
+        # 有障碍 的二维空间
+        distance_obstacle =A.a_star_algorithm(EdgeLength, first_coordinate, second_coordinate, ObstacleCoordinate, ObstaclesNum, True)
+       
+        # 判断是否需要变向
+        change_direction_flag = True
+        # 如果终点坐标在障碍区域内，也需要改变运动方向
+        if distance_obstacle[0] is False:
+            change_direction_flag = False
+            # 更新电单车运动方向 改变方向幅度不能太大
+            Alpha[0][NodeList[i]] = (Alpha[0][NodeList[i]] + AlphaValue)%360
+            # 用上面备份的当前的坐标，重新往重新生成的方向前进
+            NodeXCoordinateNew[0][NodeList[i]] = round((N_x_new_temp + V*t*math.cos(Alpha[0][NodeList[i]]/180.0*math.pi)), 2)
+            NodeYCoordinateNew[0][NodeList[i]] = round((N_y_new_temp + V*t*math.sin(Alpha[0][NodeList[i]]/180.0*math.pi)), 2)                    
+        # 终点不在障碍区域内，则开始计算无障碍二维空间中的亮点之间的距离
+        else:
+            first_coordinate = []
+            second_coordinate = []
+            first_coordinate.append(N_x_new_temp_new)
+            first_coordinate.append(N_y_new_temp_new)
+            second_coordinate.append(NodeXCoordinateNew[0][NodeList[i]])
+            second_coordinate.append(NodeYCoordinateNew[0][NodeList[i]])
+            # 无障碍二维空间
+            distance_no_obstacle =A.a_star_algorithm(EdgeLength, first_coordinate, second_coordinate, ObstacleCoordinate, ObstaclesNum, False)
+            
+            distance_obstacle_result = []
+            distance_obstacle_result.append(distance_obstacle[0])
+            distance_obstacle_result.append(distance_obstacle[1])
+            distance_obstacle_result.append(distance_obstacle[2])
+            distance_obstacle_result.append(distance_obstacle[3])
+            distance_obstacle_result.append(distance_obstacle[4])
+
+            distance_no_obstacle_result = []
+            distance_no_obstacle_result.append(distance_no_obstacle[0])
+            distance_no_obstacle_result.append(distance_no_obstacle[1])
+            distance_no_obstacle_result.append(distance_no_obstacle[2])
+            distance_no_obstacle_result.append(distance_no_obstacle[3])
+            distance_no_obstacle_result.append(distance_no_obstacle[4])
+        
+            # 表明两次同一点同一终点，所得距离不相等，说明行驶过程中遇到障碍，需要变向
+            # 终点在障碍区域内或者运动过程中遇到障碍都将改变即将到达的位置的坐标
+            if distance_no_obstacle[3] != distance_obstacle[3]:
+                change_direction_flag = False
+                # 更新电单车运动方向 改变方向幅度不能太大
+                Alpha[0][NodeList[i]] = (Alpha[0][NodeList[i]] + AlphaValue)%360
+                # 用上面备份的当前的坐标，重新往重新生成的方向前进
+                NodeXCoordinateNew[0][NodeList[i]] = round((N_x_new_temp + V*t*math.cos(Alpha[0][NodeList[i]]/180.0*math.pi)), 2)
+                NodeYCoordinateNew[0][NodeList[i]] = round((N_y_new_temp + V*t*math.sin(Alpha[0][NodeList[i]]/180.0*math.pi)), 2)
+                # print "遇到障碍重新更新坐标为：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
+            if crossing_flag is True and change_direction_flag is True:
+                # 起点到终点途中不存在障碍或终点不存在与障碍区域
+                # 退出while()
+                break
+    return
 
 if __name__ == "__main__":
     print "Programming is Begin……"
     ProgrammingStartTime = time.time()
     # 不使用备份数据时，备份数据标志为False
+    
     if UseBackupDataFlag is False:
         # 返回障碍区域即：障碍的坐标
         ObstacleCoordinate = F.SetObstacles(ObstaclesNum, EdgeLength, ObstacleLength)
@@ -400,89 +753,29 @@ if __name__ == "__main__":
         # print "N_x[0] =", N_x[0]
         data.append(NodeYCoordinate[0])
         # print "N_y[0] =", N_y[0]
+        data.append(NodeChangeFrequency[0])
         # 保存节点相关数据
         # np.savetxt("Node_information_data.txt", data)
         np.savetxt(Node_information_data_txt, data, fmt='%0.2f')
 
     # 使用备份数据的标志为真时，使用上次已经备份的数据
     if UseBackupDataFlag is True:
-        ObstacleCoordinate = np.loadtxt(Obstacle_information_data_txt, dtype = np.int)
-         
-        ObstacleXDown[0] = ObstacleCoordinate[0]
-        ObstacleXUp[0]   = ObstacleCoordinate[1]
-        ObstacleYDown[0] = ObstacleCoordinate[2]
-        ObstacleYUp[0]   = ObstacleCoordinate[3]
-        # print "obstacle_coordinate =", obstacle_coordinate
-        # print "len(obstacle_coordinate) =", len(obstacle_coordinate )
-        
-        # 导入节点相关数据
-        data = np.loadtxt(Node_information_data_txt)
-        # print "data =", data
-        # print "len(data) =", len(data)
-        NodeP[0] = data[0]
-        # print "P_i[0] =", P_i[0] 
-        NodeEs[0] = data[1]
-        # print "Es_i[0] =", Es_i[0]
-        Alpha[0] = data[2]
-        # print "alpha[0] =", alpha[0]
-        NodeXCoordinate[0] = data[3]
-        # print "N_x[0] =", N_x[0]
-        NodeYCoordinate[0] = data[4]
-        # print "N_y[0] =", N_y[0]
+        ObstacleCoordinate = UseBackupData()
 
-
+    print "第二种出发机制,接收到ALERT信息，MCV即刻出发进行充电"
+    
+    # 初始化函数
     # 保存节点序号的
     NodeList = []
     # 备份节点标号
     NodeListBackup = []
-    for i in range(0, NodeNum + 1):     
-        NodeList.append(i)
-        NodeListBackup.append(i)
-    # 打印节点生成的节点
-    print "节点序号 NodeList =", NodeList
-    # 将节点坐标进行备份
-    NodeXCoordinateNew = NodeXCoordinate
-    NodeYCoordinateNew = NodeYCoordinate
-    # 打印节点功率
-    print "节点功率 NodeP[0]=", NodeP[0]
-    print "节点能量 NodeEs[0]=", NodeEs[0]
-    # 将功率大的节点作为首先部署服务站S的位置，因为功率是已知的，故不适用剩余能量进行判断
-    # 初始化功率最大为 NodePMax = 0
-    NodePMax = 0  
-    for i in range(1, NodeNum + 1):
-        if NodePMax <  NodeP[0][NodeList[i]] :
-            # 更新当前最大的功率的点
-            NodePMax = NodeP[0][NodeList[i]]
-            # 保存功率最大的节点
-            NodePMaxNode = NodeList[i]
-    print "功率最大的节点是：", NodePMaxNode
-    # 把第一个服务站S依附的节点的序号放在NodeList序列中的第一个位置
-    NodeList[0] = NodePMaxNode
-    NodeListBackup[0] = NodePMaxNode 
-    # S&1表示服务站依附在节点1处,用SLabel表示
-    SLabel= 'S' + '&' + str(NodePMaxNode)
-    # S表示充电桩的位置，它的开始时坐标的确定，主要是，靠近功率最大的点
-    SCoordinate = []
-    # S 的坐标比较讲究，直接放在功耗最大的节点旁边
-    SNodeXCoordinate = NodeXCoordinateNew[0][NodePMaxNode]
-    SNodeYCoordinate = NodeYCoordinateNew[0][NodePMaxNode]
-
-    SCoordinate.append(SNodeXCoordinate)
-    SCoordinate.append(SNodeYCoordinate)
-    print "充电桩坐标为：", (SCoordinate[0], SCoordinate[1])
-    # 表示充电桩S的坐标，加入了N中
-    NodeXCoordinateNew[0][0] = SCoordinate[0]
-    NodeYCoordinateNew[0][0] = SCoordinate[1]
-    x = []
-    y = []
-    # 将每个节点添加如x和y列表中
-    for i in range(0, NodeNum + 1):
-        x.append(NodeXCoordinate[0][i])
-        y.append(NodeYCoordinate[0][i])
-    # 将电单车和服务站的分布用图呈现出来
-    F.AllNodeShow(x, y, ObstacleCoordinate, ObstaclesNum, CoordinateScale, SLabel, EdgeLength, childern_result_name)
+    result = Init(NodeNum, NodeXCoordinate, NodeYCoordinate, NodeP, NodeEs, ObstacleCoordinate, ObstaclesNum, EdgeLength)
+    NodeList = result[0]
+    NodeListBackup = result[1]
+    NodeXCoordinateNew = result[2]
+    NodeYCoordinateNew = result[3]
     
-     # 程序开始运行，计时开始
+    # 程序开始运行，计时开始
     # start_time = time.time()
     # time.sleep(1.5)
     # end_time = time.time()
@@ -509,7 +802,7 @@ if __name__ == "__main__":
             if NodeALERTFlag is False:
                 if DebugFlag is True:
                     print "随意游走100s"
-                t_sum = 100
+                t_sum = T_sum
                 if DebugFlag is True:
                     print "已经操作到N_i中第", OperateMNodeNum, "个数"
                     print "N_i中之前共有", NodeListNum,"个数"
@@ -689,9 +982,11 @@ if __name__ == "__main__":
                             print "El小于0,修改下限 ElFinal =", El
                     # El不能大于Et
                     if El >= Et:
-                        print "El 大于Et~"
+                        if DebugFlag is True:
+                            print "El 大于Et~"
                         El = Et - ElThresholdValue
-                        print "El修改为El =", El
+                        if DebugFlag is True:
+                            print "El修改为El =", El
                     Ellist = []
                     Ellist.append(El)
                     Ellist.append(wBest)
@@ -709,130 +1004,8 @@ if __name__ == "__main__":
                 # 更新节点剩余的能量  # 不仅仅是考虑边界，还得考虑运动过程中，遇到障碍应该避开
                 for i in range(1, len(NodeList)):
                     # 修改节点能量
-                    NodeEs[0][NodeList[i]] = round((NodeEs[0][NodeList[i]] - NodeP[0][NodeList[i]]*t_sum), 2)
-                    if DebugFlag is True:
-                        print "预计消耗的能量 NodeP[0][NodeList[i]]*t =", NodeP[0][NodeList[i]]*t_sum, 'j'
-                        print "能量阈值下限 El =", El, 'j'
+                    ChangeCoordinate(i, El, NodeList, NodeEs, NodeP, t_sum, NodeEsBackup, NodeMoveTime, NodeXCoordinateNew, NodeYCoordinateNew, V, Alpha, AlphaValue, EdgeLength, ObstacleCoordinate, ObstaclesNum)
                     
-                    # 能量将低于阈值下限
-                    if NodeEs[0][NodeList[i]] <= El:
-                        if NodeEsBackup[i] <= El:
-                            if DebugFlag is True:
-                                print "case 1"
-                                print "之前该节点已经失效，不再参与计算"
-                            # 剩余能量还是上次备份的能量
-                            NodeEs[0][NodeList[i]] = NodeEsBackup[i]
-                        else:
-                            if DebugFlag is True:
-                                print "case 2"
-                                print "NodeEs[0][NodeList[i]]  =", NodeEs[0][NodeList[i]]
-                                print "节点实际消耗的能量为", NodeEsBackup[i] - El, 'j'
-                            # 修改节点剩余能量,该点变为静态点了
-                            NodeEs[0][NodeList[i]] = El
-                            if DebugFlag is True:
-                                print "节点实际运动的时间为", (NodeEsBackup[i] - El)/NodeP[0][NodeList[i]], 's'
-                            NodeMoveTime[0][NodeList[i]] = (NodeEsBackup[i] - El)/NodeP[0][NodeList[i]]
-                    # 能量不会低于阈值下限
-                    if NodeEs[0][NodeList[i]] > El:
-                        if DebugFlag is True:
-                            print "case 3"
-                            print "NodeEs[0][NodeList[i]]  =", NodeEs[0][NodeList[i]]
-                            print "节点实际消耗的能量为", NodeP[0][NodeList[i]]*t_sum, 'j'
-                            print "节点实际运动的时间为", t_sum, 's'
-                        NodeMoveTime[0][NodeList[i]] = t_sum
-                    if DebugFlag is True:
-                        print "NodeMoveTime[0] =", NodeMoveTime[0]
-                           
-                    # 修改节点的运动时间，因为当节点能量小于阈值El时，电单车节点变为静态节点，保留阈值El能量
-                    t = NodeMoveTime[0][NodeList[i]]
-                    # 考虑到边界问题，先将改变之前的坐标记录下来
-                    N_x_new_temp = NodeXCoordinateNew[0][NodeList[i]]
-                    N_y_new_temp = NodeYCoordinateNew[0][NodeList[i]] 
-                    N_x_new_temp_new = NodeXCoordinateNew[0][NodeList[i]]
-                    N_y_new_temp_new = NodeYCoordinateNew[0][NodeList[i]]
-                    # 更新节点坐标
-                    NodeXCoordinateNew[0][NodeList[i]] = round((NodeXCoordinateNew[0][NodeList[i]] + V*t*math.cos(Alpha[0][NodeList[i]]/180.0*math.pi)), 2)
-                    NodeYCoordinateNew[0][NodeList[i]] = round((NodeYCoordinateNew[0][NodeList[i]] + V*t*math.sin(Alpha[0][NodeList[i]]/180.0*math.pi)), 2)
-                    # 检查坐标有没有超过边界, 表示超界了，表示当前需要改变运行方向
-                    # 为什么用while（）一定保证，坐标合理才能进行下一步操作
-                    # 为了在运动时避开障碍，设置两种状态
-                    # （1）在无障碍情况下计算距离
-                    # （2）在有障碍的情况下再计算一次距离
-                    # 如果两次距离相等，则中途没有障碍，可以直接到达目的位置
-                    # 反之，不相等，则中途出现障碍，不能直接到达目的地，需要改变运动方向
-                    # obstacle_flag = True 表明空间存在障碍
-                    while True:
-                        # 判断坐标是否越界
-                        while((NodeXCoordinateNew[0][NodeList[i]] < 1 or NodeXCoordinateNew[0][NodeList[i]] > EdgeLength) or (
-                                NodeYCoordinateNew[0][NodeList[i]] < 1 or NodeYCoordinateNew[0][NodeList[i]] > EdgeLength)): 
-                            # 更新电单车运动方向 改变方向幅度不能太大                        
-                            Alpha[0][NodeList[i]] = (Alpha[0][NodeList[i]] + AlphaValue)%360
-    
-                            # 用上面备份的当前的坐标，重新往重新生成的方向前进
-                            NodeXCoordinateNew[0][NodeList[i]] = round((N_x_new_temp + V*t*math.cos(Alpha[0][NodeList[i]]/180.0*math.pi)), 2)
-                            NodeYCoordinateNew[0][NodeList[i]] = round((N_y_new_temp + V*t*math.sin(Alpha[0][NodeList[i]]/180.0*math.pi)), 2)
-                            
-                        # 越界处理完成的标志，表示已经不越界
-                        crossing_flag = True
-                        # 还得保证当前终点不属于任何一个障碍区域内
-                        first_coordinate = []
-                        second_coordinate = []
-                        first_coordinate.append(N_x_new_temp)
-                        first_coordinate.append(N_y_new_temp)
-                        second_coordinate.append(NodeXCoordinateNew[0][NodeList[i]])
-                        second_coordinate.append(NodeYCoordinateNew[0][NodeList[i]])
-                        # 有障碍 的二维空间
-                        distance_obstacle =A.a_star_algorithm(EdgeLength, first_coordinate, second_coordinate, ObstacleCoordinate, ObstaclesNum, True)
-                       
-                        # 判断是否需要变向
-                        change_direction_flag = True
-                        # 如果终点坐标在障碍区域内，也需要改变运动方向
-                        if distance_obstacle[0] is False:
-                            change_direction_flag = False
-                            # 更新电单车运动方向 改变方向幅度不能太大
-                            Alpha[0][NodeList[i]] = (Alpha[0][NodeList[i]] + AlphaValue)%360
-                            # 用上面备份的当前的坐标，重新往重新生成的方向前进
-                            NodeXCoordinateNew[0][NodeList[i]] = round((N_x_new_temp + V*t*math.cos(Alpha[0][NodeList[i]]/180.0*math.pi)), 2)
-                            NodeYCoordinateNew[0][NodeList[i]] = round((N_y_new_temp + V*t*math.sin(Alpha[0][NodeList[i]]/180.0*math.pi)), 2)                    
-                        # 终点不在障碍区域内，则开始计算无障碍二维空间中的亮点之间的距离
-                        else:
-                            first_coordinate = []
-                            second_coordinate = []
-                            first_coordinate.append(N_x_new_temp_new)
-                            first_coordinate.append(N_y_new_temp_new)
-                            second_coordinate.append(NodeXCoordinateNew[0][NodeList[i]])
-                            second_coordinate.append(NodeYCoordinateNew[0][NodeList[i]])
-                            # 无障碍二维空间
-                            distance_no_obstacle =A.a_star_algorithm(EdgeLength, first_coordinate, second_coordinate, ObstacleCoordinate, ObstaclesNum, False)
-                            
-                            distance_obstacle_result = []
-                            distance_obstacle_result.append(distance_obstacle[0])
-                            distance_obstacle_result.append(distance_obstacle[1])
-                            distance_obstacle_result.append(distance_obstacle[2])
-                            distance_obstacle_result.append(distance_obstacle[3])
-                            distance_obstacle_result.append(distance_obstacle[4])
-    
-                            distance_no_obstacle_result = []
-                            distance_no_obstacle_result.append(distance_no_obstacle[0])
-                            distance_no_obstacle_result.append(distance_no_obstacle[1])
-                            distance_no_obstacle_result.append(distance_no_obstacle[2])
-                            distance_no_obstacle_result.append(distance_no_obstacle[3])
-                            distance_no_obstacle_result.append(distance_no_obstacle[4])
-                        
-                            # 表明两次同一点同一终点，所得距离不相等，说明行驶过程中遇到障碍，需要变向
-                            # 终点在障碍区域内或者运动过程中遇到障碍都将改变即将到达的位置的坐标
-                            if distance_no_obstacle[3] != distance_obstacle[3]:
-                                change_direction_flag = False
-                                # 更新电单车运动方向 改变方向幅度不能太大
-                                Alpha[0][NodeList[i]] = (Alpha[0][NodeList[i]] + AlphaValue)%360
-                                # 用上面备份的当前的坐标，重新往重新生成的方向前进
-                                NodeXCoordinateNew[0][NodeList[i]] = round((N_x_new_temp + V*t*math.cos(Alpha[0][NodeList[i]]/180.0*math.pi)), 2)
-                                NodeYCoordinateNew[0][NodeList[i]] = round((N_y_new_temp + V*t*math.sin(Alpha[0][NodeList[i]]/180.0*math.pi)), 2)
-                                # print "遇到障碍重新更新坐标为：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
-                            if crossing_flag is True and change_direction_flag is True:
-                                # 起点到终点途中不存在障碍或终点不存在与障碍区域
-                                # 退出while()
-                                break
                     # 测试数据用的 事后需要将其注释掉
                     # NodeEs[0][1] = El
                     # print "NodeEs[0] =", NodeEs[0]
@@ -850,42 +1023,47 @@ if __name__ == "__main__":
                         R_list_Backup_flag = True
                         NodeALERTFlag = True
                         FirstComingFlag = True
-                if NodeALERTFlag is True and i == len(NodeList) - 1:
-                    plot1 = plt.plot(x1, y1, 'b',label='AECR')
-                    plot2 = plt.plot(x2, y2, 'r',label='AFP')
-                    plt.xlabel('El')
-                    plt.ylabel('y')
-                    plt.legend(loc=4) #指定legend的位置右下角
-                    plt.grid()
-                    plt.title('polyfitting')
-                    
-                    # 保存生成的图片
-                    origin_path =  'AECR&AFP.png'  
-                    All_path = os.path.join(childern_result_name, origin_path)
-                    plt.savefig(All_path)
-                    
-                    plt.show()
-                    
-                    plt.plot(wList, ElList, 'g', label = 'El')
-                    plt.xlabel('w')
-                    plt.ylabel('El')
-                    plt.legend(loc=2) #指定legend的位置右下角
-                    plt.grid()
-                    plt.title('polyfitting')
-                    # 保存生成的图片
-                    origin_path =  'AEl.png'  
-                    All_path = os.path.join(childern_result_name, origin_path)
-                    plt.savefig(All_path)
-                    plt.show()
+                    if NodeALERTFlag is True and (i == (len(NodeList) - 1)):
+                        plot1 = plt.plot(x1, y1, 'b--o',label='AECR')
+                        plot2 = plt.plot(x2, y2, 'r-.',label='AFP')
+                        plt.xlabel('El')
+                        plt.ylabel('y')
+                        plt.legend(loc=4) #指定legend的位置右下角
+                        plt.grid()
+                        plt.title('polyfitting')
+                        
+                        # 保存生成的图片
+                        origin_path =  'SecondAECR&AFP.png'  
+                        All_path = os.path.join(Second_path, origin_path)
+                        plt.savefig(All_path)
+                        
+                        plt.show()
+                        
+                        plt.plot(wList, ElList, 'g', label = 'El')
+                        plt.xlabel('w')
+                        plt.ylabel('El')
+                        plt.legend(loc=2) #指定legend的位置右下角
+                        plt.grid()
+                        plt.title('polyfitting')
+                        # 保存生成的图片
+                        origin_path =  'SecondAEl.png'  
+                        All_path = os.path.join(Second_path, origin_path)
+                        plt.savefig(All_path)
+                        plt.show()
+                        print "接收到ALERT后，获取各节点之间的距离"
+                        N_distance_Road_result = F.CreateDistanceNewMatrix(Road_information, N_distance, EdgeLength, NodeXCoordinateNew, NodeYCoordinateNew, NodeListBackup, NodeList, ObstacleCoordinate, ObstaclesNum)
+                        N_distance = N_distance_Road_result[0]
+                        Road_information = N_distance_Road_result[1]
                     
                        
             # 就在这个环节，将一部分节点（R_list中的节点）从原NodeList中删掉
             elif NodeALERTFlag is True:
-                if DebugFlag is True:
-                    print "剩余能量 NodeEs[0] =", NodeEs[0]
-                    
-                    # 说明有电单车节点向MCV或服务站S发送了ALERT信息
-                    print "表明要开始创建回路了，回路的节点在NodeRequest[0][i] 中为1者体现"
+                # if DebugFlag is True:
+                print "剩余能量 NodeEs[0] =", NodeEs[0]
+                
+                # 说明有电单车节点向MCV或服务站S发送了ALERT信息
+                print "表明要开始创建回路了，回路的节点在NodeRequest[0][i] 中为1者体现"
+                '''
                 if FirstComingFlag is True:
                     if DebugFlag is True:
                         print "首次进入统计各节点之间的距离"
@@ -894,7 +1072,7 @@ if __name__ == "__main__":
                     N_distance_Road_result = F.CreateDistanceNewMatrix(Road_information, N_distance, EdgeLength, NodeXCoordinateNew, NodeYCoordinateNew, NodeListBackup, NodeList, ObstacleCoordinate, ObstaclesNum)
                     N_distance = N_distance_Road_result[0]
                     Road_information = N_distance_Road_result[1]
-                
+                '''
                 # 将已经发送Request信息的节点进行提取，每一次操作的时候将节点的名字等进行备份，以便后面查询需要
                 if R_list_Backup_flag is True:
                     R_list_Backup = []
@@ -932,13 +1110,21 @@ if __name__ == "__main__":
                 d = 1000000.0
                 e  = 5601.0
                 # 发送了Request信号的节点按顺序的添加进入充电回路中，若未发送Request的节点暂时不添加，如添加的节点不满足调度条件，则暂时不添加
+                if DebugFlag is True:       
+                    print "准备选出下一服务最佳点"
+                    print "检查R_list_Backup =", R_list_Backup
+                
+                    for i in range(1, len(R_list_Backup)):
+                        print "NodeChangeFrequency[0][", R_list_Backup[i], "] =", NodeChangeFrequency[0][R_list_Backup[i]]
+                        print "N_distance[", R_New[len(R_New) - 1], "][", R_list_Backup[i], "] =", N_distance[R_New[len(R_New) - 1]][R_list_Backup[i]] 
+                        print "NodeEs[0][", R_list_Backup[i], "] =", NodeEs[0][R_list_Backup[i]]
                 for i in range(1, len(R_list_Backup)):
-                    if ((NodeChangeFrequency[0][R_list_Backup[i]] < k and N_distance[R_list_Backup[0]][R_list_Backup[i]] < d) or NodeEs[0][R_list_Backup[i]] < e) or(
-                            (NodeChangeFrequency[0][R_list_Backup[i]] < k or (N_distance[R_list_Backup[0]][R_list_Backup[i]] < d and NodeEs[0][R_list_Backup[i]] < e))) or(
-                                    (NodeChangeFrequency[0][R_list_Backup[i]] < k and NodeEs[0][R_list_Backup[i]] < e) or N_distance[R_list_Backup[0]][R_list_Backup[i]] < d): 
+                    if ((NodeChangeFrequency[0][R_list_Backup[i]] < k and N_distance[R_New[len(R_New) - 1]][R_list_Backup[i]] < d)) or(
+                            ((N_distance[R_New[len(R_New) - 1]][R_list_Backup[i]] < d and NodeEs[0][R_list_Backup[i]] < e))) or(
+                                    (NodeChangeFrequency[0][R_list_Backup[i]] < k and NodeEs[0][R_list_Backup[i]] < e)): 
                         # 三元组重新赋值
                         k = NodeChangeFrequency[0][R_list_Backup[i]] 
-                        d = N_distance[R_list[0]][R_list_Backup[i]] 
+                        d = N_distance[R_New[len(R_New) - 1]][R_list_Backup[i]] 
                         e = NodeEs[0][R_list_Backup[i]]
                         # 寻找最优的节点
                         BestNode = R_list_Backup[i]
@@ -1155,11 +1341,11 @@ if __name__ == "__main__":
                                             print "R_list_Backup =", R_list_Backup
                                             print "NodeList =", NodeList
                                         break
-                    if DebugFlag is True:
-                        print "检查数据~~~~"
-                        print "NodeList =", NodeList
-                        print "R_list =", R_list
-                        print "R_list_Backup =", R_list_Backup
+                    # if DebugFlag is True:
+                    print "检查数据~~~~"
+                    print "NodeList =", NodeList
+                    print "R_list =", R_list
+                    print "R_list_Backup =", R_list_Backup
                     
                     D = N_distance[R_New[len(R_New) - 2]][R_New[len(R_New) - 1]]
                     t1 = D/Vm
@@ -1170,8 +1356,8 @@ if __name__ == "__main__":
                     # 将R_New[len(R_New) - 1]加入充电子回路需要消耗的总时间为t
                     t_sum = t1 + t2 
                     t = t_sum
-                    if DebugFlag is True:
-                        print "将某点加入充电子回路中需要消耗的总时间为t =", t, 's'
+                    # if DebugFlag is True:
+                    print "将某点加入充电子回路中需要消耗的总时间为t =", t, 's'
                     # 表明不止剩余一个节点
                     # 有个隐含条件，上一次运动一定不会出现停止运动即：节点能量不会低于阈值El_Final发送ALERT给服务站S
                     # 备份每个节点的能量,后期操作需要
@@ -1189,134 +1375,9 @@ if __name__ == "__main__":
                         print "NodeEsBackup =", NodeEsBackup
                     # 更新节点剩余的能量  # 不仅仅是考虑边界，还得考虑运动过程中，遇到障碍应该避开
                     for i in range(1, len(NodeList)):
-                        # 修改节点能量
-                        NodeEs[0][NodeList[i]] = round((NodeEs[0][NodeList[i]] - NodeP[0][NodeList[i]]*t_sum), 2)
-                        if DebugFlag is True:
-                            print "当前修改的节点为NodeList[i] =", NodeList[i]
-                            print "预计消耗的能量 NodeP[0][NodeList[i]]*t =", NodeP[0][NodeList[i]]*t_sum, 'j'
-                            print "能量阈值下限 El =", El, 'j'
+                        print "修改节点能量中~"
+                        ChangeCoordinate(i, El, NodeList, NodeEs, NodeP, t_sum, NodeEsBackup, NodeMoveTime, NodeXCoordinateNew, NodeYCoordinateNew, V, Alpha, AlphaValue, EdgeLength, ObstacleCoordinate, ObstaclesNum)
                         
-                        # 能量将低于阈值下限
-                        if NodeEs[0][NodeList[i]] <= El:
-                            if NodeEsBackup[i] <= El:
-                                if DebugFlag is True:
-                                    print "case 1"
-                                    print "之前该节点已经失效，不再参与计算"
-                                # 剩余能量还是上次备份的能量
-                                NodeEs[0][NodeList[i]] = NodeEsBackup[i]
-                            else:
-                                if DebugFlag is True:
-                                    print "case 2"
-                                    print "NodeEs[0][NodeList[i]]  =", NodeEs[0][NodeList[i]]
-                                    print "节点实际消耗的能量为", NodeEsBackup[i] - El, 'j'
-                                # 修改节点剩余能量,该点变为静态点了
-                                NodeEs[0][NodeList[i]] = El
-                                if DebugFlag is True:
-                                    print "节点实际运动的时间为", (NodeEsBackup[i] - El)/NodeP[0][NodeList[i]], 's'
-                                NodeMoveTime[0][NodeList[i]] = (NodeEsBackup[i] - El)/NodeP[0][NodeList[i]]
-                        # 能量不会低于阈值下限
-                        if NodeEs[0][NodeList[i]] > El:
-                            if DebugFlag is True:
-                                print "case 3"
-                                print "NodeEs[0][NodeList[i]]  =", NodeEs[0][NodeList[i]]
-                                print "节点实际消耗的能量为", NodeP[0][NodeList[i]]*t_sum, 'j'
-                                print "节点实际运动的时间为", t_sum, 's'
-                            NodeMoveTime[0][NodeList[i]] = t_sum
-                        if DebugFlag is True:
-                            print "NodeMoveTime[0] =", NodeMoveTime[0]
-                            print "NodeEs[0] =", NodeEs[0]
-                            print "NodeEsBackup =", NodeEsBackup
-                               
-                        # 修改节点的运动时间，因为当节点能量小于阈值El时，电单车节点变为静态节点，保留阈值El能量
-                        t = NodeMoveTime[0][NodeList[i]]
-                        # 考虑到边界问题，先将改变之前的坐标记录下来
-                        N_x_new_temp = NodeXCoordinateNew[0][NodeList[i]]
-                        N_y_new_temp = NodeYCoordinateNew[0][NodeList[i]] 
-                        N_x_new_temp_new = NodeXCoordinateNew[0][NodeList[i]]
-                        N_y_new_temp_new = NodeYCoordinateNew[0][NodeList[i]]
-                        # 更新节点坐标
-                        NodeXCoordinateNew[0][NodeList[i]] = round((NodeXCoordinateNew[0][NodeList[i]] + V*t*math.cos(Alpha[0][NodeList[i]]/180.0*math.pi)), 2)
-                        NodeYCoordinateNew[0][NodeList[i]] = round((NodeYCoordinateNew[0][NodeList[i]] + V*t*math.sin(Alpha[0][NodeList[i]]/180.0*math.pi)), 2)
-                        # 检查坐标有没有超过边界, 表示超界了，表示当前需要改变运行方向
-                        # 为什么用while（）一定保证，坐标合理才能进行下一步操作
-                        # 为了在运动时避开障碍，设置两种状态
-                        # （1）在无障碍情况下计算距离
-                        # （2）在有障碍的情况下再计算一次距离
-                        # 如果两次距离相等，则中途没有障碍，可以直接到达目的位置
-                        # 反之，不相等，则中途出现障碍，不能直接到达目的地，需要改变运动方向
-                        # obstacle_flag = True 表明空间存在障碍
-                        while True:
-                            # 判断坐标是否越界
-                            while((NodeXCoordinateNew[0][NodeList[i]] < 1 or NodeXCoordinateNew[0][NodeList[i]] > EdgeLength) or (
-                                    NodeYCoordinateNew[0][NodeList[i]] < 1 or NodeYCoordinateNew[0][NodeList[i]] > EdgeLength)): 
-                                # 更新电单车运动方向 改变方向幅度不能太大                        
-                                Alpha[0][NodeList[i]] = (Alpha[0][NodeList[i]] + AlphaValue)%360
-        
-                                # 用上面备份的当前的坐标，重新往重新生成的方向前进
-                                NodeXCoordinateNew[0][NodeList[i]] = round((N_x_new_temp + V*t*math.cos(Alpha[0][NodeList[i]]/180.0*math.pi)), 2)
-                                NodeYCoordinateNew[0][NodeList[i]] = round((N_y_new_temp + V*t*math.sin(Alpha[0][NodeList[i]]/180.0*math.pi)), 2)
-                                
-                            # 越界处理完成的标志，表示已经不越界
-                            crossing_flag = True
-                            # 还得保证当前终点不属于任何一个障碍区域内
-                            first_coordinate = []
-                            second_coordinate = []
-                            first_coordinate.append(N_x_new_temp)
-                            first_coordinate.append(N_y_new_temp)
-                            second_coordinate.append(NodeXCoordinateNew[0][NodeList[i]])
-                            second_coordinate.append(NodeYCoordinateNew[0][NodeList[i]])
-                            # 有障碍 的二维空间
-                            distance_obstacle =A.a_star_algorithm(EdgeLength, first_coordinate, second_coordinate, ObstacleCoordinate, ObstaclesNum, True)
-                           
-                            # 判断是否需要变向
-                            change_direction_flag = True
-                            # 如果终点坐标在障碍区域内，也需要改变运动方向
-                            if distance_obstacle[0] is False:
-                                change_direction_flag = False
-                                # 更新电单车运动方向 改变方向幅度不能太大
-                                Alpha[0][NodeList[i]] = (Alpha[0][NodeList[i]] + AlphaValue)%360
-                                # 用上面备份的当前的坐标，重新往重新生成的方向前进
-                                NodeXCoordinateNew[0][NodeList[i]] = round((N_x_new_temp + V*t*math.cos(Alpha[0][NodeList[i]]/180.0*math.pi)), 2)
-                                NodeYCoordinateNew[0][NodeList[i]] = round((N_y_new_temp + V*t*math.sin(Alpha[0][NodeList[i]]/180.0*math.pi)), 2)                    
-                            # 终点不在障碍区域内，则开始计算无障碍二维空间中的亮点之间的距离
-                            else:
-                                first_coordinate = []
-                                second_coordinate = []
-                                first_coordinate.append(N_x_new_temp_new)
-                                first_coordinate.append(N_y_new_temp_new)
-                                second_coordinate.append(NodeXCoordinateNew[0][NodeList[i]])
-                                second_coordinate.append(NodeYCoordinateNew[0][NodeList[i]])
-                                # 无障碍二维空间
-                                distance_no_obstacle =A.a_star_algorithm(EdgeLength, first_coordinate, second_coordinate, ObstacleCoordinate, ObstaclesNum, False)
-                                
-                                distance_obstacle_result = []
-                                distance_obstacle_result.append(distance_obstacle[0])
-                                distance_obstacle_result.append(distance_obstacle[1])
-                                distance_obstacle_result.append(distance_obstacle[2])
-                                distance_obstacle_result.append(distance_obstacle[3])
-                                distance_obstacle_result.append(distance_obstacle[4])
-        
-                                distance_no_obstacle_result = []
-                                distance_no_obstacle_result.append(distance_no_obstacle[0])
-                                distance_no_obstacle_result.append(distance_no_obstacle[1])
-                                distance_no_obstacle_result.append(distance_no_obstacle[2])
-                                distance_no_obstacle_result.append(distance_no_obstacle[3])
-                                distance_no_obstacle_result.append(distance_no_obstacle[4])
-                            
-                                # 表明两次同一点同一终点，所得距离不相等，说明行驶过程中遇到障碍，需要变向
-                                # 终点在障碍区域内或者运动过程中遇到障碍都将改变即将到达的位置的坐标
-                                if distance_no_obstacle[3] != distance_obstacle[3]:
-                                    change_direction_flag = False
-                                    # 更新电单车运动方向 改变方向幅度不能太大
-                                    Alpha[0][NodeList[i]] = (Alpha[0][NodeList[i]] + AlphaValue)%360
-                                    # 用上面备份的当前的坐标，重新往重新生成的方向前进
-                                    NodeXCoordinateNew[0][NodeList[i]] = round((N_x_new_temp + V*t*math.cos(Alpha[0][NodeList[i]]/180.0*math.pi)), 2)
-                                    NodeYCoordinateNew[0][NodeList[i]] = round((N_y_new_temp + V*t*math.sin(Alpha[0][NodeList[i]]/180.0*math.pi)), 2)
-                                    # print "遇到障碍重新更新坐标为：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
-                                if crossing_flag is True and change_direction_flag is True:
-                                    # 起点到终点途中不存在障碍或终点不存在与障碍区域
-                                    # 退出while()
-                                    break
                         # 测试数据用的 事后需要将其注释掉
                         # NodeEs[0][1] = El
                         # print "NodeEs[0] =", NodeEs[0]
@@ -1348,22 +1409,24 @@ if __name__ == "__main__":
                             NodeALERTFlag = True
                         # 修改最后一个节点的位置，随之改变距离邻接矩阵
                         if i == len(NodeList) - 1:
-                            if DebugFlag is True:
-                                print "遍历到最后一个节点，修改节点之间的距离"
+                            # if DebugFlag is True:
+                            print "遍历到最后一个节点，修改节点之间的距离"
                             # 主要是获取各节点之间的距离
                             N_distance_Road_result = F.CreateDistanceNewMatrix(Road_information, N_distance, EdgeLength, NodeXCoordinateNew, NodeYCoordinateNew, NodeListBackup, NodeList, ObstacleCoordinate, ObstaclesNum)
                             N_distance = N_distance_Road_result[0]
-                            Road_information = N_distance_Road_result[1]      
+                            Road_information = N_distance_Road_result[1] 
+                            print "节点距离修改完毕"
                 else:
                     R_New_FirstValue = R_New[0]
                     R_New[0] = 0
                     R_New.remove(BestNode)
                     R_New[0] = R_New_FirstValue
-                if DebugFlag is True:
-                    print "R_New =", R_New
-                    print "R_list =", R_list
-                    print "R_list_Backup =", R_list_Backup
-                    print "NodeList =", NodeList
+                # if DebugFlag is True:
+                print "添加完一个点后，检查相关数据"
+                print "R_New =", R_New
+                print "R_list =", R_list
+                print "R_list_Backup =", R_list_Backup
+                print "NodeList =", NodeList
                 
                 if len(R_list_Backup) == 1 and len(R_list) != 1:
                     if DebugFlag is True:
@@ -1403,166 +1466,26 @@ if __name__ == "__main__":
                     R_Sum.append(R_New)
                     # 发送请求的节点已经全部加入充电回路了,退出while循环，重新获取充电请求
                     break
-                # print "经过了break"
-                # NodeALERTFlag = False
-                # plt,show()
-    print "充电回路汇总"
-    print "R_Sum =", R_Sum
-    if DebugFlag is True:
-        print "len(R_Sum) =", len(R_Sum)
-        print "节点剩余能量 NodeEs[0] =", NodeEs[0]
-    # 充电回路标号
-    MCV_Num = 0
-    # 充电回路的详细信息集合
-    DataStore_list_sum = []
-    
-    
-     
-    for i in range(0, len(R_Sum)):
-        DataStore_list = []
-        print "R_Sum[i] =\n", R_Sum[i]
-        ChargingTour = R_Sum[i]
-        print "len(ChargingTour) =", len(ChargingTour)
-        # 单充电子回路充电能量总和初始化
-        ChargingTour_Es = 0.0
-        # 单充电子回路充电时间总和初始化
-        ChargingTour_Time = 0.0
-        for j in range(1, len(ChargingTour)):
-            Es = NodeEsValue - NodeEs[0][ChargingTour[j]]
-            # MCV在整个充电子回路中充电所需能量
-            ChargingTour_Es = ChargingTour_Es +  Es
-            # MCV在整个充电子回路中充电消耗的时间
-            ChargingTour_Time = ChargingTour_Time + Es/Qc 
-        # 实际距离初始化
-        D = 0.0
-        # 欧几里得距离初始化
-        Euclid_D = 0.0
-        # 计算一个充电回路的距离
-        for j in range(0, (len(ChargingTour) - 1)):
-            # 实际距离
-            D = D + N_distance[ChargingTour[j]][ChargingTour[j + 1]]
-            # 欧几里得距离
-            Euclid_D = Euclid_D + np.sqrt(np.power((NodeXCoordinateNew[0][ChargingTour[j]] - NodeXCoordinateNew[0][ChargingTour[j + 1]]), 2) +np.power((
-                    NodeYCoordinateNew[0][ChargingTour[j]] - NodeYCoordinateNew[0][ChargingTour[j + 1]]), 2))
-        # 将最后一个节点连接会对应的服务站S 
-        D = D + N_distance[ChargingTour[len(ChargingTour) - 1]][ChargingTour[0]]
-        Euclid_D = Euclid_D + np.sqrt(np.power((NodeXCoordinateNew[0][ChargingTour[len(ChargingTour) - 1]] - NodeXCoordinateNew[0][ChargingTour[0]]), 2) +np.power((
-                    NodeYCoordinateNew[0][ChargingTour[len(ChargingTour) - 1]] - NodeYCoordinateNew[0][ChargingTour[0]]), 2))
-        # 求MCV走完整个回路需要多少时间
-        Move_time = D/Vm
-        # 走完整个回路所需能量（移动耗能）
-        Move_Es = Move_time*Qm
+    # 添加构建回路的相关信息
+    TourConstructionInformation(R_Sum, NodeEs, SecondDeadNodeNum_txt, N_distance, NodeXCoordinateNew, NodeYCoordinateNew, SecondMCV_Tour_Set_txt, SecondMCV_Tour_Information_txt, ObstacleCoordinate, 0)
+    print "第二种出发机制的做对比实验，接收大Request信息时，MCV即刻出发进行充电"
 
-        # 添加充电回路的名字
-        DataStore_list.append(MCV_Num)
-        # 添加MCV给这个回路充电的电量
-        DataStore_list.append(round(ChargingTour_Es, 2))
-        # 添加MCV在这个回路中的移动能耗
-        DataStore_list.append(round(Move_Es, 2))
-        # 添加MCV的总能量
-        DataStore_list.append(Em)
-        # 添加MCV给这个回路充电的时间
-        DataStore_list.append(round(ChargingTour_Time, 2))
-        # 添加MCV在这个回路中移动所花时间
-        DataStore_list.append(round(Move_time, 2))
-        # 添加周期时间
-        DataStore_list.append(T)
-        # 添加充电回路的吞吐量
-        DataStore_list.append(len(ChargingTour) - 1)
-        # 添加回路的路径长度（实际）
-        DataStore_list.append(round(D, 2))
-        # 添加回路路径长度（欧几里得路径）
-        DataStore_list.append(round(Euclid_D, 2))
-        # 执行完一个充电回路，回路名字加1
-        MCV_Num = MCV_Num + 1
-        if DebugFlag is True:
-            print "DataStore_list =\n", DataStore_list
-        DataStore_list_sum.append(DataStore_list)
-    print "DataStore_list_sum =\n", DataStore_list_sum   
-    f1 = open(MCV_Tour_txt, 'w')
-    f1.write(str(R_Sum))
-    f1.close()
-    # 回路消耗等相关数据的保存路径
-    np.savetxt(result_txt, DataStore_list_sum, fmt='%0.2f')
-    ChildrenTourConstruction(NodeXCoordinateNew, NodeYCoordinateNew, ObstacleCoordinate, R_Sum, 'S', NodeNum)
-    print "做对比实验,预先延时10s，准备导入数据"
-    time.sleep(10)
-    
-    ObstacleCoordinate = np.loadtxt(Obstacle_information_data_txt, dtype = np.int)
-     
-    ObstacleXDown[0] = ObstacleCoordinate[0]
-    ObstacleXUp[0]   = ObstacleCoordinate[1]
-    ObstacleYDown[0] = ObstacleCoordinate[2]
-    ObstacleYUp[0]   = ObstacleCoordinate[3]
-    # print "obstacle_coordinate =", obstacle_coordinate
-    # print "len(obstacle_coordinate) =", len(obstacle_coordinate )
-    
-    # 导入节点相关数据
-    data = np.loadtxt(Node_information_data_txt)
-    # print "data =", data
-    # print "len(data) =", len(data)
-    NodeP[0] = data[0]
-    # print "P_i[0] =", P_i[0] 
-    NodeEs[0] = data[1]
-    # print "Es_i[0] =", Es_i[0]
-    Alpha[0] = data[2]
-    # print "alpha[0] =", alpha[0]
-    NodeXCoordinate[0] = data[3]
-    # print "N_x[0] =", N_x[0]
-    NodeYCoordinate[0] = data[4]
-    # print "N_y[0] =", N_y[0]
-
+    # 使用备份数据
+    ObstacleCoordinate = UseBackupData()
+    # 初始化函数
+    # 保存节点序号的
+    # 初始化函数
     # 保存节点序号的
     NodeList = []
     # 备份节点标号
     NodeListBackup = []
-    for i in range(0, NodeNum + 1):     
-        NodeList.append(i)
-        NodeListBackup.append(i)
-    # 打印节点生成的节点
-    print "节点序号 NodeList =", NodeList
-    # 将节点坐标进行备份
-    NodeXCoordinateNew = NodeXCoordinate
-    NodeYCoordinateNew = NodeYCoordinate
-    # 打印节点功率
-    print "节点功率 NodeP[0]=", NodeP[0]
-    print "节点能量 NodeEs[0]=", NodeEs[0]
-    # 将功率大的节点作为首先部署服务站S的位置，因为功率是已知的，故不适用剩余能量进行判断
-    # 初始化功率最大为 NodePMax = 0
-    NodePMax = 0  
-    for i in range(1, NodeNum + 1):
-        if NodePMax <  NodeP[0][NodeList[i]] :
-            # 更新当前最大的功率的点
-            NodePMax = NodeP[0][NodeList[i]]
-            # 保存功率最大的节点
-            NodePMaxNode = NodeList[i]
-    print "功率最大的节点是：", NodePMaxNode
-    # 把第一个服务站S依附的节点的序号放在NodeList序列中的第一个位置
-    NodeList[0] = NodePMaxNode
-    NodeListBackup[0] = NodePMaxNode 
-    # S&1表示服务站依附在节点1处,用SLabel表示
-    SLabel= 'S' + '&' + str(NodePMaxNode)
-    # S表示充电桩的位置，它的开始时坐标的确定，主要是，靠近功率最大的点
-    SCoordinate = []
-    # S 的坐标比较讲究，直接放在功耗最大的节点旁边
-    SNodeXCoordinate = NodeXCoordinateNew[0][NodePMaxNode]
-    SNodeYCoordinate = NodeYCoordinateNew[0][NodePMaxNode]
-    SCoordinate.append(SNodeXCoordinate)
-    SCoordinate.append(SNodeYCoordinate)
-    print "充电桩坐标为：", (SCoordinate[0], SCoordinate[1])
-    # 表示充电桩S的坐标，加入了N中
-    NodeXCoordinateNew[0][0] = SCoordinate[0]
-    NodeYCoordinateNew[0][0] = SCoordinate[1]
-    x = []
-    y = []
-    # 将每个节点添加如x和y列表中
-    for i in range(0, NodeNum + 1):
-        x.append(NodeXCoordinate[0][i])
-        y.append(NodeYCoordinate[0][i])
-    # 将电单车和服务站的分布用图呈现出来
-    # F.AllNodeShow(x, y, ObstacleCoordinate, ObstaclesNum, CoordinateScale, SLabel, EdgeLength, childern_result_name)
+    result = Init(NodeNum, NodeXCoordinate, NodeYCoordinate, NodeP, NodeEs, ObstacleCoordinate, ObstaclesNum, EdgeLength)
+    NodeList = result[0]
+    NodeListBackup = result[1]
+    NodeXCoordinateNew = result[2]
+    NodeYCoordinateNew = result[3]
     
-     # 程序开始运行，计时开始
+    # 程序开始运行，计时开始
     # start_time = time.time()
     # time.sleep(1.5)
     # end_time = time.time()
@@ -1575,7 +1498,7 @@ if __name__ == "__main__":
     DataStore_list_sum = []
     # 需要对每个节点进行操作，直到剩余服务站S的标号
     while 1 != len(NodeList):
-        t_sum = 100
+        t_sum = T_sum
         t = t_sum
         if DebugFlag is True:
             print "每次运行花费 t =", t, 's'
@@ -1587,130 +1510,8 @@ if __name__ == "__main__":
         # 只取NodeList中第一个节点，直到这个节点发出Request并且被满足可调度性条件
         i = 1
         # 修改节点能量
-        NodeEs[0][NodeList[i]] = round((NodeEs[0][NodeList[i]] - NodeP[0][NodeList[i]]*t), 2)
-        if DebugFlag is True:
-            print "预计消耗的能量 NodeP[0][NodeList[i]]*t =", NodeP[0][NodeList[i]]*t_sum, 'j'
-            print "能量阈值上限 Et =", Et, 'j'
+        ChangeCoordinate(i, Et, NodeList, NodeEs, NodeP, t_sum, NodeEsBackup, NodeMoveTime, NodeXCoordinateNew, NodeYCoordinateNew, V, Alpha, AlphaValue, EdgeLength, ObstacleCoordinate, ObstaclesNum)
         
-        # 能量将低于阈值下限
-        if NodeEs[0][NodeList[i]] <= Et:
-            if NodeEsBackup[i] <= Et:
-                if DebugFlag is True:
-                    print "case 1"
-                    print "之前该节点已经失效，不再参与计算"
-                # 剩余能量还是上次备份的能量
-                NodeEs[0][NodeList[i]] = NodeEsBackup[i]
-            else:
-                if DebugFlag is True:
-                    print "case 2"
-                    print "NodeEs[0][NodeList[i]]  =", NodeEs[0][NodeList[i]]
-                    print "节点实际消耗的能量为", NodeEsBackup[i] - Et, 'j'
-                # 修改节点剩余能量,该点变为静态点了
-                NodeEs[0][NodeList[i]] = Et
-                if DebugFlag is True:
-                    print "节点实际运动的时间为", (NodeEsBackup[i] - Et)/NodeP[0][NodeList[i]], 's'
-                NodeMoveTime[0][NodeList[i]] = (NodeEsBackup[i] - Et)/NodeP[0][NodeList[i]]
-        # 能量不会低于阈值下限
-        if NodeEs[0][NodeList[i]] > Et:
-            if DebugFlag is True:
-                print "case 3"
-                print "NodeEs[0][NodeList[i]]  =", NodeEs[0][NodeList[i]]
-                print "节点实际消耗的能量为", NodeP[0][NodeList[i]]*t_sum, 'j'
-                print "节点实际运动的时间为", t_sum, 's'
-            NodeMoveTime[0][NodeList[i]] = t_sum
-        if DebugFlag is True:
-            print "NodeMoveTime[0] =", NodeMoveTime[0]
-             
-        # 修改节点的运动时间，因为当节点能量小于阈值El时，电单车节点变为静态节点，保留阈值El能量
-        t = NodeMoveTime[0][NodeList[i]]
-        # 考虑到边界问题，先将改变之前的坐标记录下来
-        N_x_new_temp = NodeXCoordinateNew[0][NodeList[i]]
-        N_y_new_temp = NodeYCoordinateNew[0][NodeList[i]] 
-        N_x_new_temp_new = NodeXCoordinateNew[0][NodeList[i]]
-        N_y_new_temp_new = NodeYCoordinateNew[0][NodeList[i]]
-        # 更新节点坐标
-        NodeXCoordinateNew[0][NodeList[i]] = round((NodeXCoordinateNew[0][NodeList[i]] + V*t*math.cos(Alpha[0][NodeList[i]]/180.0*math.pi)), 2)
-        NodeYCoordinateNew[0][NodeList[i]] = round((NodeYCoordinateNew[0][NodeList[i]] + V*t*math.sin(Alpha[0][NodeList[i]]/180.0*math.pi)), 2)
-        # 检查坐标有没有超过边界, 表示超界了，表示当前需要改变运行方向
-        # 为什么用while（）一定保证，坐标合理才能进行下一步操作
-        # 为了在运动时避开障碍，设置两种状态
-        # （1）在无障碍情况下计算距离
-        # （2）在有障碍的情况下再计算一次距离
-        # 如果两次距离相等，则中途没有障碍，可以直接到达目的位置
-        # 反之，不相等，则中途出现障碍，不能直接到达目的地，需要改变运动方向
-        # obstacle_flag = True 表明空间存在障碍
-        while True:
-            # 判断坐标是否越界
-            while((NodeXCoordinateNew[0][NodeList[i]] < 1 or NodeXCoordinateNew[0][NodeList[i]] > EdgeLength) or (
-                    NodeYCoordinateNew[0][NodeList[i]] < 1 or NodeYCoordinateNew[0][NodeList[i]] > EdgeLength)): 
-                # 更新电单车运动方向 改变方向幅度不能太大                        
-                Alpha[0][NodeList[i]] = (Alpha[0][NodeList[i]] + AlphaValue)%360
-
-                # 用上面备份的当前的坐标，重新往重新生成的方向前进
-                NodeXCoordinateNew[0][NodeList[i]] = round((N_x_new_temp + V*t*math.cos(Alpha[0][NodeList[i]]/180.0*math.pi)), 2)
-                NodeYCoordinateNew[0][NodeList[i]] = round((N_y_new_temp + V*t*math.sin(Alpha[0][NodeList[i]]/180.0*math.pi)), 2)
-                
-            # 越界处理完成的标志，表示已经不越界
-            crossing_flag = True
-            # 还得保证当前终点不属于任何一个障碍区域内
-            first_coordinate = []
-            second_coordinate = []
-            first_coordinate.append(N_x_new_temp)
-            first_coordinate.append(N_y_new_temp)
-            second_coordinate.append(NodeXCoordinateNew[0][NodeList[i]])
-            second_coordinate.append(NodeYCoordinateNew[0][NodeList[i]])
-            # 有障碍 的二维空间
-            distance_obstacle =A.a_star_algorithm(EdgeLength, first_coordinate, second_coordinate, ObstacleCoordinate, ObstaclesNum, True)
-           
-            # 判断是否需要变向
-            change_direction_flag = True
-            # 如果终点坐标在障碍区域内，也需要改变运动方向
-            if distance_obstacle[0] is False:
-                change_direction_flag = False
-                # 更新电单车运动方向 改变方向幅度不能太大
-                Alpha[0][NodeList[i]] = (Alpha[0][NodeList[i]] + AlphaValue)%360
-                # 用上面备份的当前的坐标，重新往重新生成的方向前进
-                NodeXCoordinateNew[0][NodeList[i]] = round((N_x_new_temp + V*t*math.cos(Alpha[0][NodeList[i]]/180.0*math.pi)), 2)
-                NodeYCoordinateNew[0][NodeList[i]] = round((N_y_new_temp + V*t*math.sin(Alpha[0][NodeList[i]]/180.0*math.pi)), 2)                    
-            # 终点不在障碍区域内，则开始计算无障碍二维空间中的亮点之间的距离
-            else:
-                first_coordinate = []
-                second_coordinate = []
-                first_coordinate.append(N_x_new_temp_new)
-                first_coordinate.append(N_y_new_temp_new)
-                second_coordinate.append(NodeXCoordinateNew[0][NodeList[i]])
-                second_coordinate.append(NodeYCoordinateNew[0][NodeList[i]])
-                # 无障碍二维空间
-                distance_no_obstacle =A.a_star_algorithm(EdgeLength, first_coordinate, second_coordinate, ObstacleCoordinate, ObstaclesNum, False)
-                
-                distance_obstacle_result = []
-                distance_obstacle_result.append(distance_obstacle[0])
-                distance_obstacle_result.append(distance_obstacle[1])
-                distance_obstacle_result.append(distance_obstacle[2])
-                distance_obstacle_result.append(distance_obstacle[3])
-                distance_obstacle_result.append(distance_obstacle[4])
-
-                distance_no_obstacle_result = []
-                distance_no_obstacle_result.append(distance_no_obstacle[0])
-                distance_no_obstacle_result.append(distance_no_obstacle[1])
-                distance_no_obstacle_result.append(distance_no_obstacle[2])
-                distance_no_obstacle_result.append(distance_no_obstacle[3])
-                distance_no_obstacle_result.append(distance_no_obstacle[4])
-            
-                # 表明两次同一点同一终点，所得距离不相等，说明行驶过程中遇到障碍，需要变向
-                # 终点在障碍区域内或者运动过程中遇到障碍都将改变即将到达的位置的坐标
-                if distance_no_obstacle[3] != distance_obstacle[3]:
-                    change_direction_flag = False
-                    # 更新电单车运动方向 改变方向幅度不能太大
-                    Alpha[0][NodeList[i]] = (Alpha[0][NodeList[i]] + AlphaValue)%360
-                    # 用上面备份的当前的坐标，重新往重新生成的方向前进
-                    NodeXCoordinateNew[0][NodeList[i]] = round((N_x_new_temp + V*t*math.cos(Alpha[0][NodeList[i]]/180.0*math.pi)), 2)
-                    NodeYCoordinateNew[0][NodeList[i]] = round((N_y_new_temp + V*t*math.sin(Alpha[0][NodeList[i]]/180.0*math.pi)), 2)
-                    # print "遇到障碍重新更新坐标为：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
-                if crossing_flag is True and change_direction_flag is True:
-                    # 起点到终点途中不存在障碍或终点不存在与障碍区域
-                    # 退出while()
-                    break
         # 测试数据用的 事后需要将其注释掉
         # NodeEs[0][1] = El
         # print "NodeEs[0] =", NodeEs[0]
@@ -1828,18 +1629,410 @@ if __name__ == "__main__":
         if len(NodeList) == 1:
             print "说明NodeList已经删除到剩余服务站节点"
             break
+    
+    # 总结死亡节点数量，通过剩余能量来判断
+    print "NodeEs[0] =", NodeEs[0]
+    # 用输入的节点的数量进行统计
+    DeadNodeNum = 0
+    for i in range(1, NodeNum):
+        # 一个节点剩余能量低于0时，表明该节点已经死亡
+        if NodeEs[0][i] <= 0:
+            DeadNodeNum = DeadNodeNum + 1
+    print "死亡节点个数DeadNodeNum =", DeadNodeNum
+    f1 = open(CompareSecondDeadNodeNum_txt, 'w')
+    f1.write(str(DeadNodeNum))
+    f1.close()
+    
     print "充电回路汇总"
     print "R_Sum =\n", R_Sum
-    f1 = open(Compare_MCV_Tour_txt, 'w')
+    f1 = open(CompareSecond_MCV_Tour_Set_txt, 'w')
     f1.write(str(R_Sum))
     f1.close()
     print "DataStore_list_sum =\n", DataStore_list_sum
     # 回路消耗等相关数据的保存路径
-    np.savetxt(Compare_result_txt, DataStore_list_sum, fmt='%0.2f')
-    ChildrenTourConstruction(NodeXCoordinateNew, NodeYCoordinateNew, ObstacleCoordinate, R_Sum, 'S', NodeNum)
-    
+    np.savetxt(CompareSecond_MCV_Tour_Information_txt, DataStore_list_sum, fmt='%0.2f')
+    ChildrenTourConstruction(NodeXCoordinateNew, NodeYCoordinateNew, ObstacleCoordinate, R_Sum, 'S', NodeNum, 1)
    
-    print "需要操作的节点序列中，不存在未操作的节点" 
+    print "第一种出发机制的对比实验，固定缓冲池"
+    # 使用备份数据
+    ObstacleCoordinate = UseBackupData()
+    
+    # 初始化函数
+    # 保存节点序号的
+    NodeList = []
+    # 备份节点标号
+    NodeListBackup = []
+    result = Init(NodeNum, NodeXCoordinate, NodeYCoordinate, NodeP, NodeEs, ObstacleCoordinate, ObstaclesNum, EdgeLength)
+    NodeList = result[0]
+    NodeListBackup = result[1]
+    NodeXCoordinateNew = result[2]
+    NodeYCoordinateNew = result[3]
+    
+    # 充电回路的命名
+    MCV_Num = 0
+    # 每个充电回路的信息的汇总
+    DataStore_list_sum = []
+    # 程序开始运行，计时开始
+    # start_time = time.time()
+    # time.sleep(1.5)
+    # end_time = time.time()
+    # 充电回路汇总
+    R_Sum = []
+    # 初始化节点发送Request请求的数量
+    RequestNum = 0 
+    # 将发送Request的节点序列进行保存
+    Request_list = []
+    # 需要对每个节点进行操作，直到剩余服务站S的标号
+    while 1 != len(NodeList):
+        print "创建新的充电子回路"
+        NodeRequestFlag = False
+        # 备份序列的标志
+        R_list_Backup_flag = True
+        FirstComingFlag = True
+        BeginR_list = True
+
+        print "NodeList =", NodeList
+        print "程序正在执行，请等待……"
+        # 表示已经操作了节点列表中的几个节点
+        OperateMNodeNum = 1
+        # 统计当前节点序号列表中的个数，即未进行操作节点的个数
+        NodeListNum = len(NodeList)
+        # 每次都要对所有节点一一操作  
+        while OperateMNodeNum != NodeListNum:
+            NodeListNum = len(NodeList)
+            # 保证没有准备构建回路的趋势
+            if NodeRequestFlag is False:
+                if DebugFlag is True:
+                    print "随意游走100s"
+                t_sum = T_sum
+                if DebugFlag is True:
+                    print "已经操作到N_i中第", OperateMNodeNum, "个数"
+                    print "N_i中之前共有", NodeListNum,"个数"
+                t = t_sum
+                if DebugFlag is True:
+                    print "电单车运行的时间为：t =", t, "s"
+                
+                # 有个隐含条件，上一次运动一定不会出现停止运动即：节点能量不会低于阈值El_Final发送ALERT给服务站S
+                # 备份每个节点的能量,后期操作需要
+                # 表明不止剩余一个节点
+                # 每次操作前先把能量进行备份，一边后续操作所需
+                NodeEsBackup = []
+                for i in range(0, len(NodeList)):
+                    NodeEsBackup.append(NodeEs[0][NodeList[i]])
+                # 每次能量都需要恢复
+                for i in range(0, len(NodeList)):
+                    NodeEs[0][NodeList[i]] = NodeEsBackup[i]
+                if DebugFlag is True:
+                    print "NodeEs[0] =", NodeEs[0]  
+                    # time.sleep(2)
+                # 以上部分是为了计算得到能量阈值下限El
+                # 延时1s观察数据
+                # time.sleep(5)
+                # 更新节点剩余的能量  # 不仅仅是考虑边界，还得考虑运动过程中，遇到障碍应该避开
+                for i in range(1, len(NodeList)):
+                    # 修改节点能量
+                    ChangeCoordinate(i, El, NodeList, NodeEs, NodeP, t_sum, NodeEsBackup, NodeMoveTime, NodeXCoordinateNew, NodeYCoordinateNew, V, Alpha, AlphaValue, EdgeLength, ObstacleCoordinate, ObstaclesNum)
+                    
+                    # 测试数据用的 事后需要将其注释掉
+                    # NodeEs[0][1] = El
+                    # print "NodeEs[0] =", NodeEs[0]
+                    # 当电单车节点剩余的能量小于阈值上限时，节点向服务站S发送充电请求信号Request
+                    if NodeEs[0][NodeList[i]] <= Et:
+                        if DebugFlag is True:
+                            print "发送充电请求Request"
+                        if NodeRequest[0][NodeList[i]] == 0:
+                            NodeRequest[0][NodeList[i]] = 1 
+                            # 将发送了Request的节点进行保存
+                            Request_list.append(NodeList[i])
+
+                    if  (len(Request_list) >= RequestThreshold) and (i == len(NodeList) - 1):
+                        print "发送的Request数量已经达到上限，可以构建充电回路了"
+                        # 充电请求已经达到固定阈值上限，开始创建充电回路
+                        NodeRequestFlag = True
+                        # 判断是否是第一次进行构造充电回路
+                        FirstComingFlag = True 
+                        BeginR_list = True
+                        # 主要是获取各节点之间的距离
+                        N_distance_Road_result = F.CreateDistanceNewMatrix(Road_information, N_distance, EdgeLength, NodeXCoordinateNew, NodeYCoordinateNew, NodeListBackup, NodeList, ObstacleCoordinate, ObstaclesNum)
+                        N_distance = N_distance_Road_result[0]
+                        Road_information = N_distance_Road_result[1] 
+                        
+                    # 说明剩余的每个节点都发送了Request请求信息
+                    if len(Request_list) >= (len(NodeList) - 1) and (i == len(NodeList) - 1):
+                        # 这种情况下，统计的Request请求数量可能达不到到MCV出发的阈值，也照样得出发进行充电
+                        NodeRequestFlag = True
+                        # 判断是否是第一次进行构造充电回路
+                        FirstComingFlag = True 
+                        BeginR_list = True
+                        # 主要是获取各节点之间的距离
+                        N_distance_Road_result = F.CreateDistanceNewMatrix(Road_information, N_distance, EdgeLength, NodeXCoordinateNew, NodeYCoordinateNew, NodeListBackup, NodeList, ObstacleCoordinate, ObstaclesNum)
+                        N_distance = N_distance_Road_result[0]
+                        Road_information = N_distance_Road_result[1] 
+                        
+
+            # 就在这个环节，将一部分节点（R_list中的节点）从原NodeList中删掉
+            while NodeRequestFlag is True:
+                if DebugFlag is True:
+                    print "剩余能量 NodeEs[0] =", NodeEs[0]
+                    # 说明有电单车节点向MCV或服务站S发送了ALERT信息
+                    print "表明要开始创建回路了，回路的节点在NodeRequest[0][i] 中为1者体现"
+                print "发送过Request的节点序列为 Request_list =", Request_list
+                print "发送过Request的节点序列长度为len(Request_list) =", len(Request_list)
+
+                if BeginR_list is True:
+                    BeginR_list = False
+                    if len(Request_list) > RequestThreshold:
+                        print "说明接收到的Request数量大于阈值，构建充电回路的节点只要阈值的数量"
+                        # 将已经发送Request信息的节点进行提取，每一次操作的时候将节点的名字等进行备份，以便后面查询需要
+                        R_list_Backup = []
+                        # 将已经发送Request信息的节点进行提取
+                        R_list = []
+                        R_list.append(NodeList[0])
+                        R_list_Backup.append(NodeList[0])
+                        deletedata = []
+                        NodeList_FirstValue = NodeList[0]
+                        NodeList[0] = 0
+                        deletedataFlag = False
+                        for i in range(0, RequestThreshold):
+                            # 说明该节点发送了Request的信号给MCV或者服务站S
+                            R_list.append(Request_list[i])
+                            R_list_Backup.append(Request_list[i])
+                            for j in range(0, len(NodeList)):
+                                if NodeList[j] == Request_list[i]:
+                                    deletedataFlag = True
+                                    deletedata.append(NodeList[j])
+                        
+                        if deletedataFlag is True:
+                            for k in range(0, len(deletedata)):
+                                NodeList.remove(deletedata[k])
+                        NodeList[0] = NodeList_FirstValue
+                        
+                        # 初始化每个充电回路节点的集合
+                        R_New = []
+                        # 添加服务站S依附的节点的名字
+                        R_New.append(R_list_Backup[0])
+                    else:
+                        # 将已经发送Request信息的节点进行提取，每一次操作的时候将节点的名字等进行备份，以便后面查询需要
+                        print "说明接收到的Request数量小于等于阈值，构建充电回路的节点可以小于阈值的数量"
+                        R_list_Backup = []   
+                        R_list = []
+                        R_list.append(NodeList[0])
+                        R_list_Backup.append(NodeList[0])
+                        print "NodeList =", NodeList 
+                        deletedata = []
+                        deletedateFlag = False
+                        NodeList_FirstValue = NodeList[0]
+                        NodeList[0] = 0
+                        for i in range(0, len(Request_list)):
+                            R_list.append(Request_list[i])
+                            R_list_Backup.append(Request_list[i])
+                            for j in range(0, len(NodeList)):
+                                if NodeList[j] == Request_list[i]:
+                                    deletedataFlag = True
+                                    deletedata.append(NodeList[j])
+                        
+                        if deletedataFlag is True:
+                            
+                            for k in range(0, len(deletedata)):
+                                NodeList.remove(deletedata[k])
+                        NodeList[0] = NodeList_FirstValue
+                        
+                        print "NodeList =", NodeList
+                        
+                        # 初始化每个充电回路节点的集合
+                        R_New = []
+                        # 添加服务站S依附的节点的名字
+                        R_New.append(R_list_Backup[0])
+                # 打印检查发送了request信号的节点的集合
+                if DebugFlag is True:
+                    print "R_list =", R_list
+                    print "R_list_Backup =", R_list_Backup
+
+                # 选择最佳下一服务点为，R_list_Backup中的第二个节点
+                
+                BestNode = R_list_Backup[1]
+                
+                # 本次寻找最好的节点为 BestNode
+                # 该点不再运动
+                
+                print "BestNode =", BestNode
+                # 将最好的节点加入构建的充电回路中
+                R_New.append(BestNode)
+                # R_list_Backup中的值每次都得进行删除操作，主要是怕不能依次对每个节点进行查询操作
+                R_list_Backup_FirstValue = R_list_Backup[0]
+                R_list_Backup[0] = 0
+                R_list_Backup.remove(BestNode)
+                R_list_Backup[0] = R_list_Backup_FirstValue
+                if DebugFlag is True:
+                    print "R_list_Backup =", R_list_Backup
+                # 其它点，当剩余能力未低于El时继续运动
+                JudgeResult = B.judging_whether_scheduled(NodeP,Em, Qc, Qm, nl, R_New, Vm, N_distance)
+                # 使用调度性条件判断是否满足决策条件
+                print "JudgeResult =", JudgeResult
+                if JudgeResult is True:
+                    # 将最好点加入充电回路后，可以被调度，直接加入充电回路
+                    # 从R_list中将最好点删掉，同时将NodeList中最好点删掉
+                    # 备份R_list的第一个值，防止服务站节点被删掉
+                    R_list_FisrtValuse = R_list[0]
+                    R_list[0] = 0
+                    R_list.remove(BestNode)
+                    R_list[0] = R_list_FisrtValuse
+                    '''
+                    NodeList_FisrtValuse = NodeList[0]
+                    NodeList[0] = 0
+                    NodeList.remove(BestNode)
+                    NodeList[0] = NodeList_FisrtValuse
+                    '''
+                    # 从Request_list中将BestNode删掉
+                    Request_list.remove(BestNode)
+                    # 将被删除的最好点从缓冲池中删除，即：其在缓冲池中的值为零
+                    # 对应在Request缓冲池中的值置为零
+                    # 对应在ALERT缓冲池中的值也置为零
+                    NodeRequest[0][BestNode] = 0
+                    NodeALERT[0][BestNode] = 0
+                    #  不考虑只存在服务站S与依附的节点的R_New序列
+                    NodeALERTFlag_New = False
+                    
+                    if DebugFlag is True:
+                        print "检查数据~~~~"
+                        print "NodeList =", NodeList
+                        print "R_list =", R_list
+                        print "R_list_Backup =", R_list_Backup
+                    
+                    D = N_distance[R_New[len(R_New) - 2]][R_New[len(R_New) - 1]]
+                    t1 = D/Vm
+                     # 消耗的能量
+                    last_Es = NodeEsValue - NodeEs[0][R_New[len(R_New) - 1]]
+                    # 充电需要的时间
+                    t2 = last_Es/Qc
+                    # 将R_New[len(R_New) - 1]加入充电子回路需要消耗的总时间为t
+                    t_sum = t1 + t2 
+                    t = t_sum
+                    if DebugFlag is True:
+                        print "将某点加入充电子回路中需要消耗的总时间为t =", t, 's'
+                    # 表明不止剩余一个节点
+                    # 有个隐含条件，上一次运动一定不会出现停止运动即：节点能量不会低于阈值El_Final发送ALERT给服务站S
+                    # 备份每个节点的能量,后期操作需要
+                    # 表明不止剩余一个节点
+                    # 每次操作前先把能量进行备份，一边后续操作所需
+                    if DebugFlag is True:
+                        print "El =", El
+                        # 每次操作前先把能量进行备份，一边后续操作所需
+                        print "NodeEs[0] =", NodeEs[0]
+                        print "NodeList =", NodeList
+                    NodeEsBackup = []
+                    for i in range(0, len(NodeList)):
+                        NodeEsBackup.append(NodeEs[0][NodeList[i]])
+                    if DebugFlag is True:
+                        print "NodeEsBackup =", NodeEsBackup
+                    # 更新节点剩余的能量  # 不仅仅是考虑边界，还得考虑运动过程中，遇到障碍应该避开
+                    for i in range(1, len(NodeList)):
+                        # 修改节点能量
+                        ChangeCoordinate(i, El, NodeList, NodeEs, NodeP, t_sum, NodeEsBackup, NodeMoveTime, NodeXCoordinateNew, NodeYCoordinateNew, V, Alpha, AlphaValue, EdgeLength, ObstacleCoordinate, ObstaclesNum)
+                        
+                        # 测试数据用的 事后需要将其注释掉
+                        # NodeEs[0][1] = El
+                        # print "NodeEs[0] =", NodeEs[0]
+                        # 当电单车节点剩余的能量小于阈值上限时，节点向服务站S发送充电请求信号Request
+                        if NodeEs[0][NodeList[i]] <= Et:
+                            if DebugFlag is True:
+                                print "发送充电请求Request"
+                            # 先判断该节点是否已经发送过Request请求
+                            if NodeRequest[0][NodeList[i]] == 0:
+                                NodeRequest[0][NodeList[i]] = 1
+                                # 只添加还未发送过Request请求的节点
+                                Request_list.append(NodeList[i])
+                        # 修改最后一个节点的位置，随之改变距离邻接矩阵
+                        if i == len(NodeList) - 1:
+                            if DebugFlag is True:
+                                print "遍历到最后一个节点，修改节点之间的距离"
+                            # 主要是获取各节点之间的距离
+                            N_distance_Road_result = F.CreateDistanceNewMatrix(Road_information, N_distance, EdgeLength, NodeXCoordinateNew, NodeYCoordinateNew, NodeListBackup, NodeList, ObstacleCoordinate, ObstaclesNum)
+                            N_distance = N_distance_Road_result[0]
+                            Road_information = N_distance_Road_result[1] 
+                            
+                else:
+                    R_New_FirstValue = R_New[0]
+                    R_New[0] = 0
+                    R_New.remove(BestNode)
+                    R_New[0] = R_New_FirstValue
+                if DebugFlag is True:
+                    print "R_New =", R_New
+                    print "R_list =", R_list
+                    print "R_list_Backup =", R_list_Backup
+                    print "NodeList =", NodeList
+                    print "Request_list =", Request_list
+                
+                if len(R_list_Backup) == 1 and len(R_list) != 1:
+                    # 重新备份
+                    # 将所有充电回路进行汇总
+                    # 当充电回路中只有服务站S时，不需要添加到充电回路集合中
+                    if len(R_New) != 1:
+                        R_Sum.append(R_New)
+                    R_list_Backup = []
+                    for q in range(0, len(R_list)):
+                        R_list_Backup.append(R_list[q])
+                    if DebugFlag is True:
+                        print "重新创建充电回路"
+                        print "len(R_New) =", len(R_New)
+                    
+                    # 如果len(R_New) > 2 使用原来的服务站创建新的充电回路
+                    # 添加服务站S，并创建新的回路
+                    if len(R_New) == 1:
+                        New_S = 0
+                        for i in range(1, len(R_list)):
+                            # 优先选择已经停止的节点
+                            if NodeALERT[0][R_list[i]] == 1:
+                                # 获取新的服务站S
+                                New_S = R_list[i]
+                                break
+                            if NodeRequest[0][R_list[i]] == 1:
+                                 # 获取新的服务站S
+                                New_S = R_list[i]
+                                break
+                        # 更新服务站依附的节点
+                        NodeList[0] = New_S
+                        # 如果服务站S修改，则每个节点序列也得修改服务站
+                        R_list[0] = NodeList[0] 
+                        R_list_Backup[0] = NodeList[0] 
+                    # 重新构建充电回路
+                    R_New = []
+                    R_New.append(R_list[0])
+                    
+                # 当前充电回路的节点已经被添加完毕
+                if len(R_list) == 1:
+                    # 统计当前节点序号列表中的个数，即未进行操作节点的个数
+                    if DebugFlag is True:
+                        print "对发送过Request请求的节点已经操作完毕"
+                    NodeListNum = len(NodeList)
+                    R_Sum.append(R_New)
+                    # 当前Request_list序列为空
+                    if len(Request_list) == 0:
+                        print "到目前为止，所有发送过Request信息的节点都已经被操作完了"
+                        NodeRequestFlag = False
+                        break
+                    # 当前Request_list序列不为空
+                    if len(Request_list) != 0:
+                        if len(Request_list) >= RequestThreshold:
+                            print "缓冲池已满，可再次构建回路"
+                            print "直接把剩余的一部分节点构成充电回路"
+                            BeginR_list = True
+                        else:
+                            print "当前剩余节点不足以填满缓冲池，需要节点再发送Request信息"
+                            if (len(NodeList) - 1) == len(Request_list):
+                                print "说明剩余的节点都已经发送了Request信息"
+                                BeginR_list = True
+                                break
+                            else:
+                                print "说明还有点未发送Request信息"
+                                NodeRequestFlag = False
+                                break
+    # 添加构建回路的相关信息
+    TourConstructionInformation(R_Sum, NodeEs, CompareFirstDeadNodeNum_data_txt, N_distance, NodeXCoordinateNew, NodeYCoordinateNew, CompareFirst_MCV_Tour_Set_txt, CompareFirst_MCV_Tour_Information_txt, ObstacleCoordinate, 2)
+    
+    print "程序即将结束"
+    # ProgrammingEndTime = time.time()
+    # print "固定缓冲池对比实验最终耗时 ", (ProgrammingEndTime - ProgrammingStartTime), 's'
     ProgrammingEndTime = time.time()    
     print "程序总共耗时 ", (ProgrammingEndTime- ProgrammingStartTime), 's'
           

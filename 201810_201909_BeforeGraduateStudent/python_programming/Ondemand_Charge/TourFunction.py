@@ -101,7 +101,7 @@ def AllNodeShow(x, y, obstacle_coordinate_new, obstacles_Num, kedu, S_Flag, edge
     # 保存生成的图片
     # partPath = [str(int(time.time()))]
     # origin_path = partPath[0] + 'origin.png'  
-    origin_path = 'origin.png'  
+    origin_path = '0origin.png'  
     
     All_path = os.path.join(childern_result_name, origin_path)
     plt.savefig(All_path)
