@@ -1158,8 +1158,8 @@ if __name__ == "__main__":
                     N_x_new_temp_new = N_x_new[0][N_i[i]]
                     N_y_new_temp_new = N_y_new[0][N_i[i]]
                     # print "备份的坐标为：", (N_x_new_temp, N_y_new_temp)
-                    N_x_new[0][N_i[i]] = round((N_x_new[0][N_i[i]] + v*t*math.cos(alpha[0][N_i[i]]/180.0*math.pi)), 2)
-                    N_y_new[0][N_i[i]] = round((N_y_new[0][N_i[i]] + v*t*math.sin(alpha[0][N_i[i]]/180.0*math.pi)), 2)
+                    N_x_new[0][N_i[i]] = round((N_x_new[0][N_i[i]] + v*t*math.cos((alpha[0][N_i[i]]*math.pi)/180.0)), 2)
+                    N_y_new[0][N_i[i]] = round((N_y_new[0][N_i[i]] + v*t*math.sin((alpha[0][N_i[i]]*math.pi)/180.0)), 2)
                     # print "更新坐标为：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
                    
                     # 检查坐标有没有超过边界, 表示超界了，表示当前需要改变运行方向
@@ -1185,8 +1185,8 @@ if __name__ == "__main__":
                             # print "alpha[0][", N_i[i], "]=", alpha[0][N_i[i]]
                             
                             # 用上面备份的当前的坐标，重新往重新生成的方向前进
-                            N_x_new[0][N_i[i]] = round((N_x_new_temp + v*t*math.cos(alpha[0][N_i[i]]/180.0*math.pi)), 2)
-                            N_y_new[0][N_i[i]] = round((N_y_new_temp + v*t*math.sin(alpha[0][N_i[i]]/180.0*math.pi)), 2)
+                            N_x_new[0][N_i[i]] = round((N_x_new_temp + v*t*math.cos((alpha[0][N_i[i]]*math.pi)/180.0)), 2)
+                            N_y_new[0][N_i[i]] = round((N_y_new_temp + v*t*math.sin((alpha[0][N_i[i]]*math.pi)/180.0)), 2)
                             # N_x_new[0][N_i[i]] = 1.0
                             #N_y_new[0][N_i[i]] = 2.0
                             # print "越界重新更新坐标为：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
@@ -1218,8 +1218,8 @@ if __name__ == "__main__":
                             alpha[0][N_i[i]] = (alpha[0][N_i[i]] + alpha_value)%360
                             # print "alpha[0][", N_i[i], "]=", alpha[0][N_i[i]]
                             # 用上面备份的当前的坐标，重新往重新生成的方向前进
-                            N_x_new[0][N_i[i]] = round((N_x_new_temp + v*t*math.cos(alpha[0][N_i[i]]/180.0*math.pi)), 2)
-                            N_y_new[0][N_i[i]] = round((N_y_new_temp + v*t*math.sin(alpha[0][N_i[i]]/180.0*math.pi)), 2)
+                            N_x_new[0][N_i[i]] = round((N_x_new_temp + v*t*math.cos((alpha[0][N_i[i]]*math.pi)/180.0)), 2)
+                            N_y_new[0][N_i[i]] = round((N_y_new_temp + v*t*math.sin((alpha[0][N_i[i]]*math.pi)/180.0)), 2)
                             # print "障碍区域内的坐标更新为：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
                         
                         else:
@@ -1265,8 +1265,8 @@ if __name__ == "__main__":
                                 # print "alpha[0][", N_i[i], "]=", alpha[0][N_i[i]]
                                 
                                 # 用上面备份的当前的坐标，重新往重新生成的方向前进
-                                N_x_new[0][N_i[i]] = round((N_x_new_temp + v*t*math.cos(alpha[0][N_i[i]]/180.0*math.pi)), 2)
-                                N_y_new[0][N_i[i]] = round((N_y_new_temp + v*t*math.sin(alpha[0][N_i[i]]/180.0*math.pi)), 2)
+                                N_x_new[0][N_i[i]] = round((N_x_new_temp + v*t*math.cos((alpha[0][N_i[i]]*math.pi)/180.0)), 2)
+                                N_y_new[0][N_i[i]] = round((N_y_new_temp + v*t*math.sin((alpha[0][N_i[i]]*math.pi)/180.0)), 2)
                                 # print "遇到障碍重新更新坐标为：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
                             if crossing_flag is True and change_direction_flag is True:
                                 # print "起点到终点途中不存在障碍或终点不存在与障碍区域"

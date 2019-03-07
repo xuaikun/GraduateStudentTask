@@ -29,7 +29,7 @@ result_path = "E:\\00000000000graduate-study\\GraduateStudentTask\\201810_201909
 
 # 以下为数据初始化
 # 节点数目 从 50 到 200 变化，将100节点的实验先 做全# 假设我有N辆电单车  会影响程序运行的时间
-NodeNum = 4
+NodeNum = 20
 
 # 选择插入算法角度阈值设定
 # cos90 = 0
@@ -1024,8 +1024,8 @@ if __name__ == "__main__":
                         NodeALERTFlag = True
                         FirstComingFlag = True
                     if NodeALERTFlag is True and (i == (len(NodeList) - 1)):
-                        plot1 = plt.plot(x1, y1, 'b',label='AECR')
-                        plot2 = plt.plot(x2, y2, 'r',label='AFP')
+                        plot1 = plt.plot(x1, y1, 'b--o',label='AECR')
+                        plot2 = plt.plot(x2, y2, 'r-.',label='AFP')
                         plt.xlabel('El')
                         plt.ylabel('y')
                         plt.legend(loc=4) #指定legend的位置右下角
@@ -1063,16 +1063,6 @@ if __name__ == "__main__":
                 
                 # 说明有电单车节点向MCV或服务站S发送了ALERT信息
                 print "表明要开始创建回路了，回路的节点在NodeRequest[0][i] 中为1者体现"
-                '''
-                if FirstComingFlag is True:
-                    if DebugFlag is True:
-                        print "首次进入统计各节点之间的距离"
-                    FirstComingFlag = False
-                    # 主要是获取各节点之间的距离
-                    N_distance_Road_result = F.CreateDistanceNewMatrix(Road_information, N_distance, EdgeLength, NodeXCoordinateNew, NodeYCoordinateNew, NodeListBackup, NodeList, ObstacleCoordinate, ObstaclesNum)
-                    N_distance = N_distance_Road_result[0]
-                    Road_information = N_distance_Road_result[1]
-                '''
                 # 将已经发送Request信息的节点进行提取，每一次操作的时候将节点的名字等进行备份，以便后面查询需要
                 if R_list_Backup_flag is True:
                     R_list_Backup = []
@@ -1468,6 +1458,9 @@ if __name__ == "__main__":
                     break
     # 添加构建回路的相关信息
     TourConstructionInformation(R_Sum, NodeEs, SecondDeadNodeNum_txt, N_distance, NodeXCoordinateNew, NodeYCoordinateNew, SecondMCV_Tour_Set_txt, SecondMCV_Tour_Information_txt, ObstacleCoordinate, 0)
+    
+    
+    '''
     print "第二种出发机制的做对比实验，接收大Request信息时，MCV即刻出发进行充电"
 
     # 使用备份数据
@@ -1652,7 +1645,9 @@ if __name__ == "__main__":
     # 回路消耗等相关数据的保存路径
     np.savetxt(CompareSecond_MCV_Tour_Information_txt, DataStore_list_sum, fmt='%0.2f')
     ChildrenTourConstruction(NodeXCoordinateNew, NodeYCoordinateNew, ObstacleCoordinate, R_Sum, 'S', NodeNum, 1)
-   
+    '''
+    
+    '''
     print "第一种出发机制的对比实验，固定缓冲池"
     # 使用备份数据
     ObstacleCoordinate = UseBackupData()
@@ -1877,12 +1872,6 @@ if __name__ == "__main__":
                     R_list[0] = 0
                     R_list.remove(BestNode)
                     R_list[0] = R_list_FisrtValuse
-                    '''
-                    NodeList_FisrtValuse = NodeList[0]
-                    NodeList[0] = 0
-                    NodeList.remove(BestNode)
-                    NodeList[0] = NodeList_FisrtValuse
-                    '''
                     # 从Request_list中将BestNode删掉
                     Request_list.remove(BestNode)
                     # 将被删除的最好点从缓冲池中删除，即：其在缓冲池中的值为零
@@ -2029,7 +2018,7 @@ if __name__ == "__main__":
                                 break
     # 添加构建回路的相关信息
     TourConstructionInformation(R_Sum, NodeEs, CompareFirstDeadNodeNum_data_txt, N_distance, NodeXCoordinateNew, NodeYCoordinateNew, CompareFirst_MCV_Tour_Set_txt, CompareFirst_MCV_Tour_Information_txt, ObstacleCoordinate, 2)
-    
+    '''
     print "程序即将结束"
     # ProgrammingEndTime = time.time()
     # print "固定缓冲池对比实验最终耗时 ", (ProgrammingEndTime - ProgrammingStartTime), 's'

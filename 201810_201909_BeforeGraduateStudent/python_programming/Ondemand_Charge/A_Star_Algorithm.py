@@ -4,11 +4,8 @@
 # 算法功能：用于计算两点之间的距离，可避开障碍物
 # 算法输入：起点坐标，终点坐标
 # 算法输出：两点之间的距离
-
-
 import numpy as np
 import math
-import time
 # debug_flag 为调试标志，为True是开启调试模式， 为False时关闭调试模式
 debug_flag = False
 # 本程序未考虑负的坐标系
