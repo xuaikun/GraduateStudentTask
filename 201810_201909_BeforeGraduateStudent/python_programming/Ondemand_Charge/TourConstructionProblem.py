@@ -22,11 +22,17 @@ RequestThreshold = 4
 
 # 几种出发机制运行的标志  True表示运行， False表示不运行
 # 第一种出发机制对比实验
-CompareFirstFlag = True
+FirstCompareFlag = False
 # 第二种出发机制
-SecondFlag = True
+SecondFlag = False
 # 第二种出发机制对比实验
-CompareSecondFlag = True
+SecondCompareFlag = False
+# NJNP方法实验
+NJNPFlag = True
+# TADP算法实验
+TADPFlag = True
+# RCSS 算法实验
+RCSSFlag = True
 
 
 # 使用备份数据时，UseBackupDataFlag = True
@@ -38,7 +44,7 @@ result_path = "E:\\00000000000graduate-study\\GraduateStudentTask\\201810_201909
 
 # 以下为数据初始化
 # 节点数目 从 50 到 200 变化，将100节点的实验先 做全# 假设我有N辆电单车  会影响程序运行的时间
-NodeNum = 5
+NodeNum = 50
 # 选择插入算法角度阈值设定
 # cos90 = 0
 # cos180 = -1
@@ -152,6 +158,7 @@ isExist = os.path.exists(result_name)
 if not isExist:
     print "不存在该路径，创建对应路径"
     os.makedirs(result_name)
+
 # 自主修改数据结果子的子目录
 childern_result_name = 'Em_' + str(int(Em)) + '_vm_' +str(int(Vm)) + '_qm_' + str(int(Qm)) + '_qc_' + str(int(Qc))
 childern_result_name = os.path.join(result_name, childern_result_name)
@@ -159,71 +166,96 @@ isExist = os.path.exists(childern_result_name)
 if not isExist:
     print "不存在该路径，创建对应路径"
     os.makedirs(childern_result_name)
-    
-First_path = os.path.join(childern_result_name, "First")
-isExist = os.path.exists(First_path)
+# 第一种出发机制对比实验【固定缓冲池】
+FirstCompare_path = os.path.join(childern_result_name, "FirstCompare")
+isExist = os.path.exists(FirstCompare_path)
 if not isExist:
     print "不存在该路径，创建对应路径"
-    os.makedirs(First_path)
-    
+    os.makedirs(FirstCompare_path)
+# 第二种出发机制实验【双阈值】
 Second_path = os.path.join(childern_result_name, "Second")
 isExist = os.path.exists(Second_path)
 if not isExist:
     print "不存在该路径，创建对应路径"
     os.makedirs(Second_path)
+# 第二种出发机制对比实验【单阈值】
+SecondCompare_path = os.path.join(childern_result_name, "SecondCompare")
+isExist = os.path.exists(SecondCompare_path)
+if not isExist:
+    print "不存在该路径，创建对应路径"
+    os.makedirs(SecondCompare_path)
+# NJNP方法实验路径
+NJNP_path = os.path.join(childern_result_name, "NJNP")
+isExist = os.path.exists(NJNP_path)
+if not isExist:
+    print "不存在该路径，创建对应路径"
+    os.makedirs(NJNP_path)
+# TADP方法实验路径
+TADP_path = os.path.join(childern_result_name, "TADP")
+isExist = os.path.exists(TADP_path)
+if not isExist:
+    print "不存在该路径，创建对应路径"
+    os.makedirs(TADP_path)
+# RCSS方法实验路径
+RCSS_path = os.path.join(childern_result_name, "RCSS")
+isExist = os.path.exists(RCSS_path)
+if not isExist:
+    print "不存在该路径，创建对应路径"
+    os.makedirs(RCSS_path)
+
 # 创建txt文件
 Obstacle_information_data_txt = os.path.join(result_name, 'Obstacle_information_data.txt')
 Node_information_data_txt = os.path.join(result_name, 'Node_information_data.txt')
 
 # 第一种出发机制的生成的一些txt文档   
-CompareFirst_MCV_Tour_Set_txt = os.path.join(First_path, 'CompareFirst_MCV_Tour_Set.txt')
-CompareFirst_MCV_Tour_Information_txt = os.path.join(First_path, 'CompareFirst_MCV_Tour_Information.txt')
-CompareFirst_DeadNodeNum_data_txt  = os.path.join(First_path, 'CompareFirst_DeadNodeNum_data.txt')
-CompareFirst_PerformanceSimulation_list_txt  = os.path.join(First_path, 'CompareFirst_PerformanceSimulation_list.txt')
-CompareFirst_ResponseTimeAndServiceTimeSimulation_list_txt = os.path.join(First_path, 'CompareFirst_ResponseTimeAndServiceTimeSimulation_list.txt')
+FirstCompare_MCV_Tour_Set_txt = os.path.join(FirstCompare_path, 'FirstCompare_MCV_Tour_Set.txt')
+FirstCompare_MCV_Tour_Information_txt = os.path.join(FirstCompare_path, 'FirstCompare_MCV_Tour_Information.txt')
+FirstCompare_DeadNodeNum_data_txt  = os.path.join(FirstCompare_path, 'FirstCompare_DeadNodeNum_data.txt')
+FirstCompare_PerformanceSimulation_list_txt  = os.path.join(FirstCompare_path, 'FirstCompare_PerformanceSimulation_list.txt')
+FirstCompare_ResponseTimeAndServiceTimeSimulation_list_txt = os.path.join(FirstCompare_path, 'FirstCompare_ResponseTimeAndServiceTimeSimulation_list.txt')
 
 # 第一种出发机制对比实验
 # 仿真时间统计
 
-CompareFirst_PerformanceSimulationTime_list = []
+FirstCompare_PerformanceSimulationTime_list = []
 # 死亡节点和吞吐量的统计
-CompareFirst_DeadNodeNum_list = []
-CompareFirst_Throughput_Num_list = []
+FirstCompare_DeadNodeNum_list = []
+FirstCompare_Throughput_Num_list = []
 # 充电能量和移动能量的统计
-CompareFirst_MCVChargeEs_list = []
-CompareFirst_MCVMoveEs_list = []
+FirstCompare_MCVChargeEs_list = []
+FirstCompare_MCVMoveEs_list = []
 # 充电时间和移动时间的统计
-CompareFirst_MCVChargeTime_list = []
-CompareFirst_MCVMoveTime_list = []
+FirstCompare_MCVChargeTime_list = []
+FirstCompare_MCVMoveTime_list = []
 # 实际距离和欧几里得距离的统计
-CompareFirst_MCVRealDistance_list = []
-CompareFirst_MCVEuclidDistance_list = []
+FirstCompare_MCVRealDistance_list = []
+FirstCompare_MCVEuclidDistance_list = []
 
 # 平均响应时间：从发送Request信息到被确认为下一服务点时，中间间隔时间
 # t = t2(被确认为下一服务节点时) - t1(发送Request信息)
 # 定义数组用于保存当节点发送Request时的时间
-CompareFirst_RequestTime = np.zeros((1, NodeNum + 1), dtype = np.float)
+FirstCompare_RequestTime = np.zeros((1, NodeNum + 1), dtype = np.float)
 # 定义数组用于保存当前节点被选为下一服务节点(最佳节点)的时间
-CompareFirst_BestNodeTime = np.zeros((1, NodeNum + 1), dtype = np.float)
+FirstCompare_BestNodeTime = np.zeros((1, NodeNum + 1), dtype = np.float)
 # 平均响应时间序列
-CompareFirst_AverageResponseTime_list = []
+FirstCompare_AverageResponseTime_list = []
 
 # 平均服务时间：从被确认为下一服务点时，到被充电完成，中间间隔时间
 # t = MCV移动时间(从当前服务节点出发) + MCV充电时间(下一服务节点)
 # 定义数组，用于保存服务时间
-CompareFirst_ServiceTime = np.zeros((1, NodeNum + 1), dtype = np.float)
+FirstCompare_ServiceTime = np.zeros((1, NodeNum + 1), dtype = np.float)
 # 平均服务时间序列
-CompareFirst_AverageServiceTime_list = []
+FirstCompare_AverageServiceTime_list = []
 
 # 平均响应时间和平均服务时间的仿真时间 
-CompareFirst_ResponseTimeAndServiceTimeSimulationTime_list = []
+FirstCompare_ResponseTimeAndServiceTimeSimulationTime_list = []
 
 # 第二种出发机制的生成的一些txt文档   
 Second_MCV_Tour_Set_txt = os.path.join(Second_path, 'Second_MCV_Tour_Set.txt')
-CompareSecond_MCV_Tour_Set_txt = os.path.join(Second_path, 'CompareSecond_MCV_Tour_Set.txt')
+SecondCompare_MCV_Tour_Set_txt = os.path.join(SecondCompare_path, 'SecondCompare_MCV_Tour_Set.txt')
 
 Second_MCV_Tour_Information_txt = os.path.join(Second_path, 'Second_MCV_Tour_Information.txt')
-CompareSecond_MCV_Tour_Information_txt = os.path.join(Second_path, 'CompareSecond_MCV_Tour_Information.txt')
+SecondCompare_MCV_Tour_Information_txt = os.path.join(SecondCompare_path, 'SecondCompare_MCV_Tour_Information.txt')
 
 AECR_Txt = os.path.join(Second_path, 'SecondAECRData.txt')
 AFP_Txt = os.path.join(Second_path, 'SecondAFPData.txt')
@@ -231,13 +263,13 @@ AFP_Txt = os.path.join(Second_path, 'SecondAFPData.txt')
 El_wBest_Txt = os.path.join(Second_path, 'SecondEl_wBestData.txt')
 
 Second_Dead_NodeNum_txt = os.path.join(Second_path, 'Second_Dead_NodeNum.txt')
-CompareSecond_DeadNodeNum_txt = os.path.join(Second_path, 'CompareSecond_DeadNodeNum.txt')
+SecondCompare_DeadNodeNum_txt = os.path.join(SecondCompare_path, 'SecondCompare_DeadNodeNum.txt')
 
 Second_PerformanceSimulation_list_txt  = os.path.join(Second_path, 'Second_PerformanceSimulation_list.txt')
-CompareSecond_PerformanceSimulation_list_txt  = os.path.join(Second_path, 'CompareSecond_PerformanceSimulation_list.txt')
+SecondCompare_PerformanceSimulation_list_txt  = os.path.join(SecondCompare_path, 'SecondCompare_PerformanceSimulation_list.txt')
 
 Second_ResponseTimeAndServiceTimeSimulation_list_txt = os.path.join(Second_path, 'Second_ResponseTimeAndServiceTimeSimulation_list.txt')
-CompareSecond_ResponseTimeAndServiceTimeSimulation_list_txt = os.path.join(Second_path, 'CompareSecond_ResponseTimeAndServiceTimeSimulation_list.txt')
+SecondCompare_ResponseTimeAndServiceTimeSimulation_list_txt = os.path.join(SecondCompare_path, 'SecondCompare_ResponseTimeAndServiceTimeSimulation_list.txt')
 
 # 初始化第二种出发机制
 
@@ -279,40 +311,173 @@ Second_ResponseTimeAndServiceTimeSimulationTime_list = []
 # 初始化第二出发机制对比实验
 
 # 仿真时间统计
-CompareSecond_PerformanceSimulationTime_list = []
+SecondCompare_PerformanceSimulationTime_list = []
 # 死亡节点和吞吐量的统计
-CompareSecond_DeadNodeNum_list = []
-CompareSecond_Throughput_Num_list = []
+SecondCompare_DeadNodeNum_list = []
+SecondCompare_Throughput_Num_list = []
 # 充电能量和移动能量的统计
-CompareSecond_MCVChargeEs_list = []
-CompareSecond_MCVMoveEs_list = []
+SecondCompare_MCVChargeEs_list = []
+SecondCompare_MCVMoveEs_list = []
 # 充电时间和移动时间的统计
-CompareSecond_MCVChargeTime_list = []
-CompareSecond_MCVMoveTime_list = []
+SecondCompare_MCVChargeTime_list = []
+SecondCompare_MCVMoveTime_list = []
 # 实际距离和欧几里得距离的统计
-CompareSecond_MCVRealDistance_list = []
-CompareSecond_MCVEuclidDistance_list = []
+SecondCompare_MCVRealDistance_list = []
+SecondCompare_MCVEuclidDistance_list = []
 
 
 # 平均响应时间：从发送Request信息到被确认为下一服务点时，中间间隔时间
 # t = t2(被确认为下一服务节点时) - t1(发送Request信息)
 # 定义数组用于保存当节点发送Request时的时间
-CompareSecond_RequestTime = np.zeros((1, NodeNum + 1), dtype = np.float)
+SecondCompare_RequestTime = np.zeros((1, NodeNum + 1), dtype = np.float)
 # 定义数组用于保存当前节点被选为下一服务节点(最佳节点)的时间
-CompareSecond_BestNodeTime = np.zeros((1, NodeNum + 1), dtype = np.float)
+SecondCompare_BestNodeTime = np.zeros((1, NodeNum + 1), dtype = np.float)
 # 平均响应时间序列
-CompareSecond_AverageResponseTime_list = []
+SecondCompare_AverageResponseTime_list = []
 
 # 平均服务时间：从被确认为下一服务点时，到被充电完成，中间间隔时间
 # t = MCV移动时间(从当前服务节点出发) + MCV充电时间(下一服务节点)
 # 定义数组，用于保存服务时间
-CompareSecond_ServiceTime = np.zeros((1, NodeNum + 1), dtype = np.float)
+SecondCompare_ServiceTime = np.zeros((1, NodeNum + 1), dtype = np.float)
 # 平均服务时间序列
-CompareSecond_AverageServiceTime_list = []
+SecondCompare_AverageServiceTime_list = []
 
 # 平均响应时间和平均服务时间的仿真时间 
-CompareSecond_ResponseTimeAndServiceTimeSimulationTime_list = []
+SecondCompare_ResponseTimeAndServiceTimeSimulationTime_list = []
 
+# NJNP对比实验
+# NJNP出发机制的生成的一些txt文档   
+NJNP_MCV_Tour_Set_txt = os.path.join(NJNP_path, 'NJNP_MCV_Tour_Set.txt')
+NJNP_MCV_Tour_Information_txt = os.path.join(NJNP_path, 'NJNP_MCV_Tour_Information.txt')
+NJNP_DeadNodeNum_data_txt  = os.path.join(NJNP_path, 'NJNP_DeadNodeNum_data.txt')
+NJNP_PerformanceSimulation_list_txt  = os.path.join(NJNP_path, 'NJNP_PerformanceSimulation_list.txt')
+NJNP_ResponseTimeAndServiceTimeSimulation_list_txt = os.path.join(NJNP_path, 'NJNP_ResponseTimeAndServiceTimeSimulation_list.txt')
+
+# NJNP出发机制对比实验
+# 仿真时间统计
+
+NJNP_PerformanceSimulationTime_list = []
+# 死亡节点和吞吐量的统计
+NJNP_DeadNodeNum_list = []
+NJNP_Throughput_Num_list = []
+# 充电能量和移动能量的统计
+NJNP_MCVChargeEs_list = []
+NJNP_MCVMoveEs_list = []
+# 充电时间和移动时间的统计
+NJNP_MCVChargeTime_list = []
+NJNP_MCVMoveTime_list = []
+# 实际距离和欧几里得距离的统计
+NJNP_MCVRealDistance_list = []
+NJNP_MCVEuclidDistance_list = []
+
+# 平均响应时间：从发送Request信息到被确认为下一服务点时，中间间隔时间
+# t = t2(被确认为下一服务节点时) - t1(发送Request信息)
+# 定义数组用于保存当节点发送Request时的时间
+NJNP_RequestTime = np.zeros((1, NodeNum + 1), dtype = np.float)
+# 定义数组用于保存当前节点被选为下一服务节点(最佳节点)的时间
+NJNP_BestNodeTime = np.zeros((1, NodeNum + 1), dtype = np.float)
+# 平均响应时间序列
+NJNP_AverageResponseTime_list = []
+
+# 平均服务时间：从被确认为下一服务点时，到被充电完成，中间间隔时间
+# t = MCV移动时间(从当前服务节点出发) + MCV充电时间(下一服务节点)
+# 定义数组，用于保存服务时间
+NJNP_ServiceTime = np.zeros((1, NodeNum + 1), dtype = np.float)
+# 平均服务时间序列
+NJNP_AverageServiceTime_list = []
+
+# 平均响应时间和平均服务时间的仿真时间 
+NJNP_ResponseTimeAndServiceTimeSimulationTime_list = []
+
+
+# TADP对比实验
+# TADP出发机制的生成的一些txt文档   
+TADP_MCV_Tour_Set_txt = os.path.join(TADP_path, 'TADP_MCV_Tour_Set.txt')
+TADP_MCV_Tour_Information_txt = os.path.join(TADP_path, 'TADP_MCV_Tour_Information.txt')
+TADP_DeadNodeNum_data_txt  = os.path.join(TADP_path, 'TADP_DeadNodeNum_data.txt')
+TADP_PerformanceSimulation_list_txt  = os.path.join(TADP_path, 'TADP_PerformanceSimulation_list.txt')
+TADP_ResponseTimeAndServiceTimeSimulation_list_txt = os.path.join(TADP_path, 'TADP_ResponseTimeAndServiceTimeSimulation_list.txt')
+
+# TADP出发机制对比实验
+# 仿真时间统计
+
+TADP_PerformanceSimulationTime_list = []
+# 死亡节点和吞吐量的统计
+TADP_DeadNodeNum_list = []
+TADP_Throughput_Num_list = []
+# 充电能量和移动能量的统计
+TADP_MCVChargeEs_list = []
+TADP_MCVMoveEs_list = []
+# 充电时间和移动时间的统计
+TADP_MCVChargeTime_list = []
+TADP_MCVMoveTime_list = []
+# 实际距离和欧几里得距离的统计
+TADP_MCVRealDistance_list = []
+TADP_MCVEuclidDistance_list = []
+
+# 平均响应时间：从发送Request信息到被确认为下一服务点时，中间间隔时间
+# t = t2(被确认为下一服务节点时) - t1(发送Request信息)
+# 定义数组用于保存当节点发送Request时的时间
+TADP_RequestTime = np.zeros((1, NodeNum + 1), dtype = np.float)
+# 定义数组用于保存当前节点被选为下一服务节点(最佳节点)的时间
+TADP_BestNodeTime = np.zeros((1, NodeNum + 1), dtype = np.float)
+# 平均响应时间序列
+TADP_AverageResponseTime_list = []
+
+# 平均服务时间：从被确认为下一服务点时，到被充电完成，中间间隔时间
+# t = MCV移动时间(从当前服务节点出发) + MCV充电时间(下一服务节点)
+# 定义数组，用于保存服务时间
+TADP_ServiceTime = np.zeros((1, NodeNum + 1), dtype = np.float)
+# 平均服务时间序列
+TADP_AverageServiceTime_list = []
+
+# 平均响应时间和平均服务时间的仿真时间 
+TADP_ResponseTimeAndServiceTimeSimulationTime_list = []
+
+
+# RCSS对比实验
+# RCSS出发机制的生成的一些txt文档   
+RCSS_MCV_Tour_Set_txt = os.path.join(RCSS_path, 'RCSS_MCV_Tour_Set.txt')
+RCSS_MCV_Tour_Information_txt = os.path.join(RCSS_path, 'RCSS_MCV_Tour_Information.txt')
+RCSS_DeadNodeNum_data_txt  = os.path.join(RCSS_path, 'RCSS_DeadNodeNum_data.txt')
+RCSS_PerformanceSimulation_list_txt  = os.path.join(RCSS_path, 'RCSS_PerformanceSimulation_list.txt')
+RCSS_ResponseTimeAndServiceTimeSimulation_list_txt = os.path.join(RCSS_path, 'RCSS_ResponseTimeAndServiceTimeSimulation_list.txt')
+
+# RCSS出发机制对比实验
+# 仿真时间统计
+
+RCSS_PerformanceSimulationTime_list = []
+# 死亡节点和吞吐量的统计
+RCSS_DeadNodeNum_list = []
+RCSS_Throughput_Num_list = []
+# 充电能量和移动能量的统计
+RCSS_MCVChargeEs_list = []
+RCSS_MCVMoveEs_list = []
+# 充电时间和移动时间的统计
+RCSS_MCVChargeTime_list = []
+RCSS_MCVMoveTime_list = []
+# 实际距离和欧几里得距离的统计
+RCSS_MCVRealDistance_list = []
+RCSS_MCVEuclidDistance_list = []
+
+# 平均响应时间：从发送Request信息到被确认为下一服务点时，中间间隔时间
+# t = t2(被确认为下一服务节点时) - t1(发送Request信息)
+# 定义数组用于保存当节点发送Request时的时间
+RCSS_RequestTime = np.zeros((1, NodeNum + 1), dtype = np.float)
+# 定义数组用于保存当前节点被选为下一服务节点(最佳节点)的时间
+RCSS_BestNodeTime = np.zeros((1, NodeNum + 1), dtype = np.float)
+# 平均响应时间序列
+RCSS_AverageResponseTime_list = []
+
+# 平均服务时间：从被确认为下一服务点时，到被充电完成，中间间隔时间
+# t = MCV移动时间(从当前服务节点出发) + MCV充电时间(下一服务节点)
+# 定义数组，用于保存服务时间
+RCSS_ServiceTime = np.zeros((1, NodeNum + 1), dtype = np.float)
+# 平均服务时间序列
+RCSS_AverageServiceTime_list = []
+
+# 平均响应时间和平均服务时间的仿真时间 
+RCSS_ResponseTimeAndServiceTimeSimulationTime_list = []
 
 #  使用备份数据
 def UseBackupData():
@@ -343,7 +508,7 @@ def UseBackupData():
     return ObstacleCoordinate
 
 # 添加充电回路相关信息
-def TourConstructionInformation(El, R_Sum, NodeEs, DeadNodeNum_data_txt, N_distance, NodeXCoordinateNew, NodeYCoordinateNew, MCV_Tour_Set_txt, MCV_Tour_Information_txt, ObstacleCoordinate, FlagNum):
+def TourConstructionInformation(El, R_Sum, NodeEs, DeadNodeNum_data_txt, N_distance, NodeXCoordinateNew, NodeYCoordinateNew, MCV_Tour_Set_txt, MCV_Tour_Information_txt, ObstacleCoordinate, mechanism):
     if DebugFlag is True:
         print "充电回路汇总"
         print "R_Sum =", R_Sum
@@ -441,7 +606,7 @@ def TourConstructionInformation(El, R_Sum, NodeEs, DeadNodeNum_data_txt, N_dista
     f1.close()
     # 回路消耗等相关数据的保存路径
     np.savetxt(MCV_Tour_Information_txt, DataStore_list_sum, fmt='%0.2f')
-    ChildrenTourConstruction(NodeXCoordinateNew, NodeYCoordinateNew, ObstacleCoordinate, R_Sum, 'S', NodeNum, FlagNum)
+    ChildrenTourConstruction(NodeXCoordinateNew, NodeYCoordinateNew, ObstacleCoordinate, R_Sum, 'S', NodeNum, mechanism)
     return
 
 # 根据时间间隔统计相关数据
@@ -550,21 +715,21 @@ def SummaryByTime(El, mechanism, R_Sum, Simulation_time, NodeEs, N_distance, Nod
         # MCV移动欧几里得距离统计
         MCVEuclidDistance = MCVEuclidDistance + round(Euclid_D, 2)
           
-    if mechanism == 'CompareFirst':
+    if mechanism == 'FirstCompare':
         # 仿真时间统计
-        CompareFirst_PerformanceSimulationTime_list.append(Simulation_time)
+        FirstCompare_PerformanceSimulationTime_list.append(Simulation_time)
         # 死亡节点和吞吐量的统计
-        CompareFirst_DeadNodeNum_list.append(DeadNodeNum)
-        CompareFirst_Throughput_Num_list.append(Throughput_Num)
+        FirstCompare_DeadNodeNum_list.append(DeadNodeNum)
+        FirstCompare_Throughput_Num_list.append(Throughput_Num)
         # 充电能量和移动能量的统计
-        CompareFirst_MCVChargeEs_list.append(MCVChargeEs)
-        CompareFirst_MCVMoveEs_list.append(MCVMoveEs)
+        FirstCompare_MCVChargeEs_list.append(MCVChargeEs)
+        FirstCompare_MCVMoveEs_list.append(MCVMoveEs)
         # 充电时间和移动时间的统计
-        CompareFirst_MCVChargeTime_list.append(MCVChargeTime)
-        CompareFirst_MCVMoveTime_list.append(MCVMoveTime)
+        FirstCompare_MCVChargeTime_list.append(MCVChargeTime)
+        FirstCompare_MCVMoveTime_list.append(MCVMoveTime)
         # 实际距离和欧几里得距离的统计
-        CompareFirst_MCVRealDistance_list.append(MCVRealDistance)
-        CompareFirst_MCVEuclidDistance_list.append(MCVEuclidDistance)
+        FirstCompare_MCVRealDistance_list.append(MCVRealDistance)
+        FirstCompare_MCVEuclidDistance_list.append(MCVEuclidDistance)
         
     elif mechanism == 'Second':
         # 仿真时间统计
@@ -581,26 +746,71 @@ def SummaryByTime(El, mechanism, R_Sum, Simulation_time, NodeEs, N_distance, Nod
         # 实际距离和欧几里得距离的统计
         Second_MCVRealDistance_list.append(MCVRealDistance)
         Second_MCVEuclidDistance_list.append(MCVEuclidDistance)
-    elif mechanism == 'CompareSecond':
+    elif mechanism == 'SecondCompare':
         # 仿真时间统计
-        CompareSecond_PerformanceSimulationTime_list.append(Simulation_time)
+        SecondCompare_PerformanceSimulationTime_list.append(Simulation_time)
         # 死亡节点和吞吐量的统计
-        CompareSecond_DeadNodeNum_list.append(DeadNodeNum)
-        CompareSecond_Throughput_Num_list.append(Throughput_Num)
+        SecondCompare_DeadNodeNum_list.append(DeadNodeNum)
+        SecondCompare_Throughput_Num_list.append(Throughput_Num)
         # 充电能量和移动能量的统计
-        CompareSecond_MCVChargeEs_list.append(MCVChargeEs)
-        CompareSecond_MCVMoveEs_list.append(MCVMoveEs)
+        SecondCompare_MCVChargeEs_list.append(MCVChargeEs)
+        SecondCompare_MCVMoveEs_list.append(MCVMoveEs)
         # 充电时间和移动时间的统计
-        CompareSecond_MCVChargeTime_list.append(MCVChargeTime)
-        CompareSecond_MCVMoveTime_list.append(MCVMoveTime)
+        SecondCompare_MCVChargeTime_list.append(MCVChargeTime)
+        SecondCompare_MCVMoveTime_list.append(MCVMoveTime)
         # 实际距离和欧几里得距离的统计
-        CompareSecond_MCVRealDistance_list.append(MCVRealDistance)
-        CompareSecond_MCVEuclidDistance_list.append(MCVEuclidDistance)
+        SecondCompare_MCVRealDistance_list.append(MCVRealDistance)
+        SecondCompare_MCVEuclidDistance_list.append(MCVEuclidDistance)
+    elif mechanism == 'NJNP':
+        # 仿真时间统计
+        NJNP_PerformanceSimulationTime_list.append(Simulation_time)
+        # 死亡节点和吞吐量的统计
+        NJNP_DeadNodeNum_list.append(DeadNodeNum)
+        NJNP_Throughput_Num_list.append(Throughput_Num)
+        # 充电能量和移动能量的统计
+        NJNP_MCVChargeEs_list.append(MCVChargeEs)
+        NJNP_MCVMoveEs_list.append(MCVMoveEs)
+        # 充电时间和移动时间的统计
+        NJNP_MCVChargeTime_list.append(MCVChargeTime)
+        NJNP_MCVMoveTime_list.append(MCVMoveTime)
+        # 实际距离和欧几里得距离的统计
+        NJNP_MCVRealDistance_list.append(MCVRealDistance)
+        NJNP_MCVEuclidDistance_list.append(MCVEuclidDistance)
+    elif mechanism == 'TADP':
+        # 仿真时间统计
+        TADP_PerformanceSimulationTime_list.append(Simulation_time)
+        # 死亡节点和吞吐量的统计
+        TADP_DeadNodeNum_list.append(DeadNodeNum)
+        TADP_Throughput_Num_list.append(Throughput_Num)
+        # 充电能量和移动能量的统计
+        TADP_MCVChargeEs_list.append(MCVChargeEs)
+        TADP_MCVMoveEs_list.append(MCVMoveEs)
+        # 充电时间和移动时间的统计
+        TADP_MCVChargeTime_list.append(MCVChargeTime)
+        TADP_MCVMoveTime_list.append(MCVMoveTime)
+        # 实际距离和欧几里得距离的统计
+        TADP_MCVRealDistance_list.append(MCVRealDistance)
+        TADP_MCVEuclidDistance_list.append(MCVEuclidDistance)
+    elif mechanism == 'RCSS':
+        # 仿真时间统计
+        RCSS_PerformanceSimulationTime_list.append(Simulation_time)
+        # 死亡节点和吞吐量的统计
+        RCSS_DeadNodeNum_list.append(DeadNodeNum)
+        RCSS_Throughput_Num_list.append(Throughput_Num)
+        # 充电能量和移动能量的统计
+        RCSS_MCVChargeEs_list.append(MCVChargeEs)
+        RCSS_MCVMoveEs_list.append(MCVMoveEs)
+        # 充电时间和移动时间的统计
+        RCSS_MCVChargeTime_list.append(MCVChargeTime)
+        RCSS_MCVMoveTime_list.append(MCVMoveTime)
+        # 实际距离和欧几里得距离的统计
+        RCSS_MCVRealDistance_list.append(MCVRealDistance)
+        RCSS_MCVEuclidDistance_list.append(MCVEuclidDistance)
     return
     
 
 # 将子回路首尾连接起来
-def ChildrenTourConstruction(x_new, y_new, obstacle_coordinate_new, R_result, S_Flag_new, N, GraphName):
+def ChildrenTourConstruction(x_new, y_new, obstacle_coordinate_new, R_result, S_Flag_new, N, mechanism):
     if DebugFlag is True:
         print "模拟轨迹##########\n"
     Style_num = 0
@@ -720,26 +930,14 @@ def ChildrenTourConstruction(x_new, y_new, obstacle_coordinate_new, R_result, S_
     plt.legend(loc='upper right', edgecolor='black')
     ax.legend(loc='upper right', edgecolor='black')
     # 保存生成的图片
-    if GraphName == 0:
-        
-        origin_path = 'Second_Final.png'  
-        All_path = os.path.join(Second_path, origin_path)
-        plt.savefig(All_path)
-    if GraphName == 1:
-        
-        origin_path = 'CompareSecond_Final.png'  
-        All_path = os.path.join(Second_path, origin_path)
-        plt.savefig(All_path)
-    if GraphName == 2:
-        
-        origin_path = 'CompareFirst_Final.png'  
-        All_path = os.path.join(First_path, origin_path)
-        plt.savefig(All_path)
-    if GraphName == 3:
-        
-        origin_path = 'First_Final.png'  
-        All_path = os.path.join(First_path, origin_path)
-        plt.savefig(All_path)
+    
+    Graph_Name = mechanism + '_Final.png'
+    # print "Graph_Name =", Graph_Name
+    origin_path = os.path.join(childern_result_name , mechanism)
+    # print "origin_path =", origin_path  
+    All_path = os.path.join(origin_path, Graph_Name)
+    # print "All_path =", All_path
+    plt.savefig(All_path)
     plt.xlim([0 - 1, EdgeLength + 1]) #设置绘图X边界                                                                                                   
     plt.ylim([0 - 1, EdgeLength + 1]) #设置绘图Y边界
     plt.show()
@@ -1097,6 +1295,21 @@ def SelectInsertAlgorithm(i, Simulation_time, BestNodeTime,N_distance, NodeEsVal
     result.append(BestNodeTime)
     result.append(ServiceTime)
     return result
+# 定义选择排序 A 对二维列表排序，从第1个开始
+def select_sort_Numsort(array):
+    length = len(array)
+    for position_i in range(0, length - 1):
+        min_position = position_i
+        for position_j in range(position_i + 1, length):
+            if array[min_position][1] > array[position_j][1]:
+                min_position = position_j
+        tmp = array[min_position][1]
+        temp1 = array[min_position][0]
+        array[min_position][1] = array[position_i][1]
+        array[min_position][0] = array[position_i][0]
+        array[position_i][1] = tmp
+        array[position_i][0] = temp1
+    return
 
 if __name__ == "__main__":
     print "Programming is Begin"
@@ -1811,7 +2024,7 @@ if __name__ == "__main__":
                         # 发送请求的节点已经全部加入充电回路了,退出while循环，重新获取充电请求
                         break
         # 添加构建回路的相关信息
-        TourConstructionInformation(El, R_Sum, NodeEs, Second_Dead_NodeNum_txt, N_distance, NodeXCoordinateNew, NodeYCoordinateNew, Second_MCV_Tour_Set_txt, Second_MCV_Tour_Information_txt, ObstacleCoordinate, 0)
+        TourConstructionInformation(El, R_Sum, NodeEs, Second_Dead_NodeNum_txt, N_distance, NodeXCoordinateNew, NodeYCoordinateNew, Second_MCV_Tour_Set_txt, Second_MCV_Tour_Information_txt, ObstacleCoordinate, 'Second')
         
         result_list = []
         # 仿真时间
@@ -1844,7 +2057,7 @@ if __name__ == "__main__":
         # 保存平均响应时间和平均服务时间的仿真数据
         np.savetxt(Second_ResponseTimeAndServiceTimeSimulation_list_txt, result_list, fmt='%0.2f')
     
-    if CompareSecondFlag is True:
+    if SecondCompareFlag is True:
         print "Compare Second Task"
         # 每次执行程序前初始化仿真时间
         Simulation_time = 0.0
@@ -1907,7 +2120,7 @@ if __name__ == "__main__":
                     DeadNodeNumber = 0
                     for i in range(1, len(NodeList)):
                         # 修改节点能量
-                        t = ChangeCoordinate(i, El, Et, CompareSecond_RequestTime, Simulation_time, NodeList, NodeEs, NodeP, t_sum, NodeEsBackup, NodeMoveTime, NodeXCoordinateNew, NodeYCoordinateNew, V, Alpha, AlphaValue, EdgeLength, ObstacleCoordinate, ObstaclesNum)
+                        t = ChangeCoordinate(i, El, Et, SecondCompare_RequestTime, Simulation_time, NodeList, NodeEs, NodeP, t_sum, NodeEsBackup, NodeMoveTime, NodeXCoordinateNew, NodeYCoordinateNew, V, Alpha, AlphaValue, EdgeLength, ObstacleCoordinate, ObstaclesNum)
                         if t == 0:
                             DeadNodeNumber = DeadNodeNumber + 1
                         # 测试数据用的 事后需要将其注释掉
@@ -2011,9 +2224,9 @@ if __name__ == "__main__":
                     print "JudgeResult =", JudgeResult
                     if JudgeResult is True:
                         # 当该节点被选为最佳下一服务点时，将当前时间进行统计
-                        CompareSecond_BestNodeTime[0][BestNode] = Simulation_time
+                        SecondCompare_BestNodeTime[0][BestNode] = Simulation_time
                         if DebugFlag is True:
-                            print "CompareSecond_BestNodeTime[0][", BestNode, "] =", CompareSecond_BestNodeTime[0][BestNode] 
+                            print "SecondCompare_BestNodeTime[0][", BestNode, "] =", SecondCompare_BestNodeTime[0][BestNode] 
                     
                         # 将最好点加入充电回路后，可以被调度，直接加入充电回路
                         # 从R_list中将最好点删掉，同时将NodeList中最好点删掉
@@ -2049,13 +2262,13 @@ if __name__ == "__main__":
                             
                             for i in range(1, len(R_list)):
                                 if NodeRequest[0][R_list[i]] == 1:
-                                    SelectInsertAlgorithmResult = SelectInsertAlgorithm(i, Simulation_time, CompareSecond_BestNodeTime,N_distance, NodeEsValue,NodeEs,CompareSecond_ServiceTime,Vm,Qc, R_list, R_list_Backup, R_New, NodeList, NodeRequest, NodeALERT, Ax, Ay, Bx, By, MinAngle, MaxAngle, NodeRequestFlag_New)
+                                    SelectInsertAlgorithmResult = SelectInsertAlgorithm(i, Simulation_time, SecondCompare_BestNodeTime,N_distance, NodeEsValue,NodeEs,SecondCompare_ServiceTime,Vm,Qc, R_list, R_list_Backup, R_New, NodeList, NodeRequest, NodeALERT, Ax, Ay, Bx, By, MinAngle, MaxAngle, NodeRequestFlag_New)
                                     # 赋值相关数据
                                     NodeRequestFlag_New = SelectInsertAlgorithmResult[0]
                                     SelectInsertAlgorithmTime = SelectInsertAlgorithmResult[1]
                                     Simulation_time = SelectInsertAlgorithmResult[2]
-                                    CompareSecond_BestNodeTime = SelectInsertAlgorithmResult[3]
-                                    CompareSecond_ServiceTime = SelectInsertAlgorithmResult[4]
+                                    SecondCompare_BestNodeTime = SelectInsertAlgorithmResult[3]
+                                    SecondCompare_ServiceTime = SelectInsertAlgorithmResult[4]
                                     if NodeRequestFlag_New == True:
                                         # 节点运行期间，只允许插入一个节点 
                                         break
@@ -2081,9 +2294,9 @@ if __name__ == "__main__":
                         if DebugFlag is True:
                             print "将某点加入充电子回路中需要消耗的总时间为t =", t, 's'
                         
-                        CompareSecond_ServiceTime[0][BestNode] = t
+                        SecondCompare_ServiceTime[0][BestNode] = t
                         if DebugFlag is True:
-                            print "CompareSecond_ServiceTime[0][", BestNode, "] =", CompareSecond_ServiceTime[0][BestNode] 
+                            print "SecondCompare_ServiceTime[0][", BestNode, "] =", SecondCompare_ServiceTime[0][BestNode] 
                         
                         # 添加平均响应时间和平均服务时间
                         if DebugFlag is True:
@@ -2098,27 +2311,27 @@ if __name__ == "__main__":
                         
                         for m in range(1, len(NodeListBackup)):
                             # 说明这个节点已经被添加到回路了，或者说已经被操作过的
-                            if CompareSecond_ServiceTime[0][NodeListBackup[m]] != 0:
+                            if SecondCompare_ServiceTime[0][NodeListBackup[m]] != 0:
                                # 当前选中的节点的相关时间的统计
                                # 响应时间
-                               CompareSecond_RequestTime[0][NodeListBackup[m]]
+                               SecondCompare_RequestTime[0][NodeListBackup[m]]
                                # 选择下一最佳服务节点的时间
-                               CompareSecond_BestNodeTime[0][NodeListBackup[m]]
+                               SecondCompare_BestNodeTime[0][NodeListBackup[m]]
                                
                                # 已经被操作过（被添加回路）的节点个数的统计
                                ServiceNode = ServiceNode + 1 
                                # 节点响应时间求总和
-                               ResponseNodeTime = ResponseNodeTime + (CompareSecond_BestNodeTime[0][NodeListBackup[m]] - CompareSecond_RequestTime[0][NodeListBackup[m]])
+                               ResponseNodeTime = ResponseNodeTime + (SecondCompare_BestNodeTime[0][NodeListBackup[m]] - SecondCompare_RequestTime[0][NodeListBackup[m]])
                                # 节点服务时间求总和
-                               ServiceNodeTime = ServiceNodeTime + CompareSecond_ServiceTime[0][NodeListBackup[m]]
+                               ServiceNodeTime = ServiceNodeTime + SecondCompare_ServiceTime[0][NodeListBackup[m]]
                         
                         # 添加平均响应时间
-                        CompareSecond_AverageResponseTime_list.append(round(ResponseNodeTime/ServiceNode, 2))
+                        SecondCompare_AverageResponseTime_list.append(round(ResponseNodeTime/ServiceNode, 2))
                         # 添加平均服务时间
-                        CompareSecond_AverageServiceTime_list.append(round(ServiceNodeTime/ServiceNode, 2))
+                        SecondCompare_AverageServiceTime_list.append(round(ServiceNodeTime/ServiceNode, 2))
                         
                         # 添加当前的仿真时间
-                        CompareSecond_ResponseTimeAndServiceTimeSimulationTime_list.append(Simulation_time)
+                        SecondCompare_ResponseTimeAndServiceTimeSimulationTime_list.append(Simulation_time)
                         
                         # 表明不止剩余一个节点
                         # 有个隐含条件，上一次运动一定不会出现停止运动即：节点能量不会低于阈值El_Final发送ALERT给服务站S
@@ -2139,7 +2352,7 @@ if __name__ == "__main__":
                         DeadNodeNumber = 0
                         for i in range(1, len(NodeList)):
                             # 修改节点能量
-                            t = ChangeCoordinate(i, El, Et, CompareSecond_RequestTime, Simulation_time, NodeList, NodeEs, NodeP, t_sum, NodeEsBackup, NodeMoveTime, NodeXCoordinateNew, NodeYCoordinateNew, V, Alpha, AlphaValue, EdgeLength, ObstacleCoordinate, ObstaclesNum)
+                            t = ChangeCoordinate(i, El, Et, SecondCompare_RequestTime, Simulation_time, NodeList, NodeEs, NodeP, t_sum, NodeEsBackup, NodeMoveTime, NodeXCoordinateNew, NodeYCoordinateNew, V, Alpha, AlphaValue, EdgeLength, ObstacleCoordinate, ObstaclesNum)
                             if t == 0:
                                 # t == 0 时，说明节点已经死亡
                                 DeadNodeNumber = DeadNodeNumber + 1
@@ -2204,7 +2417,7 @@ if __name__ == "__main__":
                         # 当充电回路中只有服务站S时，不需要添加到充电回路集合中
                         if len(R_New) != 1:
                             R_Sum.append(R_New)
-                            SummaryByTime(El, 'CompareSecond', R_Sum, Simulation_time, NodeEs, N_distance, NodeXCoordinateNew, NodeYCoordinateNew, ObstacleCoordinate)
+                            SummaryByTime(El, 'SecondCompare', R_Sum, Simulation_time, NodeEs, N_distance, NodeXCoordinateNew, NodeYCoordinateNew, ObstacleCoordinate)
                         R_list_Backup_flag = True
                         # 如果len(R_New) > 2 使用原来的服务站创建新的充电回路
                         # 添加服务站S，并创建新的回路
@@ -2232,50 +2445,50 @@ if __name__ == "__main__":
                         R_list_Backup_flag = True
                         NodeRequestFlag = False
                         R_Sum.append(R_New)
-                        SummaryByTime(El, 'CompareSecond', R_Sum, Simulation_time, NodeEs, N_distance, NodeXCoordinateNew, NodeYCoordinateNew, ObstacleCoordinate)
+                        SummaryByTime(El, 'SecondCompare', R_Sum, Simulation_time, NodeEs, N_distance, NodeXCoordinateNew, NodeYCoordinateNew, ObstacleCoordinate)
                         
                         # 发送请求的节点已经全部加入充电回路了,退出while循环，重新获取充电请求
                         break
         # 添加构建回路的相关信息
-        TourConstructionInformation(El, R_Sum, NodeEs, CompareSecond_DeadNodeNum_txt, N_distance, NodeXCoordinateNew, NodeYCoordinateNew, CompareSecond_MCV_Tour_Set_txt, CompareSecond_MCV_Tour_Information_txt, ObstacleCoordinate, 1)
+        TourConstructionInformation(El, R_Sum, NodeEs, SecondCompare_DeadNodeNum_txt, N_distance, NodeXCoordinateNew, NodeYCoordinateNew, SecondCompare_MCV_Tour_Set_txt, SecondCompare_MCV_Tour_Information_txt, ObstacleCoordinate, 'SecondCompare')
         
         # 添加几个性能与仿真时间的关系
         result_list = []
         # 仿真时间
-        result_list.append(CompareSecond_PerformanceSimulationTime_list)
+        result_list.append(SecondCompare_PerformanceSimulationTime_list)
         # 死亡节点和吞吐量
-        result_list.append(CompareSecond_DeadNodeNum_list)
-        result_list.append(CompareSecond_Throughput_Num_list)
+        result_list.append(SecondCompare_DeadNodeNum_list)
+        result_list.append(SecondCompare_Throughput_Num_list)
         # 充电能量和移动能量
-        result_list.append(CompareSecond_MCVChargeEs_list)
-        result_list.append(CompareSecond_MCVMoveEs_list)
+        result_list.append(SecondCompare_MCVChargeEs_list)
+        result_list.append(SecondCompare_MCVMoveEs_list)
         # 充电时间和移动时间
-        result_list.append(CompareSecond_MCVChargeTime_list)
-        result_list.append(CompareSecond_MCVMoveTime_list)
+        result_list.append(SecondCompare_MCVChargeTime_list)
+        result_list.append(SecondCompare_MCVMoveTime_list)
         # 实际距离和欧几里得距离
-        result_list.append(CompareSecond_MCVRealDistance_list)
-        result_list.append(CompareSecond_MCVEuclidDistance_list)
+        result_list.append(SecondCompare_MCVRealDistance_list)
+        result_list.append(SecondCompare_MCVEuclidDistance_list)
         # 保存新能数据
-        np.savetxt(CompareSecond_PerformanceSimulation_list_txt, result_list, fmt='%0.2f')
+        np.savetxt(SecondCompare_PerformanceSimulation_list_txt, result_list, fmt='%0.2f')
         if DebugFlag is True:
-            print "CompareSecond_RequestTime[0] =\n", CompareSecond_RequestTime[0]
-            print "CompareSecond_BestNodeTime[0] =\n", CompareSecond_BestNodeTime[0]
-            print "CompareSecond_ServiceTime[0] =\n", CompareSecond_ServiceTime[0]
-            print "CompareSecond_ResponseTimeAndServiceTimeSimulationTime_list =\n", CompareSecond_ResponseTimeAndServiceTimeSimulationTime_list
-            print "CompareSecond_AverageResponseTime_list =\n", CompareSecond_AverageResponseTime_list
-            print "CompareSecond_AverageServiceTime_list =\n", CompareSecond_AverageServiceTime_list
+            print "SecondCompare_RequestTime[0] =\n", SecondCompare_RequestTime[0]
+            print "SecondCompare_BestNodeTime[0] =\n", SecondCompare_BestNodeTime[0]
+            print "SecondCompare_ServiceTime[0] =\n", SecondCompare_ServiceTime[0]
+            print "SecondCompare_ResponseTimeAndServiceTimeSimulationTime_list =\n", SecondCompare_ResponseTimeAndServiceTimeSimulationTime_list
+            print "SecondCompare_AverageResponseTime_list =\n", SecondCompare_AverageResponseTime_list
+            print "SecondCompare_AverageServiceTime_list =\n", SecondCompare_AverageServiceTime_list
         result_list = []
-        result_list.append(CompareSecond_ResponseTimeAndServiceTimeSimulationTime_list)
-        result_list.append(CompareSecond_AverageResponseTime_list)
-        result_list.append(CompareSecond_AverageServiceTime_list)
+        result_list.append(SecondCompare_ResponseTimeAndServiceTimeSimulationTime_list)
+        result_list.append(SecondCompare_AverageResponseTime_list)
+        result_list.append(SecondCompare_AverageServiceTime_list)
         # 保存两个性能数据
-        np.savetxt(CompareSecond_ResponseTimeAndServiceTimeSimulation_list_txt, result_list, fmt='%0.2f')
+        np.savetxt(SecondCompare_ResponseTimeAndServiceTimeSimulation_list_txt, result_list, fmt='%0.2f')
     
-    if CompareFirstFlag is True:
+    if FirstCompareFlag is True:
         # 统一El的值
         El = El
         Simulation_time = 0.0
-        print "第一种出发机制的对比实验，固定缓冲池"
+        print "FirstCompare Task"
         # 使用备份数据
         ObstacleCoordinate = UseBackupData()
         
@@ -2345,7 +2558,7 @@ if __name__ == "__main__":
                     DeadNodeNumber = 0
                     for i in range(1, len(NodeList)):
                         # 修改节点能量
-                        t = ChangeCoordinate(i, El, Et, CompareFirst_RequestTime, Simulation_time, NodeList, NodeEs, NodeP, t_sum, NodeEsBackup, NodeMoveTime, NodeXCoordinateNew, NodeYCoordinateNew, V, Alpha, AlphaValue, EdgeLength, ObstacleCoordinate, ObstaclesNum)
+                        t = ChangeCoordinate(i, El, Et, FirstCompare_RequestTime, Simulation_time, NodeList, NodeEs, NodeP, t_sum, NodeEsBackup, NodeMoveTime, NodeXCoordinateNew, NodeYCoordinateNew, V, Alpha, AlphaValue, EdgeLength, ObstacleCoordinate, ObstaclesNum)
                         if t == 0:
                             # t == 0 表示该节点为死亡节点
                             DeadNodeNumber = DeadNodeNumber + 1
@@ -2487,9 +2700,9 @@ if __name__ == "__main__":
                     print "JudgeResult =", JudgeResult
                     if JudgeResult is True:
                         # 当该节点被选为最佳下一服务点时，将当前时间进行统计
-                        CompareFirst_BestNodeTime[0][BestNode] = Simulation_time
+                        FirstCompare_BestNodeTime[0][BestNode] = Simulation_time
                         if DebugFlag is True:
-                            print "CompareFirst_BestNodeTime[0][", BestNode, "] =", CompareFirst_BestNodeTime[0][BestNode] 
+                            print "FirstCompare_BestNodeTime[0][", BestNode, "] =", FirstCompare_BestNodeTime[0][BestNode] 
                     
                         # 将最好点加入充电回路后，可以被调度，直接加入充电回路
                         # 从R_list中将最好点删掉，同时将NodeList中最好点删掉
@@ -2526,9 +2739,9 @@ if __name__ == "__main__":
                         if DebugFlag is True:
                             print "将某点加入充电子回路中需要消耗的总时间为t =", t, 's'
                         Simulation_time = Simulation_time + t
-                        CompareFirst_ServiceTime[0][BestNode] = t
+                        FirstCompare_ServiceTime[0][BestNode] = t
                         if DebugFlag is True:
-                            print "CompareFirst_ServiceTime[0][", BestNode, "] =", CompareFirst_ServiceTime[0][BestNode] 
+                            print "FirstCompare_ServiceTime[0][", BestNode, "] =", FirstCompare_ServiceTime[0][BestNode] 
                             
                             # 添加平均响应时间和平均服务时间
                             print "NodeListBackup =", NodeListBackup
@@ -2542,27 +2755,27 @@ if __name__ == "__main__":
                         
                         for m in range(1, len(NodeListBackup)):
                             # 说明这个节点已经被添加到回路了，或者说已经被操作过的
-                            if CompareFirst_ServiceTime[0][NodeListBackup[m]] != 0:
+                            if FirstCompare_ServiceTime[0][NodeListBackup[m]] != 0:
                                # 当前选中的节点的相关时间的统计
                                # 响应时间
-                               CompareFirst_RequestTime[0][NodeListBackup[m]]
+                               FirstCompare_RequestTime[0][NodeListBackup[m]]
                                # 选择下一最佳服务节点的时间
-                               CompareFirst_BestNodeTime[0][NodeListBackup[m]]
+                               FirstCompare_BestNodeTime[0][NodeListBackup[m]]
                                
                                # 已经被操作过（被添加回路）的节点个数的统计
                                ServiceNode = ServiceNode + 1 
                                # 节点响应时间求总和
-                               ResponseNodeTime = ResponseNodeTime + (CompareFirst_BestNodeTime[0][NodeListBackup[m]] - CompareFirst_RequestTime[0][NodeListBackup[m]])
+                               ResponseNodeTime = ResponseNodeTime + (FirstCompare_BestNodeTime[0][NodeListBackup[m]] - FirstCompare_RequestTime[0][NodeListBackup[m]])
                                # 节点服务时间求总和
-                               ServiceNodeTime = ServiceNodeTime + CompareFirst_ServiceTime[0][NodeListBackup[m]]
+                               ServiceNodeTime = ServiceNodeTime + FirstCompare_ServiceTime[0][NodeListBackup[m]]
                         
                         # 添加平均响应时间
-                        CompareFirst_AverageResponseTime_list.append(round(ResponseNodeTime/ServiceNode, 2))
+                        FirstCompare_AverageResponseTime_list.append(round(ResponseNodeTime/ServiceNode, 2))
                         # 添加平均服务时间
-                        CompareFirst_AverageServiceTime_list.append(round(ServiceNodeTime/ServiceNode, 2))
+                        FirstCompare_AverageServiceTime_list.append(round(ServiceNodeTime/ServiceNode, 2))
                         
                         # 添加当前的仿真时间
-                        CompareFirst_ResponseTimeAndServiceTimeSimulationTime_list.append(Simulation_time)
+                        FirstCompare_ResponseTimeAndServiceTimeSimulationTime_list.append(Simulation_time)
                         
                         # 表明不止剩余一个节点
                         # 有个隐含条件，上一次运动一定不会出现停止运动即：节点能量不会低于阈值El_Final发送ALERT给服务站S
@@ -2576,7 +2789,7 @@ if __name__ == "__main__":
                         DeadNodeNumber = 0
                         for i in range(1, len(NodeList)):
                             # 修改节点能量
-                            t = ChangeCoordinate(i, El, Et, CompareFirst_RequestTime, Simulation_time, NodeList, NodeEs, NodeP, t_sum, NodeEsBackup, NodeMoveTime, NodeXCoordinateNew, NodeYCoordinateNew, V, Alpha, AlphaValue, EdgeLength, ObstacleCoordinate, ObstaclesNum)
+                            t = ChangeCoordinate(i, El, Et, FirstCompare_RequestTime, Simulation_time, NodeList, NodeEs, NodeP, t_sum, NodeEsBackup, NodeMoveTime, NodeXCoordinateNew, NodeYCoordinateNew, V, Alpha, AlphaValue, EdgeLength, ObstacleCoordinate, ObstaclesNum)
                             if t == 0:
                                 # 当t == 0时，说明当前节点为死亡节点
                                 DeadNodeNumber = DeadNodeNumber + 1
@@ -2623,7 +2836,7 @@ if __name__ == "__main__":
                             # 一添加回路，就统计一下相关的数据
                             # 在这里统计比较方便直观
                             # R_Sum中保存着到目前为止所有已经构造的回路的节点的相关信息
-                            SummaryByTime(El,'CompareFirst', R_Sum, Simulation_time, NodeEs, N_distance, NodeXCoordinateNew, NodeYCoordinateNew, ObstacleCoordinate)
+                            SummaryByTime(El,'FirstCompare', R_Sum, Simulation_time, NodeEs, N_distance, NodeXCoordinateNew, NodeYCoordinateNew, ObstacleCoordinate)
                         R_list_Backup = []
                         for q in range(0, len(R_list)):
                             R_list_Backup.append(R_list[q])
@@ -2660,7 +2873,7 @@ if __name__ == "__main__":
                             print "对发送过Request请求的节点已经操作完毕"
                         NodeListNum = len(NodeList)
                         R_Sum.append(R_New)
-                        SummaryByTime(El, 'CompareFirst', R_Sum, Simulation_time, NodeEs, N_distance, NodeXCoordinateNew, NodeYCoordinateNew, ObstacleCoordinate)
+                        SummaryByTime(El, 'FirstCompare', R_Sum, Simulation_time, NodeEs, N_distance, NodeXCoordinateNew, NodeYCoordinateNew, ObstacleCoordinate)
                         # 当前Request_list序列为空
                         if len(Request_list) == 0:
                             print "到目前为止，所有发送过Request信息的节点都已经被操作完了"
@@ -2683,46 +2896,1087 @@ if __name__ == "__main__":
                                     NodeRequestFlag = False
                                     break
         # 添加构建回路的相关信息
-        TourConstructionInformation(El, R_Sum, NodeEs, CompareFirst_DeadNodeNum_data_txt, N_distance, NodeXCoordinateNew, NodeYCoordinateNew, CompareFirst_MCV_Tour_Set_txt, CompareFirst_MCV_Tour_Information_txt, ObstacleCoordinate, 2)
+        TourConstructionInformation(El, R_Sum, NodeEs, FirstCompare_DeadNodeNum_data_txt, N_distance, NodeXCoordinateNew, NodeYCoordinateNew, FirstCompare_MCV_Tour_Set_txt, FirstCompare_MCV_Tour_Information_txt, ObstacleCoordinate, 'FirstCompare')
         # 添加几个性能与仿真时间的关系
         result_list = []
         # 仿真时间
-        result_list.append(CompareFirst_PerformanceSimulationTime_list)
+        result_list.append(FirstCompare_PerformanceSimulationTime_list)
         # 死亡节点和吞吐量
-        result_list.append(CompareFirst_DeadNodeNum_list)
-        result_list.append(CompareFirst_Throughput_Num_list)
+        result_list.append(FirstCompare_DeadNodeNum_list)
+        result_list.append(FirstCompare_Throughput_Num_list)
         # 充电能量和移动能量
-        result_list.append(CompareFirst_MCVChargeEs_list)
-        result_list.append(CompareFirst_MCVMoveEs_list)
+        result_list.append(FirstCompare_MCVChargeEs_list)
+        result_list.append(FirstCompare_MCVMoveEs_list)
         # 充电时间和移动时间
-        result_list.append(CompareFirst_MCVChargeTime_list)
-        result_list.append(CompareFirst_MCVMoveTime_list)
+        result_list.append(FirstCompare_MCVChargeTime_list)
+        result_list.append(FirstCompare_MCVMoveTime_list)
         # 实际距离和欧几里得距离
-        result_list.append(CompareFirst_MCVRealDistance_list)
-        result_list.append(CompareFirst_MCVEuclidDistance_list)
+        result_list.append(FirstCompare_MCVRealDistance_list)
+        result_list.append(FirstCompare_MCVEuclidDistance_list)
         
-        # print "len(CompareFirst_DeadNodeNum_list) =", len(CompareFirst_DeadNodeNum_list)
-        # print "CompareFirst_DeadNodeNum_list =\n", CompareFirst_DeadNodeNum_list
-        np.savetxt(CompareFirst_PerformanceSimulation_list_txt, result_list, fmt='%0.2f')
+        # print "len(FirstCompare_DeadNodeNum_list) =", len(FirstCompare_DeadNodeNum_list)
+        # print "FirstCompare_DeadNodeNum_list =\n", FirstCompare_DeadNodeNum_list
+        np.savetxt(FirstCompare_PerformanceSimulation_list_txt, result_list, fmt='%0.2f')
         if DebugFlag is True:
-            print "CompareFirst_RequestTime[0] =\n", CompareFirst_RequestTime[0]
-            print "CompareFirst_BestNodeTime[0] =\n", CompareFirst_BestNodeTime[0]
-            print "CompareFirst_ServiceTime[0] =\n", CompareFirst_ServiceTime[0]
-            print "CompareFirst_ResponseTimeAndServiceTimeSimulationTime_list =\n", CompareFirst_ResponseTimeAndServiceTimeSimulationTime_list
-            print "CompareFirst_AverageResponseTime_list =\n", CompareFirst_AverageResponseTime_list
-            print "CompareFirst_AverageServiceTime_list =\n", CompareFirst_AverageServiceTime_list
+            print "FirstCompare_RequestTime[0] =\n", FirstCompare_RequestTime[0]
+            print "FirstCompare_BestNodeTime[0] =\n", FirstCompare_BestNodeTime[0]
+            print "FirstCompare_ServiceTime[0] =\n", FirstCompare_ServiceTime[0]
+            print "FirstCompare_ResponseTimeAndServiceTimeSimulationTime_list =\n", FirstCompare_ResponseTimeAndServiceTimeSimulationTime_list
+            print "FirstCompare_AverageResponseTime_list =\n", FirstCompare_AverageResponseTime_list
+            print "FirstCompare_AverageServiceTime_list =\n", FirstCompare_AverageServiceTime_list
         result_list = []
-        result_list.append(CompareFirst_ResponseTimeAndServiceTimeSimulationTime_list)
-        result_list.append(CompareFirst_AverageResponseTime_list)
-        result_list.append(CompareFirst_AverageServiceTime_list)
+        result_list.append(FirstCompare_ResponseTimeAndServiceTimeSimulationTime_list)
+        result_list.append(FirstCompare_AverageResponseTime_list)
+        result_list.append(FirstCompare_AverageServiceTime_list)
         
-        np.savetxt(CompareFirst_ResponseTimeAndServiceTimeSimulation_list_txt, result_list, fmt='%0.2f')
-       
+        np.savetxt(FirstCompare_ResponseTimeAndServiceTimeSimulation_list_txt, result_list, fmt='%0.2f')
+    if NJNPFlag is True:
+        print "NJNP Task"
+        # 统一El的值
+        El = El
+        Simulation_time = 0.0
+        print "NJNP Task"
+        # 使用备份数据
+        ObstacleCoordinate = UseBackupData()
+        
+        # 初始化函数
+        # 保存节点序号的
+        NodeList = []
+        # 备份节点标号
+        NodeListBackup = []
+        result = Init(NodeNum, NodeXCoordinate, NodeYCoordinate, NodeP, NodeEs, ObstacleCoordinate, ObstaclesNum, EdgeLength)
+        NodeList = result[0]
+        NodeListBackup = result[1]
+        NodeXCoordinateNew = result[2]
+        NodeYCoordinateNew = result[3]
+        
+        # 充电回路的命名
+        MCV_Num = 0
+        # 每个充电回路的信息的汇总
+        DataStore_list_sum = []
+        # 充电回路汇总
+        R_Sum = []
+        # 初始化节点发送Request请求的数量
+        RequestNum = 0 
+        # 将发送Request的节点序列进行保存
+        Request_list = []
+        # 需要对每个节点进行操作，直到剩余服务站S的标号
+        while 1 != len(NodeList):
+            print "创建新的充电子回路"
+            NodeRequestFlag = False
+            # 备份序列的标志
+            R_list_Backup_flag = True
+            FirstComingFlag = True
+            BeginR_list = True
+    
+            print "NodeList =", NodeList
+            print "程序正在执行，请等待……"
+            # 表示已经操作了节点列表中的几个节点
+            OperateMNodeNum = 1
+            # 统计当前节点序号列表中的个数，即未进行操作节点的个数
+            NodeListNum = len(NodeList)
+            # 每次都要对所有节点一一操作  
+            while OperateMNodeNum != NodeListNum:
+                NodeListNum = len(NodeList)
+                # 保证没有准备构建回路的趋势
+                if NodeRequestFlag is False:
+                    if DebugFlag is True:
+                        print "随意游走100s"
+                    t_sum = T_sum
+                    if DebugFlag is True:
+                        print "已经操作到N_i中第", OperateMNodeNum, "个数"
+                        print "N_i中之前共有", NodeListNum,"个数"
+                    t = t_sum
+                    if DebugFlag is True:
+                        print "电单车运行的时间为：t =", t, "s"
+                    Simulation_time = Simulation_time + t
+                    # 有个隐含条件，上一次运动一定不会出现停止运动即：节点能量不会低于阈值El_Final发送ALERT给服务站S
+                    # 备份每个节点的能量,后期操作需要
+                    # 表明不止剩余一个节点
+                    # 每次操作前先把能量进行备份，一边后续操作所需
+                    NodeEsBackup = []
+                    for i in range(0, len(NodeList)):
+                        NodeEsBackup.append(NodeEs[0][NodeList[i]])
+                    # 每次能量都需要恢复
+                    for i in range(0, len(NodeList)):
+                        NodeEs[0][NodeList[i]] = NodeEsBackup[i]
+                
+                    # 更新节点剩余的能量  # 不仅仅是考虑边界，还得考虑运动过程中，遇到障碍应该避开
+                    DeadNodeNumber = 0
+                    for i in range(1, len(NodeList)):
+                        # 修改节点能量
+                        t = ChangeCoordinate(i, El, Et, NJNP_RequestTime, Simulation_time, NodeList, NodeEs, NodeP, t_sum, NodeEsBackup, NodeMoveTime, NodeXCoordinateNew, NodeYCoordinateNew, V, Alpha, AlphaValue, EdgeLength, ObstacleCoordinate, ObstaclesNum)
+                        if t == 0:
+                            # t == 0 表示该节点为死亡节点
+                            DeadNodeNumber = DeadNodeNumber + 1
+                        # 测试数据用的 事后需要将其注释掉
+                        # 当电单车节点剩余的能量小于阈值上限时，节点向服务站S发送充电请求信号Request
+                        if NodeEs[0][NodeList[i]] <= Et:
+                            if NodeRequest[0][NodeList[i]] == 0:
+                                if DebugFlag is True:
+                                    print "发送充电请求Request"
+                                NodeRequest[0][NodeList[i]] = 1 
+                                # 将发送了Request的节点进行保存
+                                Request_list.append(NodeList[i])
+                        # 表示接收到Request请求MCV就出发为发送过Request的节点进行充电
+                        if  (len(Request_list) > 0) and (i == len(NodeList) - 1):
+                            print "exist Node sent Request"
+                            # 充电请求已经达到固定阈值上限，开始创建充电回路
+                            NodeRequestFlag = True
+                            # 判断是否是第一次进行构造充电回路
+                            FirstComingFlag = True 
+                            BeginR_list = True
+                            
+                         # 死亡节点个数不等于剩余节点个数
+                        if (i == (len(NodeList) - 1)) and ((len(NodeList) - 1) != DeadNodeNumber):
+                            if DebugFlag is True:
+                                print "DeadNodeNumber =", DeadNodeNumber
+                                print "len(NodeList) - 1 =", len(NodeList) - 1
+                                print "统计各个节点之间的距离并构造距离邻接矩阵中……"
+                            N_distance_Road_result = F.CreateDistanceNewMatrix(Road_information, N_distance, EdgeLength, NodeXCoordinateNew, NodeYCoordinateNew, NodeListBackup, NodeList, ObstacleCoordinate, ObstaclesNum)
+                            N_distance = N_distance_Road_result[0]
+                            Road_information = N_distance_Road_result[1] 
+                            if DebugFlag is True:
+                                print "距离统计完毕"
+    
+                # 就在这个环节，将一部分节点（R_list中的节点）从原NodeList中删掉
+                while NodeRequestFlag is True:
+                    if DebugFlag is True:
+                        print "发送过Request的节点序列为 Request_list =", Request_list
+                        print "发送过Request的节点序列长度为len(Request_list) =", len(Request_list)
+                    if BeginR_list is True:
+                        BeginR_list = False
+                        # 定义充电回路的起始
+                        print "create a new charge tour"
+                        R_New = []
+                        R_New.append(NodeList[0])
+                    # 选择最佳下一服务点的方法为：选择距离MCV近的节点插入充电回路
+                    MCVAndServiceNode_distance = 100000000.0
+                    BestNode = 0
+                    print "Request_list =", Request_list
+                    print "len(Request_list) =", len(Request_list)
+                    for i in range(0, len(Request_list)):
+                        print "N_distance[R_New[len(R_New) - 1]][Request_list[i]] =", N_distance[R_New[len(R_New) - 1]][Request_list[i]]
+                        # 如果初始化的MCV到服务节点的距离比实际距离大，则修改初始化的值，并找出当前较优下一服务节点
+                        if MCVAndServiceNode_distance > N_distance[R_New[len(R_New) - 1]][Request_list[i]]:
+                            MCVAndServiceNode_distance = N_distance[R_New[len(R_New) - 1]][Request_list[i]]
+                            # 找出当前较优节点
+                            BestNode = Request_list[i]
+                    # 本次寻找最好的节点为 BestNode
+                    # 该点不再运动
+                    
+                    print "BestNode =", BestNode
+                    # 将最好的节点加入构建的充电回路中
+                    R_New.append(BestNode)
+                    # 当该节点被选为最佳下一服务点时，将当前时间进行统计
+                    NJNP_BestNodeTime[0][BestNode] = Simulation_time
+                    if DebugFlag is True:
+                        print "NJNP_BestNodeTime[0][", BestNode, "] =", NJNP_BestNodeTime[0][BestNode] 
+                
+                    # 将最好点加入充电回路后，可以被调度，直接加入充电回路
+                    # 从R_list中将最好点删掉，同时将NodeList中最好点删掉
+                    Request_list.remove(BestNode)
+                    NodeList_FirstValue = NodeList[0]
+                    NodeList[0] = 0
+                    NodeList.remove(BestNode)
+                    NodeList[0] = NodeList_FirstValue
+                    # 将被删除的最好点从缓冲池中删除，即：其在缓冲池中的值为零
+                    # 对应在Request缓冲池中的值置为零
+                    NodeRequest[0][BestNode] = 0
+                    
+                    if DebugFlag is True:
+                        print "检查数据~~~~"
+                        print "NodeList =", NodeList
+                        print "R_list =", R_list
+                        print "R_list_Backup =", R_list_Backup
+                    
+                    D = N_distance[R_New[len(R_New) - 2]][R_New[len(R_New) - 1]]
+                    t1 = D/Vm
+                     # 消耗的能量
+                    last_Es = NodeEsValue - NodeEs[0][R_New[len(R_New) - 1]]
+                    # 充电需要的时间
+                    t2 = last_Es/Qc
+                    # 将R_New[len(R_New) - 1]加入充电子回路需要消耗的总时间为t
+                    t_sum = t1 + t2 
+                    t = t_sum
+                    if DebugFlag is True:
+                        print "将某点加入充电子回路中需要消耗的总时间为t =", t, 's'
+                    Simulation_time = Simulation_time + t
+                    NJNP_ServiceTime[0][BestNode] = t
+                    if DebugFlag is True:
+                        print "NJNP_ServiceTime[0][", BestNode, "] =", NJNP_ServiceTime[0][BestNode] 
+                        
+                        # 添加平均响应时间和平均服务时间
+                        print "NodeListBackup =", NodeListBackup
+                        print "len(NodeListBackup) =", len(NodeListBackup)
+                    # 被服务过的节点个数的初始化
+                    ServiceNode = 0 
+                    # 每个节点响应时间的总和
+                    ResponseNodeTime = 0.0
+                    # 每个节点服务时间求总和
+                    ServiceNodeTime = 0.0
+                    
+                    for m in range(1, len(NodeListBackup)):
+                        # 说明这个节点已经被添加到回路了，或者说已经被操作过的
+                        if NJNP_ServiceTime[0][NodeListBackup[m]] != 0:
+                           # 当前选中的节点的相关时间的统计
+                           # 响应时间
+                           NJNP_RequestTime[0][NodeListBackup[m]]
+                           # 选择下一最佳服务节点的时间
+                           NJNP_BestNodeTime[0][NodeListBackup[m]]
+                           
+                           # 已经被操作过（被添加回路）的节点个数的统计
+                           ServiceNode = ServiceNode + 1 
+                           # 节点响应时间求总和
+                           ResponseNodeTime = ResponseNodeTime + (NJNP_BestNodeTime[0][NodeListBackup[m]] - NJNP_RequestTime[0][NodeListBackup[m]])
+                           # 节点服务时间求总和
+                           ServiceNodeTime = ServiceNodeTime + NJNP_ServiceTime[0][NodeListBackup[m]]
+                    
+                    # 添加平均响应时间
+                    NJNP_AverageResponseTime_list.append(round(ResponseNodeTime/ServiceNode, 2))
+                    # 添加平均服务时间
+                    NJNP_AverageServiceTime_list.append(round(ServiceNodeTime/ServiceNode, 2))
+                    
+                    # 添加当前的仿真时间
+                    NJNP_ResponseTimeAndServiceTimeSimulationTime_list.append(Simulation_time)
+                    
+                    # 表明不止剩余一个节点
+                    # 有个隐含条件，上一次运动一定不会出现停止运动即：节点能量不会低于阈值El_Final发送ALERT给服务站S
+                    # 备份每个节点的能量,后期操作需要
+                    # 表明不止剩余一个节点
+                    # 每次操作前先把能量进行备份，一边后续操作所需
+                    NodeEsBackup = []
+                    for i in range(0, len(NodeList)):
+                        NodeEsBackup.append(NodeEs[0][NodeList[i]])
+                    # 更新节点剩余的能量  # 不仅仅是考虑边界，还得考虑运动过程中，遇到障碍应该避开
+                    DeadNodeNumber = 0
+                    for i in range(1, len(NodeList)):
+                        # 修改节点能量
+                        t = ChangeCoordinate(i, El, Et, NJNP_RequestTime, Simulation_time, NodeList, NodeEs, NodeP, t_sum, NodeEsBackup, NodeMoveTime, NodeXCoordinateNew, NodeYCoordinateNew, V, Alpha, AlphaValue, EdgeLength, ObstacleCoordinate, ObstaclesNum)
+                        if t == 0:
+                            # 当t == 0时，说明当前节点为死亡节点
+                            DeadNodeNumber = DeadNodeNumber + 1
+                            
+                        # 当电单车节点剩余的能量小于阈值上限时，节点向服务站S发送充电请求信号Request
+                        
+                        if NodeEs[0][NodeList[i]] <= Et:  
+                            # 先判断该节点是否已经发送过Request请求
+                            if NodeRequest[0][NodeList[i]] == 0:
+                                NodeRequest[0][NodeList[i]] = 1
+                                # 只添加还未发送过Request请求的节点
+                                Request_list.append(NodeList[i])
+                        # 修改最后一个节点的位置，随之改变距离邻接矩阵
+                        # 死亡节点个数不等于剩余节点个数
+                        if (i == (len(NodeList) - 1)) and ((len(NodeList) - 1) != DeadNodeNumber):
+                            if DebugFlag is True:
+                                print "DeadNodeNumber =", DeadNodeNumber
+                                print "len(NodeList) - 1 =", len(NodeList) - 1
+                                print "Statistic Node distance"
+                            # 主要是获取各节点之间的距离
+                            N_distance_Road_result = F.CreateDistanceNewMatrix(Road_information, N_distance, EdgeLength, NodeXCoordinateNew, NodeYCoordinateNew, NodeListBackup, NodeList, ObstacleCoordinate, ObstaclesNum)
+                            N_distance = N_distance_Road_result[0]
+                            Road_information = N_distance_Road_result[1] 
+                            if DebugFlag is True:
+                                print "距离统计完毕"                                 
+                    
+                    if DebugFlag is True:
+                        print "R_New =", R_New
+                        print "R_list =", R_list
+                        print "R_list_Backup =", R_list_Backup
+                        print "NodeList =", NodeList
+                        print "Request_list =", Request_list
+                    
+                    print "Request_list =", Request_list
+                    print "len(Request_list) =", len(Request_list)
+                    
+                    # 到目前为止所有发送过Request信号的节点，都已经被添加到充电回路中了
+                    if len(Request_list) == 0:
+                        print "break while"
+                        # 统计当前节点序号列表中的个数，即未进行操作节点的个数
+                        if DebugFlag is True:
+                            print "对发送过Request请求的节点已经操作完毕"
+                        NodeListNum = len(NodeList)
+                        R_Sum.append(R_New)
+                        SummaryByTime(El, 'NJNP', R_Sum, Simulation_time, NodeEs, N_distance, NodeXCoordinateNew, NodeYCoordinateNew, ObstacleCoordinate)
+                        # 当前Request_list序列为空
+                        print "No Request"
+                        NodeRequestFlag = False
+                        break
+        # 添加构建回路的相关信息
+        TourConstructionInformation(El, R_Sum, NodeEs, NJNP_DeadNodeNum_data_txt, N_distance, NodeXCoordinateNew, NodeYCoordinateNew, NJNP_MCV_Tour_Set_txt, NJNP_MCV_Tour_Information_txt, ObstacleCoordinate, 'NJNP')
+        # 添加几个性能与仿真时间的关系
+        result_list = []
+        # 仿真时间
+        result_list.append(NJNP_PerformanceSimulationTime_list)
+        # 死亡节点和吞吐量
+        result_list.append(NJNP_DeadNodeNum_list)
+        result_list.append(NJNP_Throughput_Num_list)
+        # 充电能量和移动能量
+        result_list.append(NJNP_MCVChargeEs_list)
+        result_list.append(NJNP_MCVMoveEs_list)
+        # 充电时间和移动时间
+        result_list.append(NJNP_MCVChargeTime_list)
+        result_list.append(NJNP_MCVMoveTime_list)
+        # 实际距离和欧几里得距离
+        result_list.append(NJNP_MCVRealDistance_list)
+        result_list.append(NJNP_MCVEuclidDistance_list)
+        
+        np.savetxt(NJNP_PerformanceSimulation_list_txt, result_list, fmt='%0.2f')
+        if DebugFlag is True:
+            print "NJNP_RequestTime[0] =\n", NJNP_RequestTime[0]
+            print "NJNP_BestNodeTime[0] =\n", NJNP_BestNodeTime[0]
+            print "NJNP_ServiceTime[0] =\n", NJNP_ServiceTime[0]
+            print "NJNP_ResponseTimeAndServiceTimeSimulationTime_list =\n", NJNP_ResponseTimeAndServiceTimeSimulationTime_list
+            print "NJNP_AverageResponseTime_list =\n", NJNP_AverageResponseTime_list
+            print "NJNP_AverageServiceTime_list =\n", NJNP_AverageServiceTime_list
+        result_list = []
+        result_list.append(NJNP_ResponseTimeAndServiceTimeSimulationTime_list)
+        result_list.append(NJNP_AverageResponseTime_list)
+        result_list.append(NJNP_AverageServiceTime_list)
+        
+        np.savetxt(NJNP_ResponseTimeAndServiceTimeSimulation_list_txt, result_list, fmt='%0.2f')
+    
+    if TADPFlag is True:
+        print "TADP Task"
+        # 统一El的值
+        El = El
+        Simulation_time = 0.0
+        print "TADP Task"
+        # 使用备份数据
+        ObstacleCoordinate = UseBackupData()
+        
+        # 初始化函数
+        # 保存节点序号的
+        NodeList = []
+        # 备份节点标号
+        NodeListBackup = []
+        result = Init(NodeNum, NodeXCoordinate, NodeYCoordinate, NodeP, NodeEs, ObstacleCoordinate, ObstaclesNum, EdgeLength)
+        NodeList = result[0]
+        NodeListBackup = result[1]
+        NodeXCoordinateNew = result[2]
+        NodeYCoordinateNew = result[3]
+        
+        # 充电回路的命名
+        MCV_Num = 0
+        # 每个充电回路的信息的汇总
+        DataStore_list_sum = []
+        # 充电回路汇总
+        R_Sum = []
+        # 初始化节点发送Request请求的数量
+        RequestNum = 0 
+        # 将发送Request的节点序列进行保存
+        Request_list = []
+        # 需要对每个节点进行操作，直到剩余服务站S的标号
+        while 1 != len(NodeList):
+            print "创建新的充电子回路"
+            NodeRequestFlag = False
+            # 备份序列的标志
+            R_list_Backup_flag = True
+            FirstComingFlag = True
+            BeginR_list = True
+    
+            print "NodeList =", NodeList
+            print "程序正在执行，请等待……"
+            # 表示已经操作了节点列表中的几个节点
+            OperateMNodeNum = 1
+            # 统计当前节点序号列表中的个数，即未进行操作节点的个数
+            NodeListNum = len(NodeList)
+            # 每次都要对所有节点一一操作  
+            while OperateMNodeNum != NodeListNum:
+                NodeListNum = len(NodeList)
+                # 保证没有准备构建回路的趋势
+                if NodeRequestFlag is False:
+                    if DebugFlag is True:
+                        print "随意游走100s"
+                    t_sum = T_sum
+                    if DebugFlag is True:
+                        print "已经操作到N_i中第", OperateMNodeNum, "个数"
+                        print "N_i中之前共有", NodeListNum,"个数"
+                    t = t_sum
+                    if DebugFlag is True:
+                        print "电单车运行的时间为：t =", t, "s"
+                    Simulation_time = Simulation_time + t
+                    # 有个隐含条件，上一次运动一定不会出现停止运动即：节点能量不会低于阈值El_Final发送ALERT给服务站S
+                    # 备份每个节点的能量,后期操作需要
+                    # 表明不止剩余一个节点
+                    # 每次操作前先把能量进行备份，一边后续操作所需
+                    NodeEsBackup = []
+                    for i in range(0, len(NodeList)):
+                        NodeEsBackup.append(NodeEs[0][NodeList[i]])
+                    # 每次能量都需要恢复
+                    for i in range(0, len(NodeList)):
+                        NodeEs[0][NodeList[i]] = NodeEsBackup[i]
+                
+                    # 更新节点剩余的能量  # 不仅仅是考虑边界，还得考虑运动过程中，遇到障碍应该避开
+                    DeadNodeNumber = 0
+                    for i in range(1, len(NodeList)):
+                        # 修改节点能量
+                        t = ChangeCoordinate(i, El, Et, TADP_RequestTime, Simulation_time, NodeList, NodeEs, NodeP, t_sum, NodeEsBackup, NodeMoveTime, NodeXCoordinateNew, NodeYCoordinateNew, V, Alpha, AlphaValue, EdgeLength, ObstacleCoordinate, ObstaclesNum)
+                        if t == 0:
+                            # t == 0 表示该节点为死亡节点
+                            DeadNodeNumber = DeadNodeNumber + 1
+                        # 测试数据用的 事后需要将其注释掉
+                        # 当电单车节点剩余的能量小于阈值上限时，节点向服务站S发送充电请求信号Request
+                        if NodeEs[0][NodeList[i]] <= Et:
+                            if NodeRequest[0][NodeList[i]] == 0:
+                                if DebugFlag is True:
+                                    print "发送充电请求Request"
+                                NodeRequest[0][NodeList[i]] = 1 
+                                # 将发送了Request的节点进行保存
+                                Request_list.append(NodeList[i])
+                        # 表示接收到Request请求MCV就出发为发送过Request的节点进行充电
+                        if  (len(Request_list) > 0) and (i == len(NodeList) - 1):
+                            print "exist Node sent Request"
+                            # 充电请求已经达到固定阈值上限，开始创建充电回路
+                            NodeRequestFlag = True
+                            # 判断是否是第一次进行构造充电回路
+                            FirstComingFlag = True 
+                            BeginR_list = True
+                            
+                         # 死亡节点个数不等于剩余节点个数
+                        if (i == (len(NodeList) - 1)) and ((len(NodeList) - 1) != DeadNodeNumber):
+                            if DebugFlag is True:
+                                print "DeadNodeNumber =", DeadNodeNumber
+                                print "len(NodeList) - 1 =", len(NodeList) - 1
+                                print "统计各个节点之间的距离并构造距离邻接矩阵中……"
+                            N_distance_Road_result = F.CreateDistanceNewMatrix(Road_information, N_distance, EdgeLength, NodeXCoordinateNew, NodeYCoordinateNew, NodeListBackup, NodeList, ObstacleCoordinate, ObstaclesNum)
+                            N_distance = N_distance_Road_result[0]
+                            Road_information = N_distance_Road_result[1] 
+                            if DebugFlag is True:
+                                print "距离统计完毕"
+    
+                # 就在这个环节，将一部分节点（R_list中的节点）从原NodeList中删掉
+                while NodeRequestFlag is True:
+                    if DebugFlag is True:
+                        print "发送过Request的节点序列为 Request_list =", Request_list
+                        print "发送过Request的节点序列长度为len(Request_list) =", len(Request_list)
+                    if BeginR_list is True:
+                        BeginR_list = False
+                        # 定义充电回路的起始
+                        print "create a new charge tour"
+                        R_New = []
+                        R_New.append(NodeList[0])
+                    # 选择最佳下一服务点的方法为：综合考虑剩余能量和与MCV之间的距离
+                    # 计算得到P，以P最小为下一最佳服务节点
+                    BestNode = 0
+                    print "Request_list =", Request_list
+                    print "len(Request_list) =", len(Request_list)
+                    
+                    # a 为剩余能量所占比重
+                    # b 为S到各电单车距离所占比重
+                    # P 为综合考虑剩余能量和S到各电单车距离所占比重考虑的最终值
+                    # 尽可能把剩余能量少的和与MCV距离短的节点优先选择为下一服务节点
+                    print "Request_list =", Request_list
+                    Es_sort = []
+                    N_distance_sort = []
+                    for i in range(0, len(Request_list)):
+                        # 获取节点及其剩余能量，组成(NodeNum, NodeEs[0][NodeNum])
+                        # 这样操作存在，剩余能量的排名的变化同步节点序号的变化
+                        Node_number_Es = []
+                        Node_number_Es.append(Request_list[i])
+                        # 获取节点剩余能量
+                        Node_number_Es.append(round(NodeEs[0][Request_list[i]],2))
+                        Es_sort.append(Node_number_Es)
+                        # 获取节点及其与MCV的距离，组成(NodeNum, N_distance[NodeNum(MCV)][NodeNum]
+                        # 这样操作存在，与MCV的距离排名的变化同步节点序号的变化
+                        Node_number_distance= []
+                        Node_number_distance.append(Request_list[i])
+                        # 获取MCV到当前节点的距离
+                        Node_number_distance.append(round(N_distance[R_New[len(R_New) - 1]][Request_list[i]], 2))
+                        N_distance_sort.append(Node_number_distance)
+                    print "before Es_sort =", Es_sort
+                    print "before N_distance_sort =", N_distance_sort
+                    # 已经将剩余能量和与MCV的距离按从小到大排序
+                    select_sort_Numsort(Es_sort)
+                    select_sort_Numsort(N_distance_sort)
+                    print "after Es_sort =", Es_sort
+                    print "after N_distance_sort =", N_distance_sort
+
+                    a = 0.2
+                    b = 1.0 - a
+                    # 只考虑了当前一次，所以得看看如何把所有的点考虑进去，每个点都要考虑到
+                    # 只考虑当前所剩下的节点，不包括S点（N_i[0]）
+                    # 假设开始时的P非常非常的大
+                    P = []
+                    # 这里应该计算剩余所有节点的P值
+                    for i in range(0 , len(Request_list)):
+                        # 临时列表
+                        P_Node_number = []
+                        # 添加节点序号
+                        P_Node_number.append(Request_list[i])
+                        Es_Rank = 0
+                        for l in range(0, len(Request_list)):
+                            if Request_list[i] == Es_sort[l][0]:
+                                # 当前剩余能量节点的排名
+                                Es_Rank = l + 1
+                                break
+                        Distance_Rank = 0
+                        for m in range(0, len(Request_list)):
+                            if Request_list[i] == N_distance_sort[m][0]:
+                                # 当前 节点距离S的排名
+                                Distance_Rank = m + 1
+                                break
+
+                        P_value = a*Es_Rank + b*Distance_Rank
+                        
+                        P_Node_number.append(round(P_value, 2))
+                        # 添加节点的排名的比重
+                        P.append(P_Node_number)
+            
+                    print "before P =", P
+                    select_sort_Numsort(P)
+                    print "after P =", P
+                    # 本次寻找最好的节点为 BestNode
+                    # 该点不再运动
+                    BestNode = P[0][0]
+                    print "BestNode =", BestNode
+                    # print "delay(10)"
+                    # time.sleep(10)
+                    # 将最好的节点加入构建的充电回路中
+                    R_New.append(BestNode)
+                    # 当该节点被选为最佳下一服务点时，将当前时间进行统计
+                    TADP_BestNodeTime[0][BestNode] = Simulation_time
+                    if DebugFlag is True:
+                        print "TADP_BestNodeTime[0][", BestNode, "] =", TADP_BestNodeTime[0][BestNode] 
+                
+                    # 将最好点加入充电回路后，可以被调度，直接加入充电回路
+                    # 从R_list中将最好点删掉，同时将NodeList中最好点删掉
+                    Request_list.remove(BestNode)
+                    NodeList_FirstValue = NodeList[0]
+                    NodeList[0] = 0
+                    NodeList.remove(BestNode)
+                    NodeList[0] = NodeList_FirstValue
+                    # 将被删除的最好点从缓冲池中删除，即：其在缓冲池中的值为零
+                    # 对应在Request缓冲池中的值置为零
+                    NodeRequest[0][BestNode] = 0
+                    
+                    if DebugFlag is True:
+                        print "检查数据~~~~"
+                        print "NodeList =", NodeList
+                        print "R_list =", R_list
+                        print "R_list_Backup =", R_list_Backup
+                    
+                    D = N_distance[R_New[len(R_New) - 2]][R_New[len(R_New) - 1]]
+                    t1 = D/Vm
+                     # 消耗的能量
+                    last_Es = NodeEsValue - NodeEs[0][R_New[len(R_New) - 1]]
+                    # 充电需要的时间
+                    t2 = last_Es/Qc
+                    # 将R_New[len(R_New) - 1]加入充电子回路需要消耗的总时间为t
+                    t_sum = t1 + t2 
+                    t = t_sum
+                    if DebugFlag is True:
+                        print "将某点加入充电子回路中需要消耗的总时间为t =", t, 's'
+                    Simulation_time = Simulation_time + t
+                    TADP_ServiceTime[0][BestNode] = t
+                    if DebugFlag is True:
+                        print "TADP_ServiceTime[0][", BestNode, "] =", TADP_ServiceTime[0][BestNode] 
+                        
+                        # 添加平均响应时间和平均服务时间
+                        print "NodeListBackup =", NodeListBackup
+                        print "len(NodeListBackup) =", len(NodeListBackup)
+                    # 被服务过的节点个数的初始化
+                    ServiceNode = 0 
+                    # 每个节点响应时间的总和
+                    ResponseNodeTime = 0.0
+                    # 每个节点服务时间求总和
+                    ServiceNodeTime = 0.0
+                    
+                    for m in range(1, len(NodeListBackup)):
+                        # 说明这个节点已经被添加到回路了，或者说已经被操作过的
+                        if TADP_ServiceTime[0][NodeListBackup[m]] != 0:
+                           # 当前选中的节点的相关时间的统计
+                           # 响应时间
+                           TADP_RequestTime[0][NodeListBackup[m]]
+                           # 选择下一最佳服务节点的时间
+                           TADP_BestNodeTime[0][NodeListBackup[m]]
+                           
+                           # 已经被操作过（被添加回路）的节点个数的统计
+                           ServiceNode = ServiceNode + 1 
+                           # 节点响应时间求总和
+                           ResponseNodeTime = ResponseNodeTime + (TADP_BestNodeTime[0][NodeListBackup[m]] - TADP_RequestTime[0][NodeListBackup[m]])
+                           # 节点服务时间求总和
+                           ServiceNodeTime = ServiceNodeTime + TADP_ServiceTime[0][NodeListBackup[m]]
+                    
+                    # 添加平均响应时间
+                    TADP_AverageResponseTime_list.append(round(ResponseNodeTime/ServiceNode, 2))
+                    # 添加平均服务时间
+                    TADP_AverageServiceTime_list.append(round(ServiceNodeTime/ServiceNode, 2))
+                    
+                    # 添加当前的仿真时间
+                    TADP_ResponseTimeAndServiceTimeSimulationTime_list.append(Simulation_time)
+                    
+                    # 表明不止剩余一个节点
+                    # 有个隐含条件，上一次运动一定不会出现停止运动即：节点能量不会低于阈值El_Final发送ALERT给服务站S
+                    # 备份每个节点的能量,后期操作需要
+                    # 表明不止剩余一个节点
+                    # 每次操作前先把能量进行备份，一边后续操作所需
+                    NodeEsBackup = []
+                    for i in range(0, len(NodeList)):
+                        NodeEsBackup.append(NodeEs[0][NodeList[i]])
+                    # 更新节点剩余的能量  # 不仅仅是考虑边界，还得考虑运动过程中，遇到障碍应该避开
+                    DeadNodeNumber = 0
+                    for i in range(1, len(NodeList)):
+                        # 修改节点能量
+                        t = ChangeCoordinate(i, El, Et, TADP_RequestTime, Simulation_time, NodeList, NodeEs, NodeP, t_sum, NodeEsBackup, NodeMoveTime, NodeXCoordinateNew, NodeYCoordinateNew, V, Alpha, AlphaValue, EdgeLength, ObstacleCoordinate, ObstaclesNum)
+                        if t == 0:
+                            # 当t == 0时，说明当前节点为死亡节点
+                            DeadNodeNumber = DeadNodeNumber + 1
+                            
+                        # 当电单车节点剩余的能量小于阈值上限时，节点向服务站S发送充电请求信号Request
+                        
+                        if NodeEs[0][NodeList[i]] <= Et:  
+                            # 先判断该节点是否已经发送过Request请求
+                            if NodeRequest[0][NodeList[i]] == 0:
+                                NodeRequest[0][NodeList[i]] = 1
+                                # 只添加还未发送过Request请求的节点
+                                Request_list.append(NodeList[i])
+                        # 修改最后一个节点的位置，随之改变距离邻接矩阵
+                        # 死亡节点个数不等于剩余节点个数
+                        if (i == (len(NodeList) - 1)) and ((len(NodeList) - 1) != DeadNodeNumber):
+                            if DebugFlag is True:
+                                print "DeadNodeNumber =", DeadNodeNumber
+                                print "len(NodeList) - 1 =", len(NodeList) - 1
+                                print "Statistic Node distance"
+                            # 主要是获取各节点之间的距离
+                            N_distance_Road_result = F.CreateDistanceNewMatrix(Road_information, N_distance, EdgeLength, NodeXCoordinateNew, NodeYCoordinateNew, NodeListBackup, NodeList, ObstacleCoordinate, ObstaclesNum)
+                            N_distance = N_distance_Road_result[0]
+                            Road_information = N_distance_Road_result[1] 
+                            if DebugFlag is True:
+                                print "距离统计完毕"                                 
+                    
+                    if DebugFlag is True:
+                        print "R_New =", R_New
+                        print "R_list =", R_list
+                        print "R_list_Backup =", R_list_Backup
+                        print "NodeList =", NodeList
+                        print "Request_list =", Request_list
+                    
+                    print "Request_list =", Request_list
+                    print "len(Request_list) =", len(Request_list)
+                    
+                    # 到目前为止所有发送过Request信号的节点，都已经被添加到充电回路中了
+                    if len(Request_list) == 0:
+                        print "break while"
+                        # 统计当前节点序号列表中的个数，即未进行操作节点的个数
+                        if DebugFlag is True:
+                            print "对发送过Request请求的节点已经操作完毕"
+                        NodeListNum = len(NodeList)
+                        R_Sum.append(R_New)
+                        SummaryByTime(El, 'TADP', R_Sum, Simulation_time, NodeEs, N_distance, NodeXCoordinateNew, NodeYCoordinateNew, ObstacleCoordinate)
+                        # 当前Request_list序列为空
+                        print "No Request"
+                        NodeRequestFlag = False
+                        break
+        # 添加构建回路的相关信息
+        TourConstructionInformation(El, R_Sum, NodeEs, TADP_DeadNodeNum_data_txt, N_distance, NodeXCoordinateNew, NodeYCoordinateNew, TADP_MCV_Tour_Set_txt, TADP_MCV_Tour_Information_txt, ObstacleCoordinate, 'TADP')
+        # 添加几个性能与仿真时间的关系
+        result_list = []
+        # 仿真时间
+        result_list.append(TADP_PerformanceSimulationTime_list)
+        # 死亡节点和吞吐量
+        result_list.append(TADP_DeadNodeNum_list)
+        result_list.append(TADP_Throughput_Num_list)
+        # 充电能量和移动能量
+        result_list.append(TADP_MCVChargeEs_list)
+        result_list.append(TADP_MCVMoveEs_list)
+        # 充电时间和移动时间
+        result_list.append(TADP_MCVChargeTime_list)
+        result_list.append(TADP_MCVMoveTime_list)
+        # 实际距离和欧几里得距离
+        result_list.append(TADP_MCVRealDistance_list)
+        result_list.append(TADP_MCVEuclidDistance_list)
+
+
+        np.savetxt(TADP_PerformanceSimulation_list_txt, result_list, fmt='%0.2f')
+        if DebugFlag is True:
+            print "TADP_RequestTime[0] =\n", TADP_RequestTime[0]
+            print "TADP_BestNodeTime[0] =\n", TADP_BestNodeTime[0]
+            print "TADP_ServiceTime[0] =\n", TADP_ServiceTime[0]
+            print "TADP_ResponseTimeAndServiceTimeSimulationTime_list =\n", TADP_ResponseTimeAndServiceTimeSimulationTime_list
+            print "TADP_AverageResponseTime_list =\n", TADP_AverageResponseTime_list
+            print "TADP_AverageServiceTime_list =\n", TADP_AverageServiceTime_list
+        result_list = []
+        result_list.append(TADP_ResponseTimeAndServiceTimeSimulationTime_list)
+        result_list.append(TADP_AverageResponseTime_list)
+        result_list.append(TADP_AverageServiceTime_list)
+        
+        np.savetxt(TADP_ResponseTimeAndServiceTimeSimulation_list_txt, result_list, fmt='%0.2f')
+    if RCSSFlag is True:
+        print "RCSS Task"
+        # 统一El的值
+        El = El
+        Simulation_time = 0.0
+        print "RCSS Task"
+        # 使用备份数据
+        ObstacleCoordinate = UseBackupData()
+        
+        # 初始化函数
+        # 保存节点序号的
+        NodeList = []
+        # 备份节点标号
+        NodeListBackup = []
+        result = Init(NodeNum, NodeXCoordinate, NodeYCoordinate, NodeP, NodeEs, ObstacleCoordinate, ObstaclesNum, EdgeLength)
+        NodeList = result[0]
+        NodeListBackup = result[1]
+        NodeXCoordinateNew = result[2]
+        NodeYCoordinateNew = result[3]
+        
+        # 充电回路的命名
+        MCV_Num = 0
+        # 每个充电回路的信息的汇总
+        DataStore_list_sum = []
+        # 充电回路汇总
+        R_Sum = []
+        # 初始化节点发送Request请求的数量
+        RequestNum = 0 
+        # 将发送Request的节点序列进行保存
+        Request_list = []
+        # 需要对每个节点进行操作，直到剩余服务站S的标号
+        while 1 != len(NodeList):
+            print "创建新的充电子回路"
+            NodeRequestFlag = False
+            # 备份序列的标志
+            R_list_Backup_flag = True
+            FirstComingFlag = True
+            BeginR_list = True
+    
+            print "NodeList =", NodeList
+            print "程序正在执行，请等待……"
+            # 表示已经操作了节点列表中的几个节点
+            OperateMNodeNum = 1
+            # 统计当前节点序号列表中的个数，即未进行操作节点的个数
+            NodeListNum = len(NodeList)
+            # 每次都要对所有节点一一操作  
+            while OperateMNodeNum != NodeListNum:
+                NodeListNum = len(NodeList)
+                # 保证没有准备构建回路的趋势
+                if NodeRequestFlag is False:
+                    if DebugFlag is True:
+                        print "随意游走100s"
+                    t_sum = T_sum
+                    if DebugFlag is True:
+                        print "已经操作到N_i中第", OperateMNodeNum, "个数"
+                        print "N_i中之前共有", NodeListNum,"个数"
+                    t = t_sum
+                    if DebugFlag is True:
+                        print "电单车运行的时间为：t =", t, "s"
+                    Simulation_time = Simulation_time + t
+                    # 有个隐含条件，上一次运动一定不会出现停止运动即：节点能量不会低于阈值El_Final发送ALERT给服务站S
+                    # 备份每个节点的能量,后期操作需要
+                    # 表明不止剩余一个节点
+                    # 每次操作前先把能量进行备份，一边后续操作所需
+                    NodeEsBackup = []
+                    for i in range(0, len(NodeList)):
+                        NodeEsBackup.append(NodeEs[0][NodeList[i]])
+                    # 每次能量都需要恢复
+                    for i in range(0, len(NodeList)):
+                        NodeEs[0][NodeList[i]] = NodeEsBackup[i]
+                
+                    # 更新节点剩余的能量  # 不仅仅是考虑边界，还得考虑运动过程中，遇到障碍应该避开
+                    DeadNodeNumber = 0
+                    for i in range(1, len(NodeList)):
+                        # 修改节点能量
+                        t = ChangeCoordinate(i, El, Et, RCSS_RequestTime, Simulation_time, NodeList, NodeEs, NodeP, t_sum, NodeEsBackup, NodeMoveTime, NodeXCoordinateNew, NodeYCoordinateNew, V, Alpha, AlphaValue, EdgeLength, ObstacleCoordinate, ObstaclesNum)
+                        if t == 0:
+                            # t == 0 表示该节点为死亡节点
+                            DeadNodeNumber = DeadNodeNumber + 1
+                        # 测试数据用的 事后需要将其注释掉
+                        # 当电单车节点剩余的能量小于阈值上限时，节点向服务站S发送充电请求信号Request
+                        if NodeEs[0][NodeList[i]] <= Et:
+                            if NodeRequest[0][NodeList[i]] == 0:
+                                if DebugFlag is True:
+                                    print "发送充电请求Request"
+                                NodeRequest[0][NodeList[i]] = 1 
+                                # 将发送了Request的节点进行保存
+                                Request_list.append(NodeList[i])
+                        # 表示接收到Request请求MCV就出发为发送过Request的节点进行充电
+                        if  (len(Request_list) > 0) and (i == len(NodeList) - 1):
+                            print "exist Node sent Request"
+                            # 充电请求已经达到固定阈值上限，开始创建充电回路
+                            NodeRequestFlag = True
+                            # 判断是否是第一次进行构造充电回路
+                            FirstComingFlag = True 
+                            BeginR_list = True
+                            
+                         # 死亡节点个数不等于剩余节点个数
+                        if (i == (len(NodeList) - 1)) and ((len(NodeList) - 1) != DeadNodeNumber):
+                            if DebugFlag is True:
+                                print "DeadNodeNumber =", DeadNodeNumber
+                                print "len(NodeList) - 1 =", len(NodeList) - 1
+                                print "统计各个节点之间的距离并构造距离邻接矩阵中……"
+                            N_distance_Road_result = F.CreateDistanceNewMatrix(Road_information, N_distance, EdgeLength, NodeXCoordinateNew, NodeYCoordinateNew, NodeListBackup, NodeList, ObstacleCoordinate, ObstaclesNum)
+                            N_distance = N_distance_Road_result[0]
+                            Road_information = N_distance_Road_result[1] 
+                            if DebugFlag is True:
+                                print "距离统计完毕"
+    
+                # 就在这个环节，将一部分节点（R_list中的节点）从原NodeList中删掉
+                while NodeRequestFlag is True:
+                    if DebugFlag is True:
+                        print "发送过Request的节点序列为 Request_list =", Request_list
+                        print "发送过Request的节点序列长度为len(Request_list) =", len(Request_list)
+                    if BeginR_list is True:
+                        BeginR_list = False
+                        # 定义充电回路的起始
+                        print "create a new charge tour"
+                        R_New = []
+                        R_New.append(NodeList[0])
+                    # 选择最佳下一服务点的方法为：综合考虑剩余能量和与MCV之间的距离
+                    # 计算得到P，以P最小为下一最佳服务节点
+                    BestNode = 0
+                    print "Request_list =", Request_list
+                    print "len(Request_list) =", len(Request_list)
+                    
+                    # a 为节点功耗倒数所占比重
+                    # b 为S到各电单车距离所占比重
+                    # P 为综合节点功耗倒数和S到各电单车距离所占比重考虑的最终值
+                    # 尽可能把节点功耗大(节点功耗倒数小)的和与MCV距离短的节点优先选择为下一服务节点
+                    print "Request_list =", Request_list
+                    NodeReciprocalP_sort = []
+                    N_distance_sort = []
+                    for i in range(0, len(Request_list)):
+                        # 获取节点及其功耗的倒数，组成(NodeNum, ReciprocalP[0][NodeNum])
+                        # 这样操作存在，剩余能量的排名的变化同步节点序号的变化
+                        Node_number_ReciprocalP = []
+                        Node_number_ReciprocalP.append(Request_list[i])
+                        # 获取功耗的倒数【因为需要从将功耗从大到小，为了便于我的计算，用了
+                        # 功耗的倒数，排序时，从小达到大排序】
+                        Node_number_ReciprocalP.append(round((1.0/NodeP[0][Request_list[i]]),4))
+                        NodeReciprocalP_sort.append(Node_number_ReciprocalP)
+                        # 获取节点及其与MCV的距离，组成(NodeNum, N_distance[NodeNum(MCV)][NodeNum]
+                        # 这样操作存在，与MCV的距离排名的变化同步节点序号的变化
+                        Node_number_distance= []
+                        Node_number_distance.append(Request_list[i])
+                        # 获取MCV到当前节点的距离
+                        Node_number_distance.append(round(N_distance[R_New[len(R_New) - 1]][Request_list[i]], 2))
+                        N_distance_sort.append(Node_number_distance)
+                    print "NodeReciprocalP_sort =", NodeReciprocalP_sort
+                    print "before N_distance_sort =", N_distance_sort
+                    # 已经将剩余能量和与MCV的距离按从小到大排序
+                    select_sort_Numsort(NodeReciprocalP_sort)
+                    select_sort_Numsort(N_distance_sort)
+                    print "after NodeReciprocalP_sort =", NodeReciprocalP_sort
+                    print "after N_distance_sort =", N_distance_sort
+
+                    a = 0.2
+                    b = 1.0 - a
+                    # 只考虑了当前一次，所以得看看如何把所有的点考虑进去，每个点都要考虑到
+                    # 只考虑当前所剩下的节点，不包括S点（N_i[0]）
+                    # 假设开始时的P非常非常的大
+                    P = []
+                    # 这里应该计算剩余所有节点的P值
+                    for i in range(0 , len(Request_list)):
+                        # 临时列表
+                        P_Node_number = []
+                        # 添加节点序号
+                        P_Node_number.append(Request_list[i])
+                        ReciprocalP_Rank = 0
+                        for l in range(0, len(Request_list)):
+                            if Request_list[i] == NodeReciprocalP_sort[l][0]:
+                                # 当前剩余能量节点的排名
+                                ReciprocalP_Rank = l + 1
+                                break
+                        Distance_Rank = 0
+                        for m in range(0, len(Request_list)):
+                            if Request_list[i] == N_distance_sort[m][0]:
+                                # 当前 节点距离S的排名
+                                Distance_Rank = m + 1
+                                break
+
+                        P_value = a*ReciprocalP_Rank + b*Distance_Rank
+                        
+                        P_Node_number.append(round(P_value, 2))
+                        # 添加节点的排名的比重
+                        P.append(P_Node_number)
+            
+                    print "before P =", P
+                    select_sort_Numsort(P)
+                    print "after P =", P
+                    # 本次寻找最好的节点为 BestNode
+                    # 该点不再运动
+                    BestNode = P[0][0]
+                    print "BestNode =", BestNode
+                    # print "delay(10)"
+                    # time.sleep(10)
+                    # 将最好的节点加入构建的充电回路中
+                    R_New.append(BestNode)
+                    # 当该节点被选为最佳下一服务点时，将当前时间进行统计
+                    RCSS_BestNodeTime[0][BestNode] = Simulation_time
+                    if DebugFlag is True:
+                        print "RCSS_BestNodeTime[0][", BestNode, "] =", RCSS_BestNodeTime[0][BestNode] 
+                
+                    # 将最好点加入充电回路后，可以被调度，直接加入充电回路
+                    # 从R_list中将最好点删掉，同时将NodeList中最好点删掉
+                    Request_list.remove(BestNode)
+                    NodeList_FirstValue = NodeList[0]
+                    NodeList[0] = 0
+                    NodeList.remove(BestNode)
+                    NodeList[0] = NodeList_FirstValue
+                    # 将被删除的最好点从缓冲池中删除，即：其在缓冲池中的值为零
+                    # 对应在Request缓冲池中的值置为零
+                    NodeRequest[0][BestNode] = 0
+                    
+                    if DebugFlag is True:
+                        print "检查数据~~~~"
+                        print "NodeList =", NodeList
+                        print "R_list =", R_list
+                        print "R_list_Backup =", R_list_Backup
+                    
+                    D = N_distance[R_New[len(R_New) - 2]][R_New[len(R_New) - 1]]
+                    t1 = D/Vm
+                     # 消耗的能量
+                    last_Es = NodeEsValue - NodeEs[0][R_New[len(R_New) - 1]]
+                    # 充电需要的时间
+                    t2 = last_Es/Qc
+                    # 将R_New[len(R_New) - 1]加入充电子回路需要消耗的总时间为t
+                    t_sum = t1 + t2 
+                    t = t_sum
+                    if DebugFlag is True:
+                        print "将某点加入充电子回路中需要消耗的总时间为t =", t, 's'
+                    Simulation_time = Simulation_time + t
+                    RCSS_ServiceTime[0][BestNode] = t
+                    if DebugFlag is True:
+                        print "RCSS_ServiceTime[0][", BestNode, "] =", RCSS_ServiceTime[0][BestNode] 
+                        
+                        # 添加平均响应时间和平均服务时间
+                        print "NodeListBackup =", NodeListBackup
+                        print "len(NodeListBackup) =", len(NodeListBackup)
+                    # 被服务过的节点个数的初始化
+                    ServiceNode = 0 
+                    # 每个节点响应时间的总和
+                    ResponseNodeTime = 0.0
+                    # 每个节点服务时间求总和
+                    ServiceNodeTime = 0.0
+                    
+                    for m in range(1, len(NodeListBackup)):
+                        # 说明这个节点已经被添加到回路了，或者说已经被操作过的
+                        if RCSS_ServiceTime[0][NodeListBackup[m]] != 0:
+                           # 当前选中的节点的相关时间的统计
+                           # 响应时间
+                           RCSS_RequestTime[0][NodeListBackup[m]]
+                           # 选择下一最佳服务节点的时间
+                           RCSS_BestNodeTime[0][NodeListBackup[m]]
+                           
+                           # 已经被操作过（被添加回路）的节点个数的统计
+                           ServiceNode = ServiceNode + 1 
+                           # 节点响应时间求总和
+                           ResponseNodeTime = ResponseNodeTime + (RCSS_BestNodeTime[0][NodeListBackup[m]] - RCSS_RequestTime[0][NodeListBackup[m]])
+                           # 节点服务时间求总和
+                           ServiceNodeTime = ServiceNodeTime + RCSS_ServiceTime[0][NodeListBackup[m]]
+                    
+                    # 添加平均响应时间
+                    RCSS_AverageResponseTime_list.append(round(ResponseNodeTime/ServiceNode, 2))
+                    # 添加平均服务时间
+                    RCSS_AverageServiceTime_list.append(round(ServiceNodeTime/ServiceNode, 2))
+                    
+                    # 添加当前的仿真时间
+                    RCSS_ResponseTimeAndServiceTimeSimulationTime_list.append(Simulation_time)
+                    
+                    # 表明不止剩余一个节点
+                    # 有个隐含条件，上一次运动一定不会出现停止运动即：节点能量不会低于阈值El_Final发送ALERT给服务站S
+                    # 备份每个节点的能量,后期操作需要
+                    # 表明不止剩余一个节点
+                    # 每次操作前先把能量进行备份，一边后续操作所需
+                    NodeEsBackup = []
+                    for i in range(0, len(NodeList)):
+                        NodeEsBackup.append(NodeEs[0][NodeList[i]])
+                    # 更新节点剩余的能量  # 不仅仅是考虑边界，还得考虑运动过程中，遇到障碍应该避开
+                    DeadNodeNumber = 0
+                    for i in range(1, len(NodeList)):
+                        # 修改节点能量
+                        t = ChangeCoordinate(i, El, Et, RCSS_RequestTime, Simulation_time, NodeList, NodeEs, NodeP, t_sum, NodeEsBackup, NodeMoveTime, NodeXCoordinateNew, NodeYCoordinateNew, V, Alpha, AlphaValue, EdgeLength, ObstacleCoordinate, ObstaclesNum)
+                        if t == 0:
+                            # 当t == 0时，说明当前节点为死亡节点
+                            DeadNodeNumber = DeadNodeNumber + 1
+                            
+                        # 当电单车节点剩余的能量小于阈值上限时，节点向服务站S发送充电请求信号Request
+                        
+                        if NodeEs[0][NodeList[i]] <= Et:  
+                            # 先判断该节点是否已经发送过Request请求
+                            if NodeRequest[0][NodeList[i]] == 0:
+                                NodeRequest[0][NodeList[i]] = 1
+                                # 只添加还未发送过Request请求的节点
+                                Request_list.append(NodeList[i])
+                        # 修改最后一个节点的位置，随之改变距离邻接矩阵
+                        # 死亡节点个数不等于剩余节点个数
+                        if (i == (len(NodeList) - 1)) and ((len(NodeList) - 1) != DeadNodeNumber):
+                            if DebugFlag is True:
+                                print "DeadNodeNumber =", DeadNodeNumber
+                                print "len(NodeList) - 1 =", len(NodeList) - 1
+                                print "Statistic Node distance"
+                            # 主要是获取各节点之间的距离
+                            N_distance_Road_result = F.CreateDistanceNewMatrix(Road_information, N_distance, EdgeLength, NodeXCoordinateNew, NodeYCoordinateNew, NodeListBackup, NodeList, ObstacleCoordinate, ObstaclesNum)
+                            N_distance = N_distance_Road_result[0]
+                            Road_information = N_distance_Road_result[1] 
+                            if DebugFlag is True:
+                                print "距离统计完毕"                                 
+                    
+                    if DebugFlag is True:
+                        print "R_New =", R_New
+                        print "R_list =", R_list
+                        print "R_list_Backup =", R_list_Backup
+                        print "NodeList =", NodeList
+                        print "Request_list =", Request_list
+                    
+                    print "Request_list =", Request_list
+                    print "len(Request_list) =", len(Request_list)
+                    
+                    # 到目前为止所有发送过Request信号的节点，都已经被添加到充电回路中了
+                    if len(Request_list) == 0:
+                        print "break while"
+                        # 统计当前节点序号列表中的个数，即未进行操作节点的个数
+                        if DebugFlag is True:
+                            print "对发送过Request请求的节点已经操作完毕"
+                        NodeListNum = len(NodeList)
+                        R_Sum.append(R_New)
+                        SummaryByTime(El, 'RCSS', R_Sum, Simulation_time, NodeEs, N_distance, NodeXCoordinateNew, NodeYCoordinateNew, ObstacleCoordinate)
+                        # 当前Request_list序列为空
+                        print "No Request"
+                        NodeRequestFlag = False
+                        break
+        # 添加构建回路的相关信息
+        TourConstructionInformation(El, R_Sum, NodeEs, RCSS_DeadNodeNum_data_txt, N_distance, NodeXCoordinateNew, NodeYCoordinateNew, RCSS_MCV_Tour_Set_txt, RCSS_MCV_Tour_Information_txt, ObstacleCoordinate, 'RCSS')
+        # 添加几个性能与仿真时间的关系
+        result_list = []
+        # 仿真时间
+        result_list.append(RCSS_PerformanceSimulationTime_list)
+        # 死亡节点和吞吐量
+        result_list.append(RCSS_DeadNodeNum_list)
+        result_list.append(RCSS_Throughput_Num_list)
+        # 充电能量和移动能量
+        result_list.append(RCSS_MCVChargeEs_list)
+        result_list.append(RCSS_MCVMoveEs_list)
+        # 充电时间和移动时间
+        result_list.append(RCSS_MCVChargeTime_list)
+        result_list.append(RCSS_MCVMoveTime_list)
+        # 实际距离和欧几里得距离
+        result_list.append(RCSS_MCVRealDistance_list)
+        result_list.append(RCSS_MCVEuclidDistance_list)
+
+
+        np.savetxt(RCSS_PerformanceSimulation_list_txt, result_list, fmt='%0.2f')
+        if DebugFlag is True:
+            print "RCSS_RequestTime[0] =\n", RCSS_RequestTime[0]
+            print "RCSS_BestNodeTime[0] =\n", RCSS_BestNodeTime[0]
+            print "RCSS_ServiceTime[0] =\n", RCSS_ServiceTime[0]
+            print "RCSS_ResponseTimeAndServiceTimeSimulationTime_list =\n", RCSS_ResponseTimeAndServiceTimeSimulationTime_list
+            print "RCSS_AverageResponseTime_list =\n", RCSS_AverageResponseTime_list
+            print "RCSS_AverageServiceTime_list =\n", RCSS_AverageServiceTime_list
+        result_list = []
+        result_list.append(RCSS_ResponseTimeAndServiceTimeSimulationTime_list)
+        result_list.append(RCSS_AverageResponseTime_list)
+        result_list.append(RCSS_AverageServiceTime_list)
+        
+        np.savetxt(RCSS_ResponseTimeAndServiceTimeSimulation_list_txt, result_list, fmt='%0.2f')      
     
     # 导入测试数据
-    data = np.loadtxt(CompareFirst_ResponseTimeAndServiceTimeSimulation_list_txt)
-    data1 = np.loadtxt(CompareSecond_ResponseTimeAndServiceTimeSimulation_list_txt)
-    data2 = np.loadtxt(Second_ResponseTimeAndServiceTimeSimulation_list_txt)
+    data = np.loadtxt(FirstCompare_ResponseTimeAndServiceTimeSimulation_list_txt)
+    data1 = np.loadtxt(Second_ResponseTimeAndServiceTimeSimulation_list_txt)
+    data2 = np.loadtxt(SecondCompare_ResponseTimeAndServiceTimeSimulation_list_txt)
+    data3 = np.loadtxt(NJNP_ResponseTimeAndServiceTimeSimulation_list_txt)
+    data4 = np.loadtxt(TADP_ResponseTimeAndServiceTimeSimulation_list_txt)
+    data5 = np.loadtxt(RCSS_ResponseTimeAndServiceTimeSimulation_list_txt)
     # 平均响应时间和平均服务时间两个性能图表刻度
     kedu_new = 500
     # data的解释，例如：
@@ -2731,66 +3985,54 @@ if __name__ == "__main__":
     RespondTime = data[1]
     ServiceTime = data[2]
     '''
-    print "min(data[0]) =", min(data[0])
-    print "min(data1[0]) =", min(data1[0])
-    print "min(data2[0]) =", min(data2[0])
-    SimulationTimeMinx = min(min(data[0]), min(data1[0]), min(data2[0]))
-    # RespondTimeMinx = min(data[0])
+    SimulationTimeMinx = min(min(data[0]), min(data1[0]), min(data2[0]), min(data3[0]), min(data4[0]), min(data5[0]))
     print "SimulationTimeMinx =", SimulationTimeMinx
 
-    print "max(data[0]) =", max(data[0])
-    print "max(data1[0]) =", max(data1[0])
-    print "max(data2[0]) =", max(data2[0])
-    SimulationTimeMaxx = max(max(data[0]), max(data1[0]), max(data2[0]))
-    # RespondTimeMaxx = max(data[0])
+    SimulationTimeMaxx = max(max(data[0]), max(data1[0]), max(data2[0]), max(data3[0]), max(data4[0]), max(data5[0]))
     print "SimulationTimeMaxx =", SimulationTimeMaxx
-    
-    
-    print "min(data[1]) =", min(data[1])
-    print "min(data1[1]) =", min(data1[1])
-    print "min(data2[1]) =", min(data2[1])
-    RespondTimeMiny = min(min(data[1]), min(data1[1]), min(data2[1]))
+
+    RespondTimeMiny = min(min(data[1]), min(data1[1]), min(data2[1]), min(data3[1]), min(data4[1]), min(data5[1]))
     print "RespondTimeMiny =", RespondTimeMiny
 
-    print "max(data[1]) =", max(data[1])
-    print "max(data1[1]) =", max(data1[1])
-    print "max(data2[1]) =", max(data2[1])
-    RespondTimeMaxy = max(max(data[1]), max(data1[1]), max(data2[1]))
+    RespondTimeMaxy = max(max(data[1]), max(data1[1]), max(data2[1]), max(data3[1]), max(data4[1]), max(data5[1]))
     print "RespondTimeMaxy =", RespondTimeMaxy
-    
-    
-    print "min(data[2]) =", min(data[2])
-    print "min(data1[2]) =", min(data1[2])
-    print "min(data2[2]) =", min(data2[2])
-    ServiceTimeMiny = min(min(data[1]), min(data1[1]), min(data2[1]))
+
+    ServiceTimeMiny = min(min(data[2]), min(data1[2]), min(data2[2]), min(data3[2]), min(data4[2]), min(data5[2]))
     print "ServiceTimeMiny =", ServiceTimeMiny
 
-
-    print "max(data[2]) =", max(data[2])
-    print "max(data1[2]) =", max(data1[2])
-    print "max(data2[2]) =", max(data2[2])
-    ServiceTimeMaxy = max(max(data[2]), max(data1[2]), max(data2[2]))
+    ServiceTimeMaxy = max(max(data[2]), max(data1[2]), max(data2[2]), max(data3[2]), max(data4[2]), max(data5[2]))
     print "ServiceTimeMaxy =", ServiceTimeMaxy
-    
+    '''
+    # 主要用于画图中进行操作，线条的颜色
+    LineColor =['b', 'g', 'r', 'c', 'm', 'y', 'k']
+    # LineColor =['b']
+    # 线条的风格
+    LineStyle = ['-', '--', '-.', ':']
+    # 线条的标志
+    LineLogo = ['.', 'o', 'v', '^', '>', '<', '1', '2', '3', '4', 's', 'p', '*']
+    '''
     
     ax = plt.gca()
     # 图片坐标刻度设置
     ax.xaxis.set_major_locator(MultipleLocator(kedu_new))
     # ax.yaxis.set_major_locator(MultipleLocator(200))
     plt.plot(data[0], data[1],'r-.s',label = 'RespondTime1Com')
-    plt.plot(data1[0],data1[1], 'g:o',label = 'RespondTime2Com')
-    plt.plot(data2[0], data2[1],'b--*',label = 'RespondTime2')
-    
+    plt.plot(data1[0], data1[1], 'g--^',label = 'RespondTime2')
+    plt.plot(data2[0], data2[1],'b:p',label = 'RespondTime2Com')
+    plt.plot(data3[0], data3[1],'m-.v',label = 'RespondTimeNJNP')
+    plt.plot(data4[0], data4[1],'y:v',label = 'RespondTimeTADP')
+    plt.plot(data5[0], data5[1],'k:.',label = 'RespondTimeRCSS')
+
     plt.legend(loc='lower right', edgecolor='black')
     plt.xlabel('Simulation_time')
     plt.ylabel('RespondTime')
     origin_path = 'RespondTimeAndSimulation_time.png'  
     All_path = os.path.join(childern_result_name, origin_path)
     plt.grid()
+    # plt.xlim([(SimulationTimeMinx%100)*100 - kedu_new, SimulationTimeMaxx + 200]) #设置绘图X边界                                                                                                   
+    # plt.ylim([RespondTimeMiny , RespondTimeMaxy + 50]) #设置绘图Y边界
+    plt.axis([(SimulationTimeMinx%100)*100 - kedu_new, SimulationTimeMaxx + 200, 0, RespondTimeMaxy + 50])
     plt.savefig(All_path)
-    
-    plt.xlim([(SimulationTimeMinx%100)*100 - kedu_new, SimulationTimeMaxx + 200]) #设置绘图X边界                                                                                                   
-    plt.ylim([RespondTimeMiny , RespondTimeMaxy + 50]) #设置绘图Y边界
     plt.show()
     
     ax = plt.gca()
@@ -2798,9 +4040,12 @@ if __name__ == "__main__":
     ax.xaxis.set_major_locator(MultipleLocator(kedu_new))
     # ax.yaxis.set_major_locator(MultipleLocator(200))
 
-    plt.plot(data[0],data[2], 'r-p',label = 'ServiceTime1Com')
-    plt.plot(data1[0], data1[2],'g:^',label = 'ServiceTime2Com')
-    plt.plot(data2[0],data2[2], 'b--v',label = 'ServiceTime2')
+    plt.plot(data[0], data[2], 'r-p',label = 'ServiceTime1Com')
+    plt.plot(data1[0], data1[2],'g--^',label = 'ServiceTime2')
+    plt.plot(data2[0], data2[2], 'b:p',label = 'ServiceTime2Com')
+    plt.plot(data3[0], data3[2],'m-.v',label = 'ServiceTimeNJNP')
+    plt.plot(data4[0], data4[2],'y:v',label = 'ServiceTimeTADP')
+    plt.plot(data5[0], data5[2],'k:.',label = 'ServiceTimeRCSS')
 
     plt.legend(loc='lower right', edgecolor='black')
     plt.xlabel('Simulation_time')
@@ -2808,9 +4053,10 @@ if __name__ == "__main__":
     origin_path = 'ServiceTimeAndSimulation_time.png'  
     All_path = os.path.join(childern_result_name, origin_path)
     plt.grid()
+    # plt.xlim([(SimulationTimeMinx%100)*100 - kedu_new, SimulationTimeMaxx + 200]) #设置绘图X边界                                                                                                   
+    # plt.ylim([ServiceTimeMiny, ServiceTimeMaxy + 50]) #设置绘图Y边界
+    plt.axis([(SimulationTimeMinx%100)*100 - kedu_new, SimulationTimeMaxx + 200, 0, ServiceTimeMaxy + 50])
     plt.savefig(All_path)
-    plt.xlim([(SimulationTimeMinx%100)*100 - kedu_new, SimulationTimeMaxx + 200]) #设置绘图X边界                                                                                                   
-    plt.ylim([ServiceTimeMiny, ServiceTimeMaxy + 50]) #设置绘图Y边界
     plt.show()
 
     print "程序即将结束"
