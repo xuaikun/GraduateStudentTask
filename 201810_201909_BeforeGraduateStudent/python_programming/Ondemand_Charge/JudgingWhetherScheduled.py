@@ -19,7 +19,7 @@ def judging_whether_scheduled(P, Em, qc, qm, nl, R, vm, N_distance):
     # 保留两位小数
     D = round(D + N_distance[R[R_len - 1]][R[0]], 2)
 
-    print "当前子回路的总距离D = ", D
+    print " the D of recently charge Tour = ", D
     psum = 0
     pmax = 0.0
     # 只计算当前加入子回路的电单车的功率
@@ -31,7 +31,7 @@ def judging_whether_scheduled(P, Em, qc, qm, nl, R, vm, N_distance):
             pmax = P[0][R[i]] 
     # 保留两位小数
     psum = round(psum, 2)
-    print "总能耗psum =", psum
+    print "consumption of P psum =", psum
     # 三个决策条件
     factor_1 = psum
     # factor_2 = round((D*qc*nl*pmax)/(qc*nl-psum), 2)

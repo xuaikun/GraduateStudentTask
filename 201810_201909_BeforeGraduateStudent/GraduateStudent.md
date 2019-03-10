@@ -432,3 +432,15 @@ NJNP算法已经实现
 今日需要实现TADP算法
 TADP算法已经实现
 今日需要完成RCSS算法
+RCSS算法已经实现
+
+##### 明天开始完成回路分配算法
+
+### 2019年3月9日:
+似乎程序中又发现了bug，得好好检查一下
+
+### 2019年3月10日：
+python中Copy数据的情况，浅copy和深copy的区别，不然在数组操作的时候很容易出错
+https://blog.csdn.net/AManFromEarth/article/details/80931737
+
+第一种出发机制的实验
