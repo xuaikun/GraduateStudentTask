@@ -49,7 +49,7 @@ result_path = "E:\\00000000000graduate-study\\GraduateStudentTask\\201810_201909
 
 # 以下为数据初始化
 # 节点数目 从 50 到 200 变化，将100节点的实验先 做全# 假设我有N辆电单车  会影响程序运行的时间
-NodeNum = 20
+NodeNum = 15
 # 选择插入算法角度阈值设定
 # cos90 = 0
 # cos180 = -1
@@ -219,6 +219,27 @@ if not isExist:
 # 创建txt文件
 Obstacle_information_data_txt = os.path.join(result_name, 'Obstacle_information_data.txt')
 Node_information_data_txt = os.path.join(result_name, 'Node_information_data.txt')
+
+# 第二种出发机制的生成的一些txt文档   
+Second_MCV_Tour_Set_txt = os.path.join(Second_path, 'Second_MCV_Tour_Set.txt')
+SecondCompare_MCV_Tour_Set_txt = os.path.join(SecondCompare_path, 'SecondCompare_MCV_Tour_Set.txt')
+
+Second_MCV_Tour_Information_txt = os.path.join(Second_path, 'Second_MCV_Tour_Information.txt')
+SecondCompare_MCV_Tour_Information_txt = os.path.join(SecondCompare_path, 'SecondCompare_MCV_Tour_Information.txt')
+
+AECR_Txt = os.path.join(Second_path, 'SecondAECRData.txt')
+AFP_Txt = os.path.join(Second_path, 'SecondAFPData.txt')
+
+El_wBest_Txt = os.path.join(Second_path, 'SecondEl_wBestData.txt')
+
+Second_Dead_NodeNum_txt = os.path.join(Second_path, 'Second_Dead_NodeNum.txt')
+SecondCompare_DeadNodeNum_txt = os.path.join(SecondCompare_path, 'SecondCompare_DeadNodeNum.txt')
+
+Second_PerformanceSimulation_list_txt  = os.path.join(Second_path, 'Second_PerformanceSimulation_list.txt')
+SecondCompare_PerformanceSimulation_list_txt  = os.path.join(SecondCompare_path, 'SecondCompare_PerformanceSimulation_list.txt')
+
+Second_ResponseTimeAndServiceTimeSimulation_list_txt = os.path.join(Second_path, 'Second_ResponseTimeAndServiceTimeSimulation_list.txt')
+SecondCompare_ResponseTimeAndServiceTimeSimulation_list_txt = os.path.join(SecondCompare_path, 'SecondCompare_ResponseTimeAndServiceTimeSimulation_list.txt')
 
 
 # First出发机制的生成的一些txt文档   
@@ -853,7 +874,163 @@ def ChangeCoordinate(i, El, Et, RequestTime, Simulation_time, NodeList, NodeEs, 
         print "NodeEs[0] =", NodeEs[0]
     # 修改节点的运动时间，因为当节点能量小于阈值El时，电单车节点变为静态节点，保留阈值El能量
     t = NodeMoveTime[0][NodeList[i]]
+    # 主要是为了避免运行时间太长了，运行的半径超出了我们所划定的区域
+    # 可以考虑分时间段运行
+    t = 386.9090775
     
+    NodeList[i] = 1
+    Alpha[0][NodeList[i]] = 81
+    NodeXCoordinateNew[0][NodeList[i]] = 825.46
+    NodeYCoordinateNew[0][NodeList[i]] = 736.32
+
+    t_new = t
+    print "t_new =", t_new
+    while 167 < t:
+        t = 167
+        print "t =", t, 's'
+
+        # 考虑到边界问题，先将改变之前的坐标记录下来
+        N_x_new_temp = NodeXCoordinateNew[0][NodeList[i]]
+        N_y_new_temp = NodeYCoordinateNew[0][NodeList[i]] 
+        N_x_new_temp_new = NodeXCoordinateNew[0][NodeList[i]]
+        N_y_new_temp_new = NodeYCoordinateNew[0][NodeList[i]]
+        # 更新节点坐标
+        NodeXCoordinateNew[0][NodeList[i]] = round((NodeXCoordinateNew[0][NodeList[i]] + V*t*math.cos((Alpha[0][NodeList[i]]*math.pi)/180.0)), 2)
+        NodeYCoordinateNew[0][NodeList[i]] = round((NodeYCoordinateNew[0][NodeList[i]] + V*t*math.sin((Alpha[0][NodeList[i]]*math.pi)/180.0)), 2)
+        # 检查坐标有没有超过边界, 表示超界了，表示当前需要改变运行方向
+        # 为什么用while（）一定保证，坐标合理才能进行下一步操作
+        # 为了在运动时避开障碍，设置两种状态
+        # （1）在无障碍情况下计算距离
+        # （2）在有障碍的情况下再计算一次距离
+        # 如果两次距离相等，则中途没有障碍，可以直接到达目的位置
+        # 反之，不相等，则中途出现障碍，不能直接到达目的地，需要改变运动方向
+        # obstacle_flag = True 表明空间存在障碍
+        beforex = NodeXCoordinateNew[0][NodeList[i]]
+        beforey = NodeYCoordinateNew[0][NodeList[i]] 
+        print "while True , change coordinate"
+        originAlphaValue = []
+        originAlphaValue.append(Alpha[0][NodeList[i]])
+         
+        while True:
+            if t == 0:
+                # print "表明当前节点能量已经为0，已经不能在运动了，视为死亡节点"
+                break
+            # 判断坐标是否越界
+            print "begin check coordinate"
+            # 当前转向角不适合时，可以对转向角每次都进行微调
+            AlphaValueStep = 1
+            AlphaValueSum = 0
+            while((NodeXCoordinateNew[0][NodeList[i]] < 1 or NodeXCoordinateNew[0][NodeList[i]] > EdgeLength) or (
+                    NodeYCoordinateNew[0][NodeList[i]] < 1 or NodeYCoordinateNew[0][NodeList[i]] > EdgeLength)): 
+                # 更新电单车运动方向 改变方向幅度不能太大 
+                print "originAlphaValue =", originAlphaValue
+                print "AlphaValue =", AlphaValue
+                AlphaValueSum = AlphaValueSum + AlphaValue
+                Alpha[0][NodeList[i]] = (Alpha[0][NodeList[i]] + AlphaValue)%360
+                print "really operation time t =", t, 's'
+                print "Alpha[0][", NodeList[i], "] =", Alpha[0][NodeList[i]] 
+                print "N_x_new_temp =", N_x_new_temp
+                print "N_y_new_temp =", N_y_new_temp
+                # 用上面备份的当前的坐标，重新往重新生成的方向前进
+                NodeXCoordinateNew[0][NodeList[i]] = round((N_x_new_temp + V*t*math.cos((Alpha[0][NodeList[i]]*math.pi)/180.0)), 2)
+                NodeYCoordinateNew[0][NodeList[i]] = round((N_y_new_temp + V*t*math.sin((Alpha[0][NodeList[i]]*math.pi)/180.0)), 2)
+                print "beforex =", beforex
+                print "beforey =", beforey
+                print "NodeXCoordinateNew[0][", NodeList[i], "] =", NodeXCoordinateNew[0][NodeList[i]]
+                print "NodeYCoordinateNew[0][", NodeList[i], "] =", NodeYCoordinateNew[0][NodeList[i]]
+                print "AlphaValueSum =", AlphaValueSum
+                # 如果修改了电单车偏向角后，还会出现陷入死循环的情况，则方向角增加
+                if ((beforex == NodeXCoordinateNew[0][NodeList[i]]) and (beforey == NodeYCoordinateNew[0][NodeList[i]])) or (AlphaValueSum%360 == 0):
+                    AlphaValueSum = 0
+                    print "dead while delay(1)"
+                    time.sleep(1)
+                    # 说明AlphaValueStep已经循环了一圈，只能从修改t下手了
+                    print "operation time t =", t, 's'
+                    # 变化90°范围就差不多了的
+                    if AlphaValueStep == 90:
+                        # 因为感觉，修改角度没什么用了
+                        # 只好从时间上做修改，每次时间剩余为上次的99%
+                        t = t*(99.0/100.0)       
+                        # 顺便把AlphaValueStep 初始化为1
+                        AlphaValueStep = 1
+                    print "修改后的 t =", t, 's'
+                    # AlphaValue不符合当前的那个数值，我们将其局部修改
+                    AlphaValue = AlphaValueStep
+                    # 步长加1
+                    AlphaValueStep = AlphaValueStep + 1
+                print "delay(3)s"
+                time.sleep(3)
+            print "check coordinate over"    
+            # 越界处理完成的标志，表示已经不越界
+            crossing_flag = True
+            # 电单车转向减小一点
+            AlphaValue = 1
+            # 还得保证当前终点不属于任何一个障碍区域内
+            first_coordinate = []
+            second_coordinate = []
+            first_coordinate.append(N_x_new_temp)
+            first_coordinate.append(N_y_new_temp)
+            second_coordinate.append(NodeXCoordinateNew[0][NodeList[i]])
+            second_coordinate.append(NodeYCoordinateNew[0][NodeList[i]])
+            # print "有障碍 的二维空间"
+            distance_obstacle =A.a_star_algorithm(EdgeLength, first_coordinate, second_coordinate, ObstacleCoordinate, ObstaclesNum, True)
+            # print "退出有障碍空间"
+            # 判断是否需要变向
+            change_direction_flag = True
+            # 如果终点坐标在障碍区域内，也需要改变运动方向
+            if distance_obstacle[0] is False:
+                change_direction_flag = False
+                # 更新电单车运动方向 改变方向幅度不能太大
+                Alpha[0][NodeList[i]] = (Alpha[0][NodeList[i]] + AlphaValue)%360
+                # 用上面备份的当前的坐标，重新往重新生成的方向前进
+                NodeXCoordinateNew[0][NodeList[i]] = round((N_x_new_temp + V*t*math.cos((Alpha[0][NodeList[i]]*math.pi)/180.0)), 2)
+                NodeYCoordinateNew[0][NodeList[i]] = round((N_y_new_temp + V*t*math.sin((Alpha[0][NodeList[i]]*math.pi)/180.0)), 2)                    
+            # 终点不在障碍区域内，则开始计算无障碍二维空间中的亮点之间的距离
+            else:
+                first_coordinate = []
+                second_coordinate = []
+                first_coordinate.append(N_x_new_temp_new)
+                first_coordinate.append(N_y_new_temp_new)
+                second_coordinate.append(NodeXCoordinateNew[0][NodeList[i]])
+                second_coordinate.append(NodeYCoordinateNew[0][NodeList[i]])
+                # 无障碍二维空间
+                distance_no_obstacle =A.a_star_algorithm(EdgeLength, first_coordinate, second_coordinate, ObstacleCoordinate, ObstaclesNum, False)
+                
+                distance_obstacle_result = []
+                distance_obstacle_result.append(distance_obstacle[0])
+                distance_obstacle_result.append(distance_obstacle[1])
+                distance_obstacle_result.append(distance_obstacle[2])
+                distance_obstacle_result.append(distance_obstacle[3])
+                distance_obstacle_result.append(distance_obstacle[4])
+
+                distance_no_obstacle_result = []
+                distance_no_obstacle_result.append(distance_no_obstacle[0])
+                distance_no_obstacle_result.append(distance_no_obstacle[1])
+                distance_no_obstacle_result.append(distance_no_obstacle[2])
+                distance_no_obstacle_result.append(distance_no_obstacle[3])
+                distance_no_obstacle_result.append(distance_no_obstacle[4])
+            
+                # 表明两次同一点同一终点，所得距离不相等，说明行驶过程中遇到障碍，需要变向
+                # 终点在障碍区域内或者运动过程中遇到障碍都将改变即将到达的位置的坐标
+                if np.abs(distance_no_obstacle[3] - distance_obstacle[3]) != 0.0:
+                    change_direction_flag = False
+                    # 更新电单车运动方向 改变方向幅度不能太大
+                    Alpha[0][NodeList[i]] = (Alpha[0][NodeList[i]] + AlphaValue)%360
+                    # 用上面备份的当前的坐标，重新往重新生成的方向前进
+                    NodeXCoordinateNew[0][NodeList[i]] = round((N_x_new_temp + V*t*math.cos((Alpha[0][NodeList[i]]*math.pi)/180.0)), 2)
+                    NodeYCoordinateNew[0][NodeList[i]] = round((N_y_new_temp + V*t*math.sin((Alpha[0][NodeList[i]]*math.pi)/180.0)), 2)
+                    # print "遇到障碍重新更新坐标为：", (N_x_new[0][N_i[i]], N_y_new[0][N_i[i]])
+                if crossing_flag is True and change_direction_flag is True:
+                    # 起点到终点途中不存在障碍或终点不存在与障碍区域
+                    # 退出while()
+                    break
+        t_new = (t_new - 167)
+        print "t_new =", t_new, 's'
+        t =  t_new
+        print "t =", t, 's'
+    print "over while 167 < t"
+    print "t =", t, 's'
+
     # 考虑到边界问题，先将改变之前的坐标记录下来
     N_x_new_temp = NodeXCoordinateNew[0][NodeList[i]]
     N_y_new_temp = NodeYCoordinateNew[0][NodeList[i]] 
@@ -862,54 +1039,42 @@ def ChangeCoordinate(i, El, Et, RequestTime, Simulation_time, NodeList, NodeEs, 
     # 更新节点坐标
     NodeXCoordinateNew[0][NodeList[i]] = round((NodeXCoordinateNew[0][NodeList[i]] + V*t*math.cos((Alpha[0][NodeList[i]]*math.pi)/180.0)), 2)
     NodeYCoordinateNew[0][NodeList[i]] = round((NodeYCoordinateNew[0][NodeList[i]] + V*t*math.sin((Alpha[0][NodeList[i]]*math.pi)/180.0)), 2)
-    # 检查坐标有没有超过边界, 表示超界了，表示当前需要改变运行方向
-    # 为什么用while（）一定保证，坐标合理才能进行下一步操作
-    # 为了在运动时避开障碍，设置两种状态
-    # （1）在无障碍情况下计算距离
-    # （2）在有障碍的情况下再计算一次距离
-    # 如果两次距离相等，则中途没有障碍，可以直接到达目的位置
-    # 反之，不相等，则中途出现障碍，不能直接到达目的地，需要改变运动方向
-    # obstacle_flag = True 表明空间存在障碍
-    beforex = NodeXCoordinateNew[0][NodeList[i]]
-    beforey = NodeYCoordinateNew[0][NodeList[i]] 
-    # print "while True , change coordinate"
-    originAlphaValue = []
-    originAlphaValue.append(Alpha[0][NodeList[i]])
+
     while True:
         if t == 0:
             # print "表明当前节点能量已经为0，已经不能在运动了，视为死亡节点"
             break
         # 判断坐标是否越界
-        # print "begin check coordinate"
+        print "begin check coordinate"
         # 当前转向角不适合时，可以对转向角每次都进行微调
         AlphaValueStep = 1
         AlphaValueSum = 0
         while((NodeXCoordinateNew[0][NodeList[i]] < 1 or NodeXCoordinateNew[0][NodeList[i]] > EdgeLength) or (
                 NodeYCoordinateNew[0][NodeList[i]] < 1 or NodeYCoordinateNew[0][NodeList[i]] > EdgeLength)): 
             # 更新电单车运动方向 改变方向幅度不能太大 
-            # print "originAlphaValue =", originAlphaValue
-            # print "AlphaValue =", AlphaValue
+            print "originAlphaValue =", originAlphaValue
+            print "AlphaValue =", AlphaValue
             AlphaValueSum = AlphaValueSum + AlphaValue
             Alpha[0][NodeList[i]] = (Alpha[0][NodeList[i]] + AlphaValue)%360
-            # print "really operation time t =", t, 's'
-            # print "Alpha[0][", NodeList[i], "] =", Alpha[0][NodeList[i]] 
-            # print "N_x_new_temp =", N_x_new_temp
-            # print "N_y_new_temp =", N_y_new_temp
+            print "really operation time t =", t, 's'
+            print "Alpha[0][", NodeList[i], "] =", Alpha[0][NodeList[i]] 
+            print "N_x_new_temp =", N_x_new_temp
+            print "N_y_new_temp =", N_y_new_temp
             # 用上面备份的当前的坐标，重新往重新生成的方向前进
             NodeXCoordinateNew[0][NodeList[i]] = round((N_x_new_temp + V*t*math.cos((Alpha[0][NodeList[i]]*math.pi)/180.0)), 2)
             NodeYCoordinateNew[0][NodeList[i]] = round((N_y_new_temp + V*t*math.sin((Alpha[0][NodeList[i]]*math.pi)/180.0)), 2)
-            # print "beforex =", beforex
-            # print "beforey =", beforey
-            # print "NodeXCoordinateNew[0][", NodeList[i], "] =", NodeXCoordinateNew[0][NodeList[i]]
-            # print "NodeYCoordinateNew[0][", NodeList[i], "] =", NodeYCoordinateNew[0][NodeList[i]]
-            # print "AlphaValueSum =", AlphaValueSum
+            print "beforex =", beforex
+            print "beforey =", beforey
+            print "NodeXCoordinateNew[0][", NodeList[i], "] =", NodeXCoordinateNew[0][NodeList[i]]
+            print "NodeYCoordinateNew[0][", NodeList[i], "] =", NodeYCoordinateNew[0][NodeList[i]]
+            print "AlphaValueSum =", AlphaValueSum
             # 如果修改了电单车偏向角后，还会出现陷入死循环的情况，则方向角增加
             if ((beforex == NodeXCoordinateNew[0][NodeList[i]]) and (beforey == NodeYCoordinateNew[0][NodeList[i]])) or (AlphaValueSum%360 == 0):
                 AlphaValueSum = 0
-                # print "dead while delay(1)"
-                # time.sleep(1)
+                print "dead while delay(1)"
+                time.sleep(1)
                 # 说明AlphaValueStep已经循环了一圈，只能从修改t下手了
-                # print "operation time t =", t, 's'
+                print "operation time t =", t, 's'
                 # 变化90°范围就差不多了的
                 if AlphaValueStep == 90:
                     # 因为感觉，修改角度没什么用了
@@ -917,12 +1082,14 @@ def ChangeCoordinate(i, El, Et, RequestTime, Simulation_time, NodeList, NodeEs, 
                     t = t*(99.0/100.0)       
                     # 顺便把AlphaValueStep 初始化为1
                     AlphaValueStep = 1
-                # print "修改后的 t =", t, 's'
+                print "修改后的 t =", t, 's'
                 # AlphaValue不符合当前的那个数值，我们将其局部修改
                 AlphaValue = AlphaValueStep
                 # 步长加1
                 AlphaValueStep = AlphaValueStep + 1
-        # print "check coordinate over"    
+            print "delay(3)s"
+            time.sleep(3)
+        print "check coordinate over"    
         # 越界处理完成的标志，表示已经不越界
         crossing_flag = True
         # 电单车转向减小一点
@@ -974,7 +1141,7 @@ def ChangeCoordinate(i, El, Et, RequestTime, Simulation_time, NodeList, NodeEs, 
         
             # 表明两次同一点同一终点，所得距离不相等，说明行驶过程中遇到障碍，需要变向
             # 终点在障碍区域内或者运动过程中遇到障碍都将改变即将到达的位置的坐标
-            if np.abs(distance_no_obstacle[3] - distance_obstacle[3]) > 3.0:
+            if np.abs(distance_no_obstacle[3] - distance_obstacle[3]) != 0.0:
                 change_direction_flag = False
                 # 更新电单车运动方向 改变方向幅度不能太大
                 Alpha[0][NodeList[i]] = (Alpha[0][NodeList[i]] + AlphaValue)%360
@@ -1298,6 +1465,7 @@ if __name__ == "__main__":
                     for i in range(1, len(NodeList)):
                         # 修改节点能量
                         t = ChangeCoordinate(i, El, Et, First_RequestTime, Simulation_time, NodeList, NodeEs, NodeP, t_sum, NodeEsBackup, NodeMoveTime, NodeXCoordinateNew, NodeYCoordinateNew, V, Alpha, AlphaValue, EdgeLength, ObstacleCoordinate, ObstaclesNum)
+                        np.exit()
                         if t == 0:
                             # t == 0 表示该节点为死亡节点
                             DeadNodeNumber = DeadNodeNumber + 1
