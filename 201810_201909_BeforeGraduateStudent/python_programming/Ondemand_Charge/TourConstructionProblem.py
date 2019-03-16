@@ -24,23 +24,24 @@ RequestThresholdMin = 4
 # 第一种出发机制缓冲池最大值
 RequestThresholdMax = 6
 # 第一种出的机制以及其对比实验【固定缓冲池】初始化缓冲池大小
-RequestThreshold = 4
+RequestThreshold = 10
 
 # 几种出发机制运行的标志  True表示运行， False表示不运行
 # 第一种出发机制
 FirstFlag = True
-# 第一种出发机制对比实验
+# 第一种出发机制对比实验【固定缓冲池】
 FirstCompareFlag = True
 # 第二种出发机制
 SecondFlag = True
 # 第二种出发机制对比实验
 SecondCompareFlag = True
 # NJNP方法实验
-NJNPFlag = True
+NJNPFlag = False
 # TADP算法实验
-TADPFlag = True
+TADPFlag = False
 # RCSS 算法实验
-RCSSFlag = True
+RCSSFlag = False
+
 
 
 # 使用备份数据时，UseBackupDataFlag = True
@@ -52,7 +53,10 @@ result_path = "E:\\00000000000graduate-study\\GraduateStudentTask\\201810_201909
 
 # 以下为数据初始化
 # 节点数目 从 50 到 200 变化，将100节点的实验先 做全# 假设我有N辆电单车  会影响程序运行的时间
-NodeNum = 10
+
+NodeNum = 60
+# NodeNum = 40
+# NodeNum = 20
 # 选择插入算法角度阈值设定
 # cos90 = 0
 # cos180 = -1
@@ -67,21 +71,27 @@ MinAngle = 0   # 对应最小角度为90°或者270°，如果要修改角度阈
 # 1KJ=1000J
 # Em  数值从150kj 到400kj变化，间隔50kj变化# MC的总能量 j
 # Em = 150000.0   
-Em = 150000.0
+Em = 50000.0
 # 测试过程中从4m/s 到10m/s 变化# MC的移动速度 m/s
-Vm = 4.0  
+# Vm = 4.0  
+Vm = 5.0
 # Mc移动功耗为 J/m
-Qm = 55.0  
+# Qm = 55.0  
+Qm = 30
 # MCV充电传输速率 W
-Qc = 40.0  
+# Qc = 40.0  
+Qc = 5
 # 阈值上限当电车剩余能量小于1000.0j时，电车将发送request给MCV
-Et = 500
+# Et = 500
+Et = 225
 # 假设阈值下限为0j
 El =0
 # 每个节点的能量为5600j
-NodeEsValue = 5600
+# NodeEsValue = 5600
+NodeEsValue = 500
 # 假设定义的二维空间范围是 edge_n * edge_n 影响构造充电子回路# 电单车运动的空间边长 单位为m
-EdgeLength = 1000
+# EdgeLength = 1000
+EdgeLength = 500
 # 障碍个数
 ObstaclesNum = 20  
 # 转向变化的度数
@@ -583,7 +593,7 @@ def TourConstructionInformation(El, R_Sum, NodeEs, DeadNodeNum_data_txt, N_dista
     DeadNodeNum = 0
     for i in range(1, NodeNum + 1):
         # 一个节点剩余能量低于0时，表明该节点已经死亡
-        if NodeEs[0][i] <= El:
+        if NodeEs[0][i] <= 0:
             DeadNodeNum = DeadNodeNum + 1
     if DebugFlag is True:
         print "死亡节点个数DeadNodeNum =", DeadNodeNum
@@ -684,7 +694,7 @@ def SummaryByTime(El, mechanism, R_Sum, Simulation_time, NodeEs, N_distance, Nod
     DeadNodeNum = 0
     for i in range(1, NodeNum + 1):
         # 一个节点剩余能量低于0时，表明该节点已经死亡
-        if NodeEs[0][i] <= El:
+        if NodeEs[0][i] <= 0:
             DeadNodeNum = DeadNodeNum + 1
     # print "死亡节点个数DeadNodeNum =", DeadNodeNum
     
@@ -1083,14 +1093,14 @@ def ChangeCoordinate(i, El, Et, RequestTime, Simulation_time, NodeList, NodeEs, 
     NodeEs[0][NodeList[i]] = round((NodeEs[0][NodeList[i]] - NodeP[0][NodeList[i]]*t_sum), 2)
     if DebugFlag is True:
         print "预计消耗的能量 NodeP[0][NodeList[i]]*t =", NodeP[0][NodeList[i]]*t_sum, 'j'
-        print "死亡能量阈值 El =", El, 'j'
-        print "能量阈值 Et =", Et, 'j'
+        print "死亡能量阈值El=", 0, 'j'
+        print "能量阈值Et=", Et, 'j'
     # 能量将低于阈值下限
-    if NodeEs[0][NodeList[i]] <= El:
-        if NodeEsBackup[i] <= El:
+    if NodeEs[0][NodeList[i]] <= 0:
+        if NodeEsBackup[i] <= 0:
             if DebugFlag is True:
                 print "case 1"
-                print "之前该节点已经失效，不再参与计算"
+                print "之前该节点已经失效,不再参与计算"
             # 剩余能量还是上次备份的能量
             NodeEs[0][NodeList[i]] = NodeEsBackup[i]
             # 即使节点不动，也要给它的时间赋值，避免之后节点的坐标会发生改变
@@ -1098,13 +1108,13 @@ def ChangeCoordinate(i, El, Et, RequestTime, Simulation_time, NodeList, NodeEs, 
         else:
             if DebugFlag is True:
                 print "case 2"
-                print "NodeEs[0][NodeList[i]]  =", NodeEs[0][NodeList[i]]
-                print "节点实际消耗的能量为", NodeEsBackup[i] - El, 'j'
+                print "NodeEs[0][NodeList[i]]=", NodeEs[0][NodeList[i]]
+                print "节点实际消耗的能量为", NodeEsBackup[i] - 0, 'j'
             # 修改节点剩余能量,该点变为静态点了
-            NodeEs[0][NodeList[i]] = El
+            NodeEs[0][NodeList[i]] = 0
             if DebugFlag is True:
-                print "节点实际运动的时间为", (NodeEsBackup[i] - El)/NodeP[0][NodeList[i]], 's'
-            NodeMoveTime[0][NodeList[i]] = (NodeEsBackup[i] - El)/NodeP[0][NodeList[i]]
+                print "节点实际运动的时间为", (NodeEsBackup[i] - 0)/NodeP[0][NodeList[i]], 's'
+            NodeMoveTime[0][NodeList[i]] = (NodeEsBackup[i] - 0)/NodeP[0][NodeList[i]]
     # 能量将低于阈值上限，将发出Request信号
     if NodeEs[0][NodeList[i]] <= Et:
         if NodeEsBackup[i] <= Et:
@@ -1116,25 +1126,25 @@ def ChangeCoordinate(i, El, Et, RequestTime, Simulation_time, NodeList, NodeEs, 
             RequestTime[0][NodeList[i]] = Simulation_time - t_sum + (NodeEsBackup[i] - Et)/NodeP[0][NodeList[i]]
             # print "RequestTime[0][", NodeList[i], "] =", RequestTime[0][NodeList[i]]
     # 能量不会低于阈值下限
-    if NodeEs[0][NodeList[i]] > El:
+    if NodeEs[0][NodeList[i]] > 0:
         if DebugFlag is True:
             print "case 3"
-            print "NodeEs[0][NodeList[i]]  =", NodeEs[0][NodeList[i]]
+            print "NodeEs[0][NodeList[i]]=", NodeEs[0][NodeList[i]]
             print "节点实际消耗的能量为", NodeP[0][NodeList[i]]*t_sum, 'j'
             print "节点实际运动的时间为", t_sum, 's'
         NodeMoveTime[0][NodeList[i]] = t_sum
     if DebugFlag is True:
-        print "NodeMoveTime[0] =", NodeMoveTime[0]
-        print "NodeEs[0] =", NodeEs[0]
+        print "NodeMoveTime[0]=", NodeMoveTime[0]
+        print "NodeEs[0]=", NodeEs[0]
     # 修改节点的运动时间，因为当节点能量小于阈值El时，电单车节点变为静态节点，保留阈值El能量
     t = NodeMoveTime[0][NodeList[i]]
     t_new = t
-    if DebugFlag is True:
-        print "t_new =", t_new
-    while 167 < t:
-        t = 167
-        if DebugFlag is True:
-            print "t =", t, 's'
+    # if DebugFlag is True:
+    print "t_new=", t_new
+    while ((EdgeLength/2)/V) < t:
+        t = ((EdgeLength/2)/V)
+        # if DebugFlag is True:
+        print "t=", t, 's'
 
         # 考虑到边界问题，先将改变之前的坐标记录下来
         N_x_new_temp = NodeXCoordinateNew[0][NodeList[i]]
@@ -1154,7 +1164,7 @@ def ChangeCoordinate(i, El, Et, RequestTime, Simulation_time, NodeList, NodeEs, 
         # obstacle_flag = True 表明空间存在障碍
         beforex = NodeXCoordinateNew[0][NodeList[i]]
         beforey = NodeYCoordinateNew[0][NodeList[i]] 
-        # print "while True , change coordinate"
+        print "while True , change coordinate"
         originAlphaValue = []
         originAlphaValue.append(Alpha[0][NodeList[i]])
          
@@ -1271,12 +1281,12 @@ def ChangeCoordinate(i, El, Et, RequestTime, Simulation_time, NodeList, NodeEs, 
                     # 起点到终点途中不存在障碍或终点不存在与障碍区域
                     # 退出while()
                     break
-        t_new = (t_new - 167)
+        t_new = (t_new - ((EdgeLength/2)/V))
         # print "t_new =", t_new, 's'
         t =  t_new
         # print "t =", t, 's'
-    # print "over while 167 < t"
-    # print "t =", t, 's'
+    # print "over while ((EdgeLength/2)/V) < t"
+    print "t =", t, 's'
 
     # 考虑到边界问题，先将改变之前的坐标记录下来
     N_x_new_temp = NodeXCoordinateNew[0][NodeList[i]]
@@ -1710,6 +1720,7 @@ if __name__ == "__main__":
                             # 改变El时，每次能量都需要恢复到最原始的能量大小
                             for i in range(0, len(NodeList)):
                                 NodeEs[0][NodeList[i]] = NodeEsBackup[i]
+                            print "NodeEsBackup =", NodeEsBackup
                             ConsumptionSum = 0.0
                             # 每个节点运动t时间后，统计所消耗的能量，以及成为静态节点的个数
                             for i in range(1, len(NodeList)):
@@ -1717,8 +1728,8 @@ if __name__ == "__main__":
                                 NodeEs[0][NodeList[i]] = round((NodeEs[0][NodeList[i]] - NodeP[0][NodeList[i]]*t), 2)
                                 ConsumptionSum = ConsumptionSum + NodeP[0][NodeList[i]]*t 
                                 if DebugFlag is True:
-                                    print "预计消耗的能量 NodeP[0][NodeList[i]]*t =", NodeP[0][NodeList[i]]*t, 'j'
-                                    print "能量阈值下限 El =", El, 'j'
+                                    print "预计消耗的能量 NodeP[0][NodeList[i]]*t=", NodeP[0][NodeList[i]]*t, 'j'
+                                    print "能量阈值下限El=", El, 'j'
                                 
                                 # 节点剩余能量将低于阈值下限
                                 if NodeEs[0][NodeList[i]] <= El:
@@ -1748,8 +1759,8 @@ if __name__ == "__main__":
                                     NodeOperateEs = NodeOperateEs + NodeP[0][NodeList[i]]*t
                             # 这是针对一个El的统计结果
                             if DebugFlag is True:
-                                print "静态节点个数 StaticNodeNum =", StaticNodeNum, '个' 
-                                print "节点运行总能量 NodeOperateEs =", NodeOperateEs, 'j'
+                                print "静态节点个数StaticNodeNum=", StaticNodeNum, '个' 
+                                print "节点运行总能量NodeOperateEs=", NodeOperateEs, 'j'
                             ElStaticNodeList = []
                             ElNodeOperateEsList = []
                             # 添加（El, 失效率）
@@ -1830,8 +1841,8 @@ if __name__ == "__main__":
                             print "p =", p
                         if DebugFlag is True:
                             print "wBest =", wBest
-                            print "阈值上限为 Et =", Et
-                            print "在这次运行过程中比较适合的阈值下限 ElFinal =", ElFinal
+                            print "阈值上限为 Et=", Et
+                            print "在这次运行过程中比较适合的阈值下限ElFinal=", ElFinal
                             print "p1(ElFinal) =", p1(ElFinal)
                             print "p2(ElFinal) =", p2(ElFinal)
                         # 将El的值用ElFinal代替
@@ -1846,7 +1857,7 @@ if __name__ == "__main__":
                         if El >= Et:
                             if DebugFlag is True:
                                 print "El 大于Et~"
-                            El = Et - ElThresholdValue
+                            El = 0
                             if DebugFlag is True:
                                 print "El修改为El =", El
                         Ellist = []
@@ -1910,6 +1921,7 @@ if __name__ == "__main__":
                             All_path = os.path.join(Second_path, origin_path)
                             plt.savefig(All_path)
                             plt.show()
+                            # plt,show()
                         if (i == (len(NodeList) - 1)) and ((len(NodeList) - 1) != DeadNodeNumber):
                             if DebugFlag is True:
                                 print "死亡节点个数 DeadNodeNumber =", DeadNodeNumber
@@ -2288,10 +2300,10 @@ if __name__ == "__main__":
         # 每次执行程序前初始化仿真时间
         Simulation_time = 0.0
         # 统一El的值
-        Eldata = np.loadtxt(El_wBest_Txt)
-        print "Eldata[0] =", Eldata[0]
-        # 保持El与第二种出发机制计算出来的机制相同
-        El = Eldata[0]
+        # Eldata = np.loadtxt(El_wBest_Txt)
+        # print "Eldata[0] =", Eldata[0]
+        # El 初始化为0
+        El = 0
         # 使用备份数据
         ObstacleCoordinate = UseBackupData()
         # 初始化函数
@@ -2721,10 +2733,10 @@ if __name__ == "__main__":
     
     if FirstCompareFlag is True:
         # 统一El的值
-        Eldata = np.loadtxt(El_wBest_Txt)
-        print "Eldata[0] =", Eldata[0]
-        # 保持El与第二种出发机制计算出来的机制相同
-        El = Eldata[0]
+        # Eldata = np.loadtxt(El_wBest_Txt)
+        # print "Eldata[0] =", Eldata[0]
+        # El初始化为0
+        El = 0
 
         Simulation_time = 0.0
         print "FirstCompare Task"
@@ -3177,11 +3189,12 @@ if __name__ == "__main__":
 
     if FirstFlag is True:
         # 统一El的值
-        Eldata = np.loadtxt(El_wBest_Txt)
-        print "Eldata[0] =", Eldata[0]
-        # 保持El与第二种出发机制计算出来的机制相同
-        El = Eldata[0]
-
+        # Eldata = np.loadtxt(El_wBest_Txt)
+        # print "Eldata[0] =", Eldata[0]
+        # El初始化为0
+        El = 0
+        # 第一种出发机制的初始化阈值缓冲池大小为4
+        RequestThreshold = RequestThresholdMin
         Simulation_time = 0.0
         print "First Task"
         # 使用备份数据
@@ -3659,10 +3672,10 @@ if __name__ == "__main__":
          
     if NJNPFlag is True:
         # 统一El的值
-        Eldata = np.loadtxt(El_wBest_Txt)
-        print "Eldata[0] =", Eldata[0]
-        # 保持El与第二种出发机制计算出来的机制相同
-        El = Eldata[0]
+        # Eldata = np.loadtxt(El_wBest_Txt)
+        # print "Eldata[0] =", Eldata[0]
+        # El初始化为0
+        El = 0
         Simulation_time = 0.0
         print "NJNP Task"
         # 使用备份数据
@@ -3972,10 +3985,10 @@ if __name__ == "__main__":
     
     if TADPFlag is True:
         # 统一El的值
-        Eldata = np.loadtxt(El_wBest_Txt)
-        print "Eldata[0] =", Eldata[0]
-        # 保持El与第二种出发机制计算出来的机制相同
-        El = Eldata[0]
+        # Eldata = np.loadtxt(El_wBest_Txt)
+        # print "Eldata[0] =", Eldata[0]
+        # El初始化为0
+        El = 0
 
         Simulation_time = 0.0
         print "TADP Task"
@@ -4347,10 +4360,10 @@ if __name__ == "__main__":
 
     if RCSSFlag is True:
         # 统一El的值
-        Eldata = np.loadtxt(El_wBest_Txt)
-        print "Eldata[0] =", Eldata[0]
-        # 保持El与第二种出发机制计算出来的机制相同
-        El = Eldata[0]
+        # Eldata = np.loadtxt(El_wBest_Txt)
+        # print "Eldata[0] =", Eldata[0]
+        # El初始化为0
+        El = 0
         Simulation_time = 0.0
         print "RCSS Task"
         # 使用备份数据
@@ -4727,9 +4740,10 @@ if __name__ == "__main__":
     data1 = np.loadtxt(FirstCompare_ResponseTimeAndServiceTimeSimulation_list_txt)
     data2 = np.loadtxt(Second_ResponseTimeAndServiceTimeSimulation_list_txt)
     data3 = np.loadtxt(SecondCompare_ResponseTimeAndServiceTimeSimulation_list_txt)
-    data4 = np.loadtxt(NJNP_ResponseTimeAndServiceTimeSimulation_list_txt)
-    data5 = np.loadtxt(TADP_ResponseTimeAndServiceTimeSimulation_list_txt)
-    data6 = np.loadtxt(RCSS_ResponseTimeAndServiceTimeSimulation_list_txt)
+    # data4 = np.loadtxt(NJNP_ResponseTimeAndServiceTimeSimulation_list_txt)
+    # data5 = np.loadtxt(TADP_ResponseTimeAndServiceTimeSimulation_list_txt)
+    # data6 = np.loadtxt(RCSS_ResponseTimeAndServiceTimeSimulation_list_txt)
+    # print "data =", data
 
     # 平均响应时间和平均服务时间两个性能图表刻度
     kedu_new = 500
@@ -4740,7 +4754,7 @@ if __name__ == "__main__":
     # RespondTime = data[1]
     # ServiceTime = data[2]
     
-    
+    '''
     SimulationTimeMinx = min(min(data[0]), min(data1[0]), min(data2[0]), min(data3[0]), min(data4[0]), min(data5[0]), min(data6[0]))
     print "SimulationTimeMinx =", SimulationTimeMinx
 
@@ -4758,7 +4772,7 @@ if __name__ == "__main__":
 
     ServiceTimeMaxy = max(max(data[2]), max(data1[2]), max(data2[2]), max(data3[2]), max(data4[2]), max(data5[2]), max(data6[2]))
     print "ServiceTimeMaxy =", ServiceTimeMaxy
-    
+    '''
     
     # 主要用于画图中进行操作，线条的颜色
     # LineColor =['b', 'g', 'r', 'c', 'm', 'y', 'k']
@@ -4776,9 +4790,9 @@ if __name__ == "__main__":
     plt.plot(data1[0], data1[1],'r-.s',label = 'RespondTime1Com')
     plt.plot(data2[0], data2[1], 'g--^',label = 'RespondTime2')
     plt.plot(data3[0], data3[1],'b:p',label = 'RespondTime2Com')
-    plt.plot(data4[0], data4[1],'m-.v',label = 'RespondTimeNJNP')
-    plt.plot(data5[0], data5[1],'y:v',label = 'RespondTimeTADP')
-    plt.plot(data6[0], data6[1],'k:.',label = 'RespondTimeRCSS')
+    # plt.plot(data4[0], data4[1],'m-.v',label = 'RespondTimeNJNP')
+    # plt.plot(data5[0], data5[1],'y:v',label = 'RespondTimeTADP')
+    # plt.plot(data6[0], data6[1],'k:.',label = 'RespondTimeRCSS')
 
     plt.legend(loc='lower right', edgecolor='black')
     plt.xlabel('Simulation_time')
@@ -4788,7 +4802,7 @@ if __name__ == "__main__":
     plt.grid()
     # plt.xlim([(SimulationTimeMinx%100)*100 - kedu_new, SimulationTimeMaxx + 200]) #设置绘图X边界                                                                                                   
     # plt.ylim([RespondTimeMiny , RespondTimeMaxy + 50]) #设置绘图Y边界
-    plt.axis([(SimulationTimeMinx%100)*100 - kedu_new, SimulationTimeMaxx + 200, 0, RespondTimeMaxy + 50])
+    # plt.axis([(SimulationTimeMinx%100)*100 - kedu_new, SimulationTimeMaxx + 200, 0, RespondTimeMaxy + 50])
     plt.savefig(All_path)
     plt.show()
     
@@ -4801,9 +4815,9 @@ if __name__ == "__main__":
     plt.plot(data1[0], data1[2], 'r-.s',label = 'ServiceTime1Com')
     plt.plot(data2[0], data2[2],'g--^',label = 'ServiceTime2')
     plt.plot(data3[0], data3[2], 'b:p',label = 'ServiceTime2Com')
-    plt.plot(data4[0], data4[2],'m-.v',label = 'ServiceTimeNJNP')
-    plt.plot(data5[0], data5[2],'y:v',label = 'ServiceTimeTADP')
-    plt.plot(data6[0], data6[2],'k:.',label = 'ServiceTimeRCSS')
+    # plt.plot(data4[0], data4[2],'m-.v',label = 'ServiceTimeNJNP')
+    # plt.plot(data5[0], data5[2],'y:v',label = 'ServiceTimeTADP')
+    # plt.plot(data6[0], data6[2],'k:.',label = 'ServiceTimeRCSS')
 
     plt.legend(loc='lower right', edgecolor='black')
     plt.xlabel('Simulation_time')
@@ -4813,7 +4827,7 @@ if __name__ == "__main__":
     plt.grid()
     # plt.xlim([(SimulationTimeMinx%100)*100 - kedu_new, SimulationTimeMaxx + 200]) #设置绘图X边界                                                                                                   
     # plt.ylim([ServiceTimeMiny, ServiceTimeMaxy + 50]) #设置绘图Y边界
-    plt.axis([(SimulationTimeMinx%100)*100 - kedu_new, SimulationTimeMaxx + 200, 0, ServiceTimeMaxy + 50])
+    # plt.axis([(SimulationTimeMinx%100)*100 - kedu_new, SimulationTimeMaxx + 200, 0, ServiceTimeMaxy + 50])
     plt.savefig(All_path)
     plt.show()
 

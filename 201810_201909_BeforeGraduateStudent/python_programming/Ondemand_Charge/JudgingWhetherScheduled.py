@@ -35,7 +35,7 @@ def judging_whether_scheduled(P, Em, qc, qm, nl, R, vm, N_distance):
     # 三个决策条件
     factor_1 = psum
     # factor_2 = round((D*qc*nl*pmax)/(qc*nl-psum), 2)
-    factor_3 = round(((psum*((D*qc)/(vm*(qc*nl-psum)))) + (D*qm)), 2)
+    # factor_3 = round(((psum*((D*qc)/(vm*(qc*nl-psum)))) + (D*qm)), 2)
     #  可调度的标志
     # success_flag = True 可调度
     # success_flag = False 不可调度
@@ -44,12 +44,15 @@ def judging_whether_scheduled(P, Em, qc, qm, nl, R, vm, N_distance):
     # print "vm =", vm
     # print "factor_2 =", factor_2
     print "Em =", Em
-    print "factor_3 =", factor_3
+    success_flag = False
     # if qc*nl > factor_1 and vm > factor_2 and Em >= factor_3:
-    if qc*nl > factor_1 and Em >= factor_3:
-        success_flag = True
-    else:
-        success_flag = False
+    if qc*nl > factor_1:
+        if Em >= round(((psum*((D*qc)/(vm*(qc*nl-psum)))) + (D*qm)), 2):
+            factor_3 = round(((psum*((D*qc)/(vm*(qc*nl-psum)))) + (D*qm)), 2)
+            print "factor_3 =", factor_3
+            success_flag = True
+        else:
+            success_flag = False
     return success_flag
 
 

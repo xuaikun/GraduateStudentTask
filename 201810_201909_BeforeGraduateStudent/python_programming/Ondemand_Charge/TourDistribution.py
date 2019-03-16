@@ -147,8 +147,9 @@ def TourDistributionProgramming(MCV_Tour_Information_txt):
     filePath = os.path.join(SplitPath[0], fileName)
     if DebugFlag is True:
         print "filePath =", filePath
-    print "len(MCVSum) =", len(MCVSum)
-    print "before MCVSum =", MCVSum
+    if DebugFlag is True:
+        print "len(MCVSum) =", len(MCVSum)
+        print "before MCVSum =", MCVSum
     MCVResult = []
     MCVResult.append(len(MCVSum))
     MCVResult.append(MCVSum)
@@ -156,8 +157,9 @@ def TourDistributionProgramming(MCV_Tour_Information_txt):
     f1 = open(filePath, 'w')
     f1.write(str(MCVResult))
     f1.close()
-    print "len(MCVSum) =", len(MCVSum)
-    print "after MCVSum =", MCVSum
+    if DebugFlag is True:
+        print "len(MCVSum) =", len(MCVSum)
+        print "after MCVSum =", MCVSum
     # 返回充电回路分配给MCV的详细信息
     return MCVSum 
          
