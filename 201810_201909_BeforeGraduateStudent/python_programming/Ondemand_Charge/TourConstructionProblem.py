@@ -81,6 +81,8 @@ Qm = 30
 # MCV充电传输速率 W
 # Qc = 40.0  
 Qc = 5
+# 类似于效率一样，占比多少 n = 0.5
+nl = 0.5  
 # 阈值上限当电车剩余能量小于1000.0j时，电车将发送request给MCV
 # Et = 500
 Et = 225
@@ -96,8 +98,7 @@ EdgeLength = 500
 ObstaclesNum = 20  
 # 转向变化的度数
 AlphaValue = 30
-# 类似于效率一样，占比多少 n = 0.5
-nl = 0.5  
+
  # 充电周期需要知道7200s
 T = 7200.0
 # 初始化电单车的运行速度为 3m/s 
@@ -2006,8 +2007,11 @@ if __name__ == "__main__":
                     R_list_Backup[0] = R_list_Backup_FirstValue
                     if DebugFlag is True:
                         print "R_list_Backup =", R_list_Backup
-                    # 其它点，当剩余能力未低于El时继续运动
-                    JudgeResult = B.judging_whether_scheduled(NodeP,Em, Qc, Qm, nl, R_New, Vm, N_distance)
+                    # MCV给电单车节点的充电功率
+                    qc = Qc
+                    # 类似于效率一样，占比多少 n = 0.5
+                    Nl = nl  
+                    JudgeResult = B.judging_whether_scheduled(NodeP,Em, qc, Qm, Nl, R_New, Vm, N_distance)
                     # 使用调度性条件判断是否满足决策条件
                     print "JudgeResult =", JudgeResult
                     if JudgeResult is True:
@@ -2460,7 +2464,11 @@ if __name__ == "__main__":
                     if DebugFlag is True:
                         print "R_list_Backup =", R_list_Backup
                     # 其它点，当剩余能力未低于El时继续运动
-                    JudgeResult = B.judging_whether_scheduled(NodeP,Em, Qc, Qm, nl, R_New, Vm, N_distance)
+                    # MCV给电单车节点的充电功率
+                    qc = Qc
+                    # 类似于效率一样，占比多少 n = 0.5
+                    Nl = nl
+                    JudgeResult = B.judging_whether_scheduled(NodeP,Em, qc, Qm, Nl, R_New, Vm, N_distance)
                     # 使用调度性条件判断是否满足决策条件
                     print "JudgeResult =", JudgeResult
                     if JudgeResult is True:
@@ -2946,7 +2954,11 @@ if __name__ == "__main__":
                     if DebugFlag is True:
                         print "R_list_Backup =", R_list_Backup
                     # 其它点，当剩余能力未低于El时继续运动
-                    JudgeResult = B.judging_whether_scheduled(NodeP,Em, Qc, Qm, nl, R_New, Vm, N_distance)
+                    # MCV给电单车节点的充电功率
+                    qc = Qc
+                    # 类似于效率一样，占比多少 n = 0.5
+                    Nl = nl
+                    JudgeResult = B.judging_whether_scheduled(NodeP,Em, qc, Qm, Nl, R_New, Vm, N_distance)
                     # 使用调度性条件判断是否满足决策条件
                     print "JudgeResult =", JudgeResult
                     if JudgeResult is True:
@@ -3408,7 +3420,11 @@ if __name__ == "__main__":
                     if DebugFlag is True:
                         print "R_list_Backup =", R_list_Backup
                     # 其它点，当剩余能力未低于El时继续运动
-                    JudgeResult = B.judging_whether_scheduled(NodeP,Em, Qc, Qm, nl, R_New, Vm, N_distance)
+                    # MCV给电单车节点的充电功率
+                    qc = Qc
+                    # 类似于效率一样，占比多少 n = 0.5
+                    Nl = nl
+                    JudgeResult = B.judging_whether_scheduled(NodeP,Em, qc, Qm, Nl, R_New, Vm, N_distance)
                     # 使用调度性条件判断是否满足决策条件
                     print "JudgeResult =", JudgeResult
                     if JudgeResult is True:
@@ -3585,12 +3601,12 @@ if __name__ == "__main__":
                         print "Request_list =", Request_list
                         print "len(Request_list) =", len(Request_list)
                         print "float(NodeNum) =", float(NodeNum)
-                        nl = len(Request_list)/float(NodeNum)
-                        print "nl =", nl
+                        nnl = len(Request_list)/float(NodeNum)
+                        print "nnl =", nnl
                         RequestThresholdMax = (Em -(((EdgeLength*4)/Vm)*Qm))/NodeEsValue
                         print "RequestThresholdMax =", RequestThresholdMax
                         print "RequestThresholdMin =", RequestThresholdMin
-                        w = nl*(RequestThresholdMax - RequestThresholdMin)
+                        w = nnl*(RequestThresholdMax - RequestThresholdMin)
                         print "w =", w
                         # 取整
                         if w == int(w):
