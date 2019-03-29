@@ -1,3 +1,4 @@
+
 # encoding: utf-8
 # 本程序主要实现，充电回路的构造
 
@@ -28,9 +29,9 @@ RequestThreshold = 10
 
 # 几种出发机制运行的标志  True表示运行， False表示不运行
 # 第一种出发机制
-FirstFlag = True
+FirstFlag = False
 # 第二种出发机制
-SecondFlag = True
+SecondFlag = False
 
 # 使用备份数据时，UseBackupDataFlag = True
 # 不使用备份数据时，UseBackupDataFlag = False
@@ -47,8 +48,10 @@ NodeNum = 60
 # 选择插入算法角度阈值设定
 # cos90 = 0
 # cos180 = -1
+# cos270 = 0
 # cos90 > cosr > cos180
-# 90 < r < 180
+# cos270 > cosr > cos180
+# 90 < r < 180 < r <270
 # 目前设定
 MaxAngle = -1  # 对应最大角度为180°
 MinAngle = 0   # 对应最小角度为90°或者270°，如果要修改角度阈值，最好选择修改MinAngle
@@ -61,9 +64,9 @@ MinAngle = 0   # 对应最小角度为90°或者270°，如果要修改角度阈
 Em = 50000.0
 # 测试过程中从4m/s 到10m/s 变化# MC的移动速度 m/s
 # Vm = 4.0  
-Vm = 7.0
+Vm = 9.0
 # 初始化电单车的运行速度为 3m/s 
-V = 6.0 
+V = 3.0 
 # Mc移动功耗为 J/m
 # Qm = 55.0  
 Qm = 30
@@ -166,7 +169,7 @@ if not isExist:
     os.makedirs(result_name)
 
 # 自主修改数据结果子的子目录
-childern_result_name = 'Em_' + str(int(Em)) + '_vm_' +str(int(Vm)) + '_v_' + str(int(V)) +'_qm_' + str(int(Qm)) + '_qc_' + str(int(Qc))
+childern_result_name = 'Em_' + str(int(Em)) + '_vm_' +str(int(Vm)) + '_v_' + str(int(V)) +'_qm_' + str(int(Qm)) + '_qc_' + str(int(Qc)) + '_ObstaclesNum_' + str(int(ObstaclesNum))
 childern_result_name = os.path.join(result_name, childern_result_name)
 isExist = os.path.exists(childern_result_name)
 if not isExist:
@@ -292,10 +295,10 @@ Second_ResponseTimeAndServiceTimeSimulationTime_list = []
 def UseBackupData():
     ObstacleCoordinate = np.loadtxt(Obstacle_information_data_txt, dtype = np.int)
          
-    ObstacleXDown[0] = ObstacleCoordinate[0]
-    ObstacleXUp[0]   = ObstacleCoordinate[1]
-    ObstacleYDown[0] = ObstacleCoordinate[2]
-    ObstacleYUp[0]   = ObstacleCoordinate[3]
+    ObstacleXDown[0] = ObstacleCoordinate[0][0:ObstaclesNum]
+    ObstacleXUp[0]   = ObstacleCoordinate[1][0:ObstaclesNum]
+    ObstacleYDown[0] = ObstacleCoordinate[2][0:ObstaclesNum]
+    ObstacleYUp[0]   = ObstacleCoordinate[3][0:ObstaclesNum]
     # print "obstacle_coordinate =", obstacle_coordinate
     # print "len(obstacle_coordinate) =", len(obstacle_coordinate )
     
@@ -1869,6 +1872,18 @@ if __name__ == "__main__":
                                 Road_information = N_distance_Road_result[1] 
                                 if DebugFlag is True:
                                     print "节点距离修改完毕"
+                        # 临时的回路汇总，为R_Sum和R_New的集合
+                        # print "添加相关性能信息~"
+                        R_Sum_Temp = []
+                        # print "R_Sum =", R_Sum
+                        for i in range(0, len(R_Sum)):
+                            R_Sum_Temp.append(R_Sum[i])
+                        # print "R_Sum_Temp =", R_Sum_Temp
+                        # print "R_New =", R_New
+                        R_Sum_Temp.append(R_New)
+                        # print "R_Sum_Temp =", R_Sum_Temp                        
+                        SummaryByTime(El, 'Second', R_Sum_Temp, Simulation_time, NodeEs, N_distance, NodeXCoordinateNew, NodeYCoordinateNew, ObstacleCoordinate)
+                        
                     else:
                         R_New_FirstValue = R_New[0]
                         R_New[0] = 0
@@ -1890,7 +1905,7 @@ if __name__ == "__main__":
                         # 当充电回路中只有服务站S时，不需要添加到充电回路集合中
                         if len(R_New) != 1:
                             R_Sum.append(R_New)
-                            SummaryByTime(El, 'Second', R_Sum, Simulation_time, NodeEs, N_distance, NodeXCoordinateNew, NodeYCoordinateNew, ObstacleCoordinate)
+                            # SummaryByTime(El, 'Second', R_Sum, Simulation_time, NodeEs, N_distance, NodeXCoordinateNew, NodeYCoordinateNew, ObstacleCoordinate)
                         R_list_Backup_flag = True
                         # 如果len(R_New) > 2 使用原来的服务站创建新的充电回路
                         # 添加服务站S，并创建新的回路
@@ -1918,7 +1933,7 @@ if __name__ == "__main__":
                         R_list_Backup_flag = True
                         NodeALERTFlag = False
                         R_Sum.append(R_New)
-                        SummaryByTime(El, 'Second', R_Sum, Simulation_time, NodeEs, N_distance, NodeXCoordinateNew, NodeYCoordinateNew, ObstacleCoordinate)
+                        # SummaryByTime(El, 'Second', R_Sum, Simulation_time, NodeEs, N_distance, NodeXCoordinateNew, NodeYCoordinateNew, ObstacleCoordinate)
                         # 发送请求的节点已经全部加入充电回路了,退出while循环，重新获取充电请求
                         break
         # 添加构建回路的相关信息
@@ -2304,7 +2319,19 @@ if __name__ == "__main__":
                                 N_distance = N_distance_Road_result[0]
                                 Road_information = N_distance_Road_result[1] 
                                 if DebugFlag is True:
-                                    print "距离统计完毕"                                 
+                                    print "距离统计完毕"  
+                        # 临时的回路汇总，为R_Sum和R_New的集合
+                        # print "添加相关性能信息~"
+                        R_Sum_Temp = []
+                        # print "R_Sum =", R_Sum
+                        for i in range(0, len(R_Sum)):
+                            R_Sum_Temp.append(R_Sum[i])
+                        # print "R_Sum_Temp =", R_Sum_Temp
+                        # print "R_New =", R_New
+                        R_Sum_Temp.append(R_New)
+                        # print "R_Sum_Temp =", R_Sum_Temp                        
+                        SummaryByTime(El, 'First', R_Sum_Temp, Simulation_time, NodeEs, N_distance, NodeXCoordinateNew, NodeYCoordinateNew, ObstacleCoordinate)
+                                                       
                     else:
                         R_New_FirstValue = R_New[0]
                         R_New[0] = 0
@@ -2326,7 +2353,7 @@ if __name__ == "__main__":
                             # 一添加回路，就统计一下相关的数据
                             # 在这里统计比较方便直观
                             # R_Sum中保存着到目前为止所有已经构造的回路的节点的相关信息
-                            SummaryByTime(El,'First', R_Sum, Simulation_time, NodeEs, N_distance, NodeXCoordinateNew, NodeYCoordinateNew, ObstacleCoordinate)
+                            # SummaryByTime(El,'First', R_Sum, Simulation_time, NodeEs, N_distance, NodeXCoordinateNew, NodeYCoordinateNew, ObstacleCoordinate)
                         R_list_Backup = []
                         for q in range(0, len(R_list)):
                             R_list_Backup.append(R_list[q])
@@ -2385,7 +2412,7 @@ if __name__ == "__main__":
                             print "对发送过Request请求的节点已经操作完毕"
                         NodeListNum = len(NodeList)
                         R_Sum.append(R_New)
-                        SummaryByTime(El, 'First', R_Sum, Simulation_time, NodeEs, N_distance, NodeXCoordinateNew, NodeYCoordinateNew, ObstacleCoordinate)
+                        # SummaryByTime(El, 'First', R_Sum, Simulation_time, NodeEs, N_distance, NodeXCoordinateNew, NodeYCoordinateNew, ObstacleCoordinate)
                         # 当前Request_list序列为空
                         if len(Request_list) == 0:
                             print "len(Request_list) =", len(Request_list)
